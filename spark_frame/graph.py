@@ -1,0 +1,3 @@
+from spark_frame.graph_impl.ascending_forest_traversal import ascending_forest_traversal
+
+ascending_forest_traversal = ascending_forest_traversal
