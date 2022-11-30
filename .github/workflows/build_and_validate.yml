@@ -54,8 +54,6 @@ jobs:
         run: poetry run flake8 ${{ env.PROJECT_NAME }} tests
       - name: Linter mypy
         run: poetry run mypy ${{ env.PROJECT_NAME }}
-        # We run mypy but ignore the results as there are too many things to fix for now.
-        continue-on-error: true
       - name: Security bandit
         run: poetry run bandit .
       - name: Security safety
