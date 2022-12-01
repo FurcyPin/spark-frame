@@ -249,14 +249,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#examples.working_with_nested_data.transform_nested_fields--without-spark-frame" class="md-nav__link">
+  <a href="#spark_frame.examples.working_with_nested_data.transform_nested_fields--without-spark-frame" class="md-nav__link">
     Without spark-frame
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#examples.working_with_nested_data.transform_nested_fields--with-spark-frame" class="md-nav__link">
+  <a href="#spark_frame.examples.working_with_nested_data.transform_nested_fields--with-spark-frame" class="md-nav__link">
     With spark-frame
   </a>
   
@@ -344,14 +344,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#examples.working_with_nested_data.transform_nested_fields--without-spark-frame" class="md-nav__link">
+  <a href="#spark_frame.examples.working_with_nested_data.transform_nested_fields--without-spark-frame" class="md-nav__link">
     Without spark-frame
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#examples.working_with_nested_data.transform_nested_fields--with-spark-frame" class="md-nav__link">
+  <a href="#spark_frame.examples.working_with_nested_data.transform_nested_fields--with-spark-frame" class="md-nav__link">
     With spark-frame
   </a>
   
@@ -398,7 +398,7 @@ unflatten <a href="/reference/#spark_frame.transformations_impl.unflatten.unflat
 make data cleaning pipeline easier with PySpark.</p>
 
 <p><strong>Let&#39;s take a sample DataFrame with our favorite example: Pokemons!</strong></p>
-    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">examples.working_with_nested_data</span> <span class="kn">import</span> <span class="n">_get_sample_pokemon_data</span>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">spark_frame.examples.working_with_nested_data</span> <span class="kn">import</span> <span class="n">_get_sample_pokemon_data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">_get_sample_pokemon_data</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 <span class="go">root</span>
@@ -424,7 +424,7 @@ make data cleaning pipeline easier with PySpark.</p>
 <span class="go"> types      | [Grass, Poison]</span>
 </code></pre></div>
     <p>Let's say we want to add a new enrich the "base_stats" struct with a new field named "Total".</p>
-<h4 id="examples.working_with_nested_data.transform_nested_fields--without-spark-frame">Without spark-frame</h4>
+<h4 id="spark_frame.examples.working_with_nested_data.transform_nested_fields--without-spark-frame">Without spark-frame</h4>
 <p>Of course, we could write something in DataFrame or SQL like this:</p>
     <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">&quot;df&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sparkSession</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
@@ -447,7 +447,7 @@ make data cleaning pipeline easier with PySpark.</p>
 </code></pre></div>
     <p>It works, but it is a little cumbersome. Imagine how ugly the query would look like with a much bigger table,
 with hundreds of columns with three levels of nesting or more...</p>
-<h4 id="examples.working_with_nested_data.transform_nested_fields--with-spark-frame">With spark-frame</h4>
+<h4 id="spark_frame.examples.working_with_nested_data.transform_nested_fields--with-spark-frame">With spark-frame</h4>
 <p>Instead, we can use the <a href="/reference/#spark_frame.transformations_impl.flatten.flatten">flatten</a> and
 unflatten <a href="/reference/#spark_frame.transformations_impl.unflatten.unflatten">unflatten</a> method to reduce
 boilerplate significantly.</p>
@@ -472,7 +472,8 @@ to update this data enrichment code to propagate it automatically. On the other 
 solution, you would have had to specifically add this new field to the query to propagate it.</p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p><em>This example uses data taken from https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json</em>.</p>
+<p>_This example uses data taken from
+<a href="https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json">https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json</a>.</p>
 </div>
 
   </div>

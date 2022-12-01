@@ -263,14 +263,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#examples.working_with_json.extracting_json_values--without-spark-frame" class="md-nav__link">
+  <a href="#spark_frame.examples.working_with_json.extracting_json_values--without-spark-frame" class="md-nav__link">
     Without spark-frame
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#examples.working_with_json.extracting_json_values--with-spark-frame" class="md-nav__link">
+  <a href="#spark_frame.examples.working_with_json.extracting_json_values--with-spark-frame" class="md-nav__link">
     With spark-frame
   </a>
   
@@ -344,14 +344,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#examples.working_with_json.extracting_json_values--without-spark-frame" class="md-nav__link">
+  <a href="#spark_frame.examples.working_with_json.extracting_json_values--without-spark-frame" class="md-nav__link">
     Without spark-frame
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#examples.working_with_json.extracting_json_values--with-spark-frame" class="md-nav__link">
+  <a href="#spark_frame.examples.working_with_json.extracting_json_values--with-spark-frame" class="md-nav__link">
     With spark-frame
   </a>
   
@@ -401,7 +401,7 @@ starting to understand it.</p>
   microservice exchanged with another external API.</p>
 
 <p><strong>Let&#39;s take a sample DataFrame with two raw json columns.</strong></p>
-    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">examples.working_with_json</span> <span class="kn">import</span> <span class="n">_get_sample_data</span>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">spark_frame.examples.working_with_json</span> <span class="kn">import</span> <span class="n">_get_sample_data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">_get_sample_data</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 <span class="go">root</span>
@@ -409,7 +409,7 @@ starting to understand it.</p>
 <span class="go"> |-- raw_input: string (nullable = true)</span>
 <span class="go"> |-- raw_output: string (nullable = true)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># noqa: E501</span>
 <span class="go">+-------+-----------------------------------------------------------------------------+---------------------------------------------------------+</span>
 <span class="go">|call_id|raw_input                                                                    |raw_output                                               |</span>
 <span class="go">+-------+-----------------------------------------------------------------------------+---------------------------------------------------------+</span>
@@ -420,7 +420,7 @@ starting to understand it.</p>
     <p>This DataFrame represents the logs of an application calling a machine learning model. Keeping the "call_id" is
 important to be able to link this call to other events that happen in the system, and we would like to analyze
 these logs with typed data.</p>
-<h4 id="examples.working_with_json.extracting_json_values--without-spark-frame">Without spark-frame</h4>
+<h4 id="spark_frame.examples.working_with_json.extracting_json_values--without-spark-frame">Without spark-frame</h4>
 <p>Spark does provide a <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.from_json.html"><code>from_json</code></a>
 function that can parse a raw json column and convert it into a struct, but it does require the user to provide
 the schema of the json column in advance, like this:</p>
@@ -439,7 +439,7 @@ the schema of the json column in advance, like this:</p>
 <span class="go">|2      |{cat_finder, 3, some data}  |{0.4234, some data} |</span>
 <span class="go">+-------+----------------------------+--------------------+</span>
 </code></pre></div>
-    <h4 id="examples.working_with_json.extracting_json_values--with-spark-frame">With spark-frame</h4>
+    <h4 id="spark_frame.examples.working_with_json.extracting_json_values--with-spark-frame">With spark-frame</h4>
 <p>While it does works, as you can see writing the schema can be quite heavy.
 Also, for some reason, <code>from_json</code> does not accept the "simpleString" format, unlike
 the <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.SparkSession.createDataFrame.html"><code>SparkSession.createDataFrame</code></a>
