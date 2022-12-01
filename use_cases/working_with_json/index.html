@@ -1,0 +1,1206 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
+    
+    
+      
+        <title>Working with json - Spark-frame</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.472b142f.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.08040f6c.min.css">
+        
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../css/mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../css/custom_width.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="None" data-md-color-accent="None">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#extracting-json-values" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Spark-frame" class="md-header__button md-logo" aria-label="Spark-frame" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Spark-frame
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Working with json
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Spark-frame" class="md-nav__button md-logo" aria-label="Spark-frame" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Spark-frame
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        What is spark-frame ?
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Use cases
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Use cases" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Use cases
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro/" class="md-nav__link">
+        Intro
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../working_with_nested_data/" class="md-nav__link">
+        Working with nested data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Working with json
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Working with json
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extracting-json-values" class="md-nav__link">
+    Extracting json values
+  </a>
+  
+    <nav class="md-nav" aria-label="Extracting json values">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples.working_with_json.extracting_json_values--without-spark-frame" class="md-nav__link">
+    Without spark-frame
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples.working_with_json.extracting_json_values--with-spark-frame" class="md-nav__link">
+    With spark-frame
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        Reference
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extracting-json-values" class="md-nav__link">
+    Extracting json values
+  </a>
+  
+    <nav class="md-nav" aria-label="Extracting json values">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples.working_with_json.extracting_json_values--without-spark-frame" class="md-nav__link">
+    Without spark-frame
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples.working_with_json.extracting_json_values--with-spark-frame" class="md-nav__link">
+    With spark-frame
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <a href="docs/use_cases/working_with_json.md" title="Edit this page" class="md-content__button md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+  <h1>Working with json</h1>
+
+<h2 id="extracting-json-values">Extracting json values</h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Sometimes, a column in a data source contains raw json strings, and you want to extract this value before
+starting to understand it.</p>
+<p>This already happened to me in several cases, such as:
+- Some automatic data capture tool that wraps a payload's raw json value into an Avro file.
+- A microservice event that follows a data contract but one of the column contains the raw json payload that this
+  microservice exchanged with another external API.</p>
+
+<p><strong>Let&#39;s take a sample DataFrame with two raw json columns.</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">examples.working_with_json</span> <span class="kn">import</span> <span class="n">_get_sample_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">_get_sample_data</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- call_id: integer (nullable = true)</span>
+<span class="go"> |-- raw_input: string (nullable = true)</span>
+<span class="go"> |-- raw_output: string (nullable = true)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+-------+-----------------------------------------------------------------------------+---------------------------------------------------------+</span>
+<span class="go">|call_id|raw_input                                                                    |raw_output                                               |</span>
+<span class="go">+-------+-----------------------------------------------------------------------------+---------------------------------------------------------+</span>
+<span class="go">|1      |{&quot;model_name&quot;: &quot;bot_detector&quot;, &quot;model_version&quot;: 3, &quot;model_args&quot;: &quot;some data&quot;}|{&quot;model_score&quot;: 0.94654, &quot;model_parameters&quot;: &quot;some data&quot;}|</span>
+<span class="go">|2      |{&quot;model_name&quot;: &quot;cat_finder&quot;, &quot;model_version&quot;: 3, &quot;model_args&quot;: &quot;some data&quot;}  |{&quot;model_score&quot;: 0.4234, &quot;model_parameters&quot;: &quot;some data&quot;} |</span>
+<span class="go">+-------+-----------------------------------------------------------------------------+---------------------------------------------------------+</span>
+</code></pre></div>
+    <p>This DataFrame represents the logs of an application calling a machine learning model. Keeping the "call_id" is
+important to be able to link this call to other events that happen in the system, and we would like to analyze
+these logs with typed data.</p>
+<h4 id="examples.working_with_json.extracting_json_values--without-spark-frame">Without spark-frame</h4>
+<p>Spark does provide a <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.from_json.html"><code>from_json</code></a>
+function that can parse a raw json column and convert it into a struct, but it does require the user to provide
+the schema of the json column in advance, like this:</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">functions</span> <span class="k">as</span> <span class="n">f</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">raw_input_schema</span> <span class="o">=</span> <span class="s1">&#39;{&quot;fields&quot;:[{&quot;name&quot;:&quot;model_name&quot;,&quot;nullable&quot;:true,&quot;type&quot;:&quot;string&quot;},{&quot;name&quot;:&quot;model_version&quot;,&quot;nullable&quot;:true,&quot;type&quot;:&quot;integer&quot;},{&quot;name&quot;:&quot;model_args&quot;,&quot;nullable&quot;:true,&quot;type&quot;:&quot;string&quot;}],&quot;type&quot;:&quot;struct&quot;}&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">raw_output_schema</span> <span class="o">=</span> <span class="s1">&#39;{&quot;fields&quot;:[{&quot;name&quot;:&quot;model_score&quot;,&quot;nullable&quot;:true,&quot;type&quot;:&quot;double&quot;},{&quot;name&quot;:&quot;model_parameters&quot;,&quot;nullable&quot;:true,&quot;type&quot;:&quot;string&quot;}],&quot;type&quot;:&quot;struct&quot;}&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;raw_input&quot;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;raw_input&quot;</span><span class="p">,</span> <span class="n">raw_input_schema</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;raw_output&quot;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;raw_output&quot;</span><span class="p">,</span> <span class="n">raw_output_schema</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+<span class="go">|call_id|raw_input                   |raw_output          |</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+<span class="go">|1      |{bot_detector, 3, some data}|{0.94654, some data}|</span>
+<span class="go">|2      |{cat_finder, 3, some data}  |{0.4234, some data} |</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+</code></pre></div>
+    <h4 id="examples.working_with_json.extracting_json_values--with-spark-frame">With spark-frame</h4>
+<p>While it does works, as you can see writing the schema can be quite heavy.
+Also, for some reason, <code>from_json</code> does not accept the "simpleString" format, unlike
+the <a href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.SparkSession.createDataFrame.html"><code>SparkSession.createDataFrame</code></a>
+method.
+The first thing we can do to make things simpler is by using the method
+<a href="/reference/#spark_frame.schema_utils.schema_from_simple_string"><code>spark_frame.schema_utils.schema_from_simple_string</code></a> like this :</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">spark_frame.schema_utils</span> <span class="kn">import</span> <span class="n">schema_from_simple_string</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">raw_input_schema</span> <span class="o">=</span> <span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;model_name: STRING, model_version: INT, model_args: STRING&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">raw_output_schema</span> <span class="o">=</span> <span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;model_score: DOUBLE, model_parameters: STRING&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;raw_input&quot;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;raw_input&quot;</span><span class="p">,</span> <span class="n">raw_input_schema</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;raw_output&quot;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;raw_output&quot;</span><span class="p">,</span> <span class="n">raw_output_schema</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+<span class="go">|call_id|raw_input                   |raw_output          |</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+<span class="go">|1      |{bot_detector, 3, some data}|{0.94654, some data}|</span>
+<span class="go">|2      |{cat_finder, 3, some data}  |{0.4234, some data} |</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+</code></pre></div>
+    <p>But if we don't know the schema or if we know that the schema may evolve and we want to add
+(or at least, detect) the new fields automatically, we can leverage Spark's automatic json schema inference
+by using the method <a href="/reference/#spark_frame.transformations_impl.parse_json_columns.parse_json_columns">spark_frame.transformations.parse_json_columns</a> to infer automatically
+the schema of these json columns.</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">spark_frame.transformations</span> <span class="kn">import</span> <span class="n">parse_json_columns</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">parse_json_columns</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;raw_input&quot;</span><span class="p">,</span> <span class="s2">&quot;raw_output&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+<span class="go">|call_id|raw_input                   |raw_output          |</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+<span class="go">|1      |{some data, bot_detector, 3}|{some data, 0.94654}|</span>
+<span class="go">|2      |{some data, cat_finder, 3}  |{some data, 0.4234} |</span>
+<span class="go">+-------+----------------------------+--------------------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- call_id: integer (nullable = true)</span>
+<span class="go"> |-- raw_input: struct (nullable = true)</span>
+<span class="go"> |    |-- model_args: string (nullable = true)</span>
+<span class="go"> |    |-- model_name: string (nullable = true)</span>
+<span class="go"> |    |-- model_version: long (nullable = true)</span>
+<span class="go"> |-- raw_output: struct (nullable = true)</span>
+<span class="go"> |    |-- model_parameters: string (nullable = true)</span>
+<span class="go"> |    |-- model_score: double (nullable = true)</span>
+</code></pre></div>
+    <p>As we can see, the order of the field is different, this is because Spark's automatic inference will always
+sort the json field by names.</p>
+
+  </div>
+
+</div><p><strong>Methods used in this example</strong></p>
+<details class="abstract">
+<summary>schema_from_simple_string</summary>
+<div class="mkdocstrings">
+
+<div class="doc doc-object doc-function">
+
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Parses the given data type string to a :class:<code>DataType</code>. The data type string format equals
+<a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.types.DataType.html#pyspark.sql.types.DataType.simpleString">pyspark.sql.types.DataType.simpleString</a>, except that the top level struct type can omit
+the <code>struct&lt;&gt;</code>.
+This method requires the SparkSession to have already been instantiated.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>schema_string</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>A simpleString representing a DataFrame schema.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.types.DataType" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.types.DataType.html#pyspark.sql.types.DataType">DataType</a></code>
+          </td>
+          <td><p>A DataType object representing the DataFrame schema.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>AssertionError</code>
+          </td>
+          <td><p>If no SparkContext has been instantiated first.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;doctest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;int &quot;</span><span class="p">)</span>
+<span class="go">IntegerType()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;INT &quot;</span><span class="p">)</span>
+<span class="go">IntegerType()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;a: byte, b: decimal(  16 , 8   ) &quot;</span><span class="p">)</span>
+<span class="go">StructType([StructField(&#39;a&#39;, ByteType(), True), StructField(&#39;b&#39;, DecimalType(16,8), True)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;a DOUBLE, b STRING&quot;</span><span class="p">)</span>
+<span class="go">StructType([StructField(&#39;a&#39;, DoubleType(), True), StructField(&#39;b&#39;, StringType(), True)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;a: array&lt; short&gt;&quot;</span><span class="p">)</span>
+<span class="go">StructType([StructField(&#39;a&#39;, ArrayType(ShortType(), True), True)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot; map&lt;string , string &gt; &quot;</span><span class="p">)</span>
+<span class="go">MapType(StringType(), StringType(), True)</span>
+</code></pre></div>
+    <p><strong>Error cases:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;blabla&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="err">pyspark.sql.utils.ParseException:...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;a: int,&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="err">pyspark.sql.utils.ParseException:...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;array&lt;int&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="err">pyspark.sql.utils.ParseException:...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;map&lt;int, boolean&gt;&gt;&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="err">pyspark.sql.utils.ParseException:...</span>
+</code></pre></div>
+
+      <details class="quote">
+        <summary>Source code in <code>spark_frame/schema_utils.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">schema_from_simple_string</span><span class="p">(</span><span class="n">schema_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataType</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Parses the given data type string to a :class:`DataType`. The data type string format equals</span>
+<span class="sd">    [pyspark.sql.types.DataType.simpleString][], except that the top level struct type can omit</span>
+<span class="sd">    the ``struct&lt;&gt;``.</span>
+<span class="sd">    This method requires the SparkSession to have already been instantiated.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        schema_string: A simpleString representing a DataFrame schema.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A DataType object representing the DataFrame schema.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        AssertionError: If no SparkContext has been instantiated first.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyspark.sql import SparkSession</span>
+<span class="sd">        &gt;&gt;&gt; spark = SparkSession.builder.appName(&quot;doctest&quot;).getOrCreate()</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;int &quot;)</span>
+<span class="sd">        IntegerType()</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;INT &quot;)</span>
+<span class="sd">        IntegerType()</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;a: byte, b: decimal(  16 , 8   ) &quot;)</span>
+<span class="sd">        StructType([StructField(&#39;a&#39;, ByteType(), True), StructField(&#39;b&#39;, DecimalType(16,8), True)])</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;a DOUBLE, b STRING&quot;)</span>
+<span class="sd">        StructType([StructField(&#39;a&#39;, DoubleType(), True), StructField(&#39;b&#39;, StringType(), True)])</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;a: array&lt; short&gt;&quot;)</span>
+<span class="sd">        StructType([StructField(&#39;a&#39;, ArrayType(ShortType(), True), True)])</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot; map&lt;string , string &gt; &quot;)</span>
+<span class="sd">        MapType(StringType(), StringType(), True)</span>
+
+<span class="sd">        **Error cases:**</span>
+
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;blabla&quot;) # doctest: +IGNORE_EXCEPTION_DETAIL</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          ...</span>
+<span class="sd">        pyspark.sql.utils.ParseException:...</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;a: int,&quot;) # doctest: +IGNORE_EXCEPTION_DETAIL</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          ...</span>
+<span class="sd">        pyspark.sql.utils.ParseException:...</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;array&lt;int&quot;) # doctest: +IGNORE_EXCEPTION_DETAIL</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          ...</span>
+<span class="sd">        pyspark.sql.utils.ParseException:...</span>
+<span class="sd">        &gt;&gt;&gt; schema_from_simple_string(&quot;map&lt;int, boolean&gt;&gt;&quot;) # doctest: +IGNORE_EXCEPTION_DETAIL</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          ...</span>
+<span class="sd">        pyspark.sql.utils.ParseException:...</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sc</span> <span class="o">=</span> <span class="n">SparkContext</span><span class="o">.</span><span class="n">_active_spark_context</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="n">sc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No SparkContext has been instantiated yet&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_parse_datatype_string</span><span class="p">(</span><span class="n">schema_string</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div></div>
+</details>
+<details class="abstract">
+<summary>parse_json_columns</summary>
+<div class="mkdocstrings">
+
+<div class="doc doc-object doc-function">
+
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Transform the specified columns containing json strings in the given DataFrame into structs containing
+the equivalent parsed information.</p>
+<p>This method is similar to Spark's <code>from_json</code> function, with one main difference: <code>from_json</code> requires the user
+to pass the expected json schema, while this method performs a first pass on the DataFrame to detect automatically
+the json schema of each column.</p>
+<p>By default, the output columns will have the same name as the input columns, but if you want to keep the input
+columns you can pass a dict(input_col_name, output_col_name) to specify different output column names.</p>
+<p>Please be aware that automatic schema detection is not very robust, and while this method can be quite helpful
+for quick prototyping and data exploration, it is recommended to use a fixed schema and make sure the schema
+of the input json data is properly enforce, or at the very least use schema have a drift detection mechanism.</p>
+<p>WARNING : when you use this method on a column that is inside a struct (e.g. column "a.b.c"),
+instead of replacing that column it will create a new column outside the struct (e.g. "<code>a.b.c</code>") (See Example 2).</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A Spark DataFrame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>columns</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.List">List</span>[str], <span title="typing.Dict">Dict</span>[str, str]]</code>
+          </td>
+          <td><p>A column name, list of column names, or dict(column_name, parsed_column_name)</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A new DataFrame</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+<p><strong>Examples:</strong></p>
+    <p><strong>Example 1 :</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;doctest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">([</span>
+<span class="gp">... </span>        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]&#39;</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]&#39;</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="p">],</span> <span class="s2">&quot;id INT, json1 STRING&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+---+--------------------+</span>
+<span class="go">| id|               json1|</span>
+<span class="go">+---+--------------------+</span>
+<span class="go">|  1|[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]|</span>
+<span class="go">|  1|[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]|</span>
+<span class="go">|  2|                null|</span>
+<span class="go">+---+--------------------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = true)</span>
+<span class="go"> |-- json1: string (nullable = true)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_json_columns</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;json1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = true)</span>
+<span class="go"> |-- json1: array (nullable = true)</span>
+<span class="go"> |    |-- element: struct (containsNull = true)</span>
+<span class="go"> |    |    |-- a: long (nullable = true)</span>
+</code></pre></div>
+    <p><strong>Example 2 : different output column name :</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_json_columns</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;json1&#39;</span><span class="p">:</span> <span class="s1">&#39;parsed_json1&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = true)</span>
+<span class="go"> |-- json1: string (nullable = true)</span>
+<span class="go"> |-- parsed_json1: array (nullable = true)</span>
+<span class="go"> |    |-- element: struct (containsNull = true)</span>
+<span class="go"> |    |    |-- a: long (nullable = true)</span>
+</code></pre></div>
+    <p><strong>Example 3 : json inside a struct :</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">([</span>
+<span class="gp">... </span>        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;json1&#39;</span><span class="p">:</span> <span class="s1">&#39;[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]&#39;</span><span class="p">}),</span>
+<span class="gp">... </span>        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;json1&#39;</span><span class="p">:</span> <span class="s1">&#39;[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]&#39;</span><span class="p">}),</span>
+<span class="gp">... </span>        <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="p">],</span> <span class="s2">&quot;id INT, struct STRUCT&lt;json1: STRING&gt;&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+----------------------+</span>
+<span class="go">|id |struct                |</span>
+<span class="go">+---+----------------------+</span>
+<span class="go">|1  |{[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]}|</span>
+<span class="go">|1  |{[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]}|</span>
+<span class="go">|2  |null                  |</span>
+<span class="go">+---+----------------------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = true)</span>
+<span class="go"> |-- struct: struct (nullable = true)</span>
+<span class="go"> |    |-- json1: string (nullable = true)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">parse_json_columns</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;struct.json1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = true)</span>
+<span class="go"> |-- struct: struct (nullable = true)</span>
+<span class="go"> |    |-- json1: string (nullable = true)</span>
+<span class="go"> |-- struct.json1: array (nullable = true)</span>
+<span class="go"> |    |-- element: struct (containsNull = true)</span>
+<span class="go"> |    |    |-- a: long (nullable = true)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+----------------------+------------+</span>
+<span class="go">|id |struct                |struct.json1|</span>
+<span class="go">+---+----------------------+------------+</span>
+<span class="go">|1  |{[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]}|[{1}, {2}]  |</span>
+<span class="go">|1  |{[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]}|[{2}, {4}]  |</span>
+<span class="go">|2  |null                  |null        |</span>
+<span class="go">+---+----------------------+------------+</span>
+</code></pre></div>
+
+      <details class="quote">
+        <summary>Source code in <code>spark_frame/transformations_impl/parse_json_columns.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 10</span>
+<span class="normal"> 11</span>
+<span class="normal"> 12</span>
+<span class="normal"> 13</span>
+<span class="normal"> 14</span>
+<span class="normal"> 15</span>
+<span class="normal"> 16</span>
+<span class="normal"> 17</span>
+<span class="normal"> 18</span>
+<span class="normal"> 19</span>
+<span class="normal"> 20</span>
+<span class="normal"> 21</span>
+<span class="normal"> 22</span>
+<span class="normal"> 23</span>
+<span class="normal"> 24</span>
+<span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">parse_json_columns</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Transform the specified columns containing json strings in the given DataFrame into structs containing</span>
+<span class="sd">    the equivalent parsed information.</span>
+
+<span class="sd">    This method is similar to Spark&#39;s `from_json` function, with one main difference: `from_json` requires the user</span>
+<span class="sd">    to pass the expected json schema, while this method performs a first pass on the DataFrame to detect automatically</span>
+<span class="sd">    the json schema of each column.</span>
+
+<span class="sd">    By default, the output columns will have the same name as the input columns, but if you want to keep the input</span>
+<span class="sd">    columns you can pass a dict(input_col_name, output_col_name) to specify different output column names.</span>
+
+<span class="sd">    Please be aware that automatic schema detection is not very robust, and while this method can be quite helpful</span>
+<span class="sd">    for quick prototyping and data exploration, it is recommended to use a fixed schema and make sure the schema</span>
+<span class="sd">    of the input json data is properly enforce, or at the very least use schema have a drift detection mechanism.</span>
+
+<span class="sd">    WARNING : when you use this method on a column that is inside a struct (e.g. column &quot;a.b.c&quot;),</span>
+<span class="sd">    instead of replacing that column it will create a new column outside the struct (e.g. &quot;`a.b.c`&quot;) (See Example 2).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: A Spark DataFrame</span>
+<span class="sd">        columns: A column name, list of column names, or dict(column_name, parsed_column_name)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A new DataFrame</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        **Example 1 :**</span>
+<span class="sd">        &gt;&gt;&gt; from pyspark.sql import SparkSession</span>
+<span class="sd">        &gt;&gt;&gt; spark = SparkSession.builder.appName(&quot;doctest&quot;).getOrCreate()</span>
+<span class="sd">        &gt;&gt;&gt; df = spark.createDataFrame([</span>
+<span class="sd">        ...         (1, &#39;[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]&#39;),</span>
+<span class="sd">        ...         (1, &#39;[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]&#39;),</span>
+<span class="sd">        ...         (2, None)</span>
+<span class="sd">        ...     ], &quot;id INT, json1 STRING&quot;</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; df.show()</span>
+<span class="sd">        +---+--------------------+</span>
+<span class="sd">        | id|               json1|</span>
+<span class="sd">        +---+--------------------+</span>
+<span class="sd">        |  1|[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]|</span>
+<span class="sd">        |  1|[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]|</span>
+<span class="sd">        |  2|                null|</span>
+<span class="sd">        +---+--------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; df.printSchema()</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = true)</span>
+<span class="sd">         |-- json1: string (nullable = true)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; parse_json_columns(df, &#39;json1&#39;).printSchema()</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = true)</span>
+<span class="sd">         |-- json1: array (nullable = true)</span>
+<span class="sd">         |    |-- element: struct (containsNull = true)</span>
+<span class="sd">         |    |    |-- a: long (nullable = true)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        **Example 2 : different output column name :**</span>
+<span class="sd">        &gt;&gt;&gt; parse_json_columns(df, {&#39;json1&#39;: &#39;parsed_json1&#39;}).printSchema()</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = true)</span>
+<span class="sd">         |-- json1: string (nullable = true)</span>
+<span class="sd">         |-- parsed_json1: array (nullable = true)</span>
+<span class="sd">         |    |-- element: struct (containsNull = true)</span>
+<span class="sd">         |    |    |-- a: long (nullable = true)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        **Example 3 : json inside a struct :**</span>
+<span class="sd">        &gt;&gt;&gt; df = spark.createDataFrame([</span>
+<span class="sd">        ...         (1, {&#39;json1&#39;: &#39;[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]&#39;}),</span>
+<span class="sd">        ...         (1, {&#39;json1&#39;: &#39;[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]&#39;}),</span>
+<span class="sd">        ...         (2, None)</span>
+<span class="sd">        ...     ], &quot;id INT, struct STRUCT&lt;json1: STRING&gt;&quot;</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; df.show(10, False)</span>
+<span class="sd">        +---+----------------------+</span>
+<span class="sd">        |id |struct                |</span>
+<span class="sd">        +---+----------------------+</span>
+<span class="sd">        |1  |{[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]}|</span>
+<span class="sd">        |1  |{[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]}|</span>
+<span class="sd">        |2  |null                  |</span>
+<span class="sd">        +---+----------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; df.printSchema()</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = true)</span>
+<span class="sd">         |-- struct: struct (nullable = true)</span>
+<span class="sd">         |    |-- json1: string (nullable = true)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; res = parse_json_columns(df, &#39;struct.json1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; res.printSchema()</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = true)</span>
+<span class="sd">         |-- struct: struct (nullable = true)</span>
+<span class="sd">         |    |-- json1: string (nullable = true)</span>
+<span class="sd">         |-- struct.json1: array (nullable = true)</span>
+<span class="sd">         |    |-- element: struct (containsNull = true)</span>
+<span class="sd">         |    |    |-- a: long (nullable = true)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; res.show(10, False)</span>
+<span class="sd">        +---+----------------------+------------+</span>
+<span class="sd">        |id |struct                |struct.json1|</span>
+<span class="sd">        +---+----------------------+------------+</span>
+<span class="sd">        |1  |{[{&quot;a&quot;: 1}, {&quot;a&quot;: 2}]}|[{1}, {2}]  |</span>
+<span class="sd">        |1  |{[{&quot;a&quot;: 2}, {&quot;a&quot;: 4}]}|[{2}, {4}]  |</span>
+<span class="sd">        |2  |null                  |null        |</span>
+<span class="sd">        +---+----------------------+------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">columns</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">}</span>
+
+    <span class="n">wrapped_df</span> <span class="o">=</span> <span class="n">__wrap_json_columns</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span>
+    <span class="n">schema_per_col</span> <span class="o">=</span> <span class="n">__infer_schema_per_column</span><span class="p">(</span><span class="n">wrapped_df</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">__parse_json_columns</span><span class="p">(</span><span class="n">wrapped_df</span><span class="p">,</span> <span class="n">schema_per_col</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div></div>
+</details>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="../working_with_nested_data/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Working with nested data" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Working with nested data
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../../reference/" class="md-footer__link md-footer__link--next" aria-label="Next: Reference" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Reference
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d6c3db9e.min.js"></script>
+      
+    
+  </body>
+</html>
