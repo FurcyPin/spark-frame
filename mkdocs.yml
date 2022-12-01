@@ -33,7 +33,6 @@ markdown_extensions:
 watch:
   - README.md
   - spark_frame
-  - examples
 
 #site_url: docs/home.md
 edit_uri: docs/

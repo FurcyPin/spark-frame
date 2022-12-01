@@ -1,6 +1,6 @@
 ## Extracting json values
 
-::: examples.working_with_json.extracting_json_values
+::: spark_frame.examples.working_with_json.extracting_json_values
     options:
         show_root_toc_entry: false
         show_root_heading: false

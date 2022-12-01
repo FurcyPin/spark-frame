@@ -32,7 +32,7 @@ def extracting_json_values():
 
     Examples: Let's take a sample DataFrame with two raw json columns.
 
-        >>> from examples.working_with_json import _get_sample_data
+        >>> from spark_frame.examples.working_with_json import _get_sample_data
         >>> df = _get_sample_data()
         >>> df.printSchema()
         root
@@ -40,7 +40,7 @@ def extracting_json_values():
          |-- raw_input: string (nullable = true)
          |-- raw_output: string (nullable = true)
         <BLANKLINE>
-        >>> df.show(truncate=False)  # doctest: +NORMALIZE_WHITESPACE
+        >>> df.show(truncate=False)  # noqa: E501 # doctest: +NORMALIZE_WHITESPACE
         +-------+-----------------------------------------------------------------------------+---------------------------------------------------------+
         |call_id|raw_input                                                                    |raw_output                                               |
         +-------+-----------------------------------------------------------------------------+---------------------------------------------------------+

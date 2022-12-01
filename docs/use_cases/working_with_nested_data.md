@@ -1,6 +1,6 @@
 
 ## Transforming nested fields
-::: examples.working_with_nested_data.transform_nested_fields
+::: spark_frame.examples.working_with_nested_data.transform_nested_fields
     options:
         show_root_toc_entry: false
         show_root_heading: false

@@ -41,7 +41,7 @@ def transform_nested_fields():
 
     Examples: Let's take a sample DataFrame with our favorite example: Pokemons!
 
-        >>> from examples.working_with_nested_data import _get_sample_pokemon_data
+        >>> from spark_frame.examples.working_with_nested_data import _get_sample_pokemon_data
         >>> df = _get_sample_pokemon_data()
         >>> df.printSchema()
         root
@@ -122,6 +122,8 @@ def transform_nested_fields():
         solution, you would have had to specifically add this new field to the query to propagate it.
 
         !!! Info
-            _This example uses data taken from https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json_.
+            _This example uses data taken from
+            [https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json](
+            https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json).
     """
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
