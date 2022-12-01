@@ -1,0 +1,48 @@
+# mkdocs.yml
+site_name: Spark-frame
+
+theme:
+  name: "material"
+
+plugins:
+  - include-markdown:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          import:
+            - https://spark.apache.org/docs/latest/api/python/objects.inv
+          options:
+            show_root_heading: true
+            show_root_full_path: false
+            show_root_toc_entry: true
+            show_source: true
+            show_signature: true
+            show_signature_annotations: true
+
+extra_css:
+  - css/mkdocstrings.css
+  - css/custom_width.css
+
+markdown_extensions:
+  # Allows to add notes and collapsible sections etc.
+  # https://squidfunk.github.io/mkdocs-material/reference/admonitions/?h=admon#usage
+  - admonition
+  - pymdownx.details
+
+watch:
+  - README.md
+  - spark_frame
+  - examples
+
+#site_url: docs/home.md
+edit_uri: docs/
+
+nav:
+  - What is spark-frame ?: "README.md"
+  - Use cases:
+    - Intro: "use_cases/intro.md"
+    - Working with nested data: "use_cases/working_with_nested_data.md"
+    - Working with json: "use_cases/working_with_json.md"
+  - Reference: reference.md
+
