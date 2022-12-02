@@ -46,6 +46,9 @@ that _cannot_ be implemented with one single SQL query.
 ### ::: spark_frame.transformations_impl.unflatten.unflatten
 ---
 
+### ::: spark_frame.transformations_impl.unpivot.unpivot
+---
+
 ### ::: spark_frame.transformations_impl.with_generic_typed_struct.with_generic_typed_struct
 ---
 
