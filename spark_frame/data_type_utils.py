@@ -13,25 +13,30 @@ def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:
     is larger than decimal, and yet decimal is more precise than double, but in
     union we would cast the decimal into double.
 
-    WARNINGS:
+    !!! Warning
 
-    - the result is a simpleString
-    - A SparkSession must already be instantiated for this method to work
+        - the result is a simpleString
+        - A SparkSession must already be instantiated for this method to work
 
-    >>> from pyspark.sql.types import DecimalType, LongType, DoubleType, IntegerType
-    >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-    >>> find_wider_type_for_two(DecimalType(15, 5), DecimalType(15, 6))
-    'decimal(16,6)'
-    >>> find_wider_type_for_two(DecimalType(15, 5), DoubleType())
-    'double'
-    >>> find_wider_type_for_two(LongType(), IntegerType())
-    'bigint'
-    >>> find_wider_type_for_two(ArrayType(IntegerType()), IntegerType())
+    Args:
+        t1: a DataType
+        t2: a DataType
 
-    :param t1:
-    :param t2:
-    :return:
+    Returns:
+        a simpleString representing the smallest common type, None if such type does not exist
+
+    Examples:
+
+        >>> from pyspark.sql.types import DecimalType, LongType, DoubleType, IntegerType
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> find_wider_type_for_two(DecimalType(15, 5), DecimalType(15, 6))
+        'decimal(16,6)'
+        >>> find_wider_type_for_two(DecimalType(15, 5), DoubleType())
+        'double'
+        >>> find_wider_type_for_two(LongType(), IntegerType())
+        'bigint'
+        >>> find_wider_type_for_two(ArrayType(IntegerType()), IntegerType())
     """
     from pyspark.sql import SparkSession
 
