@@ -1,7 +1,7 @@
 import re
 from typing import List, Union, cast
 
-from pyspark.sql import SparkSession
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import DataType, StructField, StructType
 
 
@@ -198,6 +198,104 @@ def get_instantiated_spark_session() -> SparkSession:
     assert_true(optional_spark is not None)
     spark = cast(SparkSession, optional_spark)
     return spark
+
+
+def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, vertical: bool = False) -> str:
+    """Write the first ``n`` rows to the console into a string.
+    This is similar to [DataFrame.show](pyspark.sql.DataFrame.show) except it returns a string instead of directly
+    writing it to stdout.
+
+    Args:
+        df: A Spark DataFrame
+        n: Number of rows to show.
+        truncate: If set to ``True``, truncate strings longer than 20 chars by default.
+            If set to a number greater than one, truncates long strings to length ``truncate``
+            and align cells right.
+        vertical: If set to ``True``, print output rows vertically (one line per column value).
+
+    Returns:
+        A string representing the first `n` rows of the DataFrame
+
+    Examples:
+
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> df = spark.sql('''
+        ...  SELECT INLINE(ARRAY(
+        ...    STRUCT(2 as age, "Alice" as name),
+        ...    STRUCT(5 as age, "Bob" as name)
+        ...  ))
+        ... ''')
+        >>> df
+        DataFrame[age: int, name: string]
+        >>> print(show_string(df))
+        +---+-----+
+        |age| name|
+        +---+-----+
+        |  2|Alice|
+        |  5|  Bob|
+        +---+-----+
+        <BLANKLINE>
+        >>> print(show_string(df, truncate=3))
+        +---+----+
+        |age|name|
+        +---+----+
+        |  2| Ali|
+        |  5| Bob|
+        +---+----+
+        <BLANKLINE>
+        >>> print(show_string(df, vertical=True))  # doctest: +NORMALIZE_WHITESPACE
+        -RECORD 0-----
+         age  | 2
+         name | Alice
+        -RECORD 1-----
+         age  | 5
+         name | Bob
+        <BLANKLINE>
+    """
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("Parameter 'n' (number of rows) must be an int")
+
+    if not isinstance(vertical, bool):
+        raise TypeError("Parameter 'vertical' must be a bool")
+
+    if isinstance(truncate, bool) and truncate:
+        return df._jdf.showString(n, 20, vertical)
+    else:
+        try:
+            int_truncate = int(truncate)
+        except ValueError:
+            raise TypeError("Parameter 'truncate={}' should be either bool or int.".format(truncate))
+        return df._jdf.showString(n, int_truncate, vertical)
+
+
+def schema_string(df: DataFrame) -> str:
+    """Write the DataFrame schema to a string.
+    This is similar to [DataFrame.printSchema](pyspark.sql.DataFrame.printSchema) except it returns a string instead
+    of directly writing it to stdout.
+
+    Args:
+        df: A Spark DataFrame
+
+    Returns:
+        a string representing the schema as a tree
+
+    Examples:
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> df = spark.sql('''
+        ...  SELECT INLINE(ARRAY(
+        ...    STRUCT(2 as age, "Alice" as name),
+        ...    STRUCT(5 as age, "Bob" as name)
+        ...  ))
+        ... ''')
+        >>> print(schema_string(df))
+        root
+         |-- age: integer (nullable = false)
+         |-- name: string (nullable = false)
+        <BLANKLINE>
+    """
+    return df._jdf.schema().treeString()
 
 
 def assert_true(assertion: bool, error_message: str = None) -> None:
