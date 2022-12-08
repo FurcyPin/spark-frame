@@ -121,6 +121,20 @@ def transform_nested_fields():
         to update this data enrichment code to propagate it automatically. On the other hand, with the first SQL
         solution, you would have had to specifically add this new field to the query to propagate it.
 
+        We can even use [DataFrame.transform](pyspark.sql.DataFrame.transform) to inline everything!
+
+        >>> df.transform(flatten).withColumn(
+        ...     "base_stats.Total",
+        ...     f.col("`base_stats.Attack`") + f.col("`base_stats.Defense`") + f.col("`base_stats.HP`") +
+        ...     f.col("`base_stats.Sp Attack`") + f.col("`base_stats.Sp Defense`") + f.col("`base_stats.Speed`")
+        ...   ).transform(unflatten).show(vertical=True, truncate=False)  # doctest: +NORMALIZE_WHITESPACE
+        -RECORD 0-----------------------------------
+         base_stats | {49, 49, 45, 65, 65, 45, 318}
+         id         | 1
+         name       | {Bulbasaur, Bulbizarre}
+         types      | [Grass, Poison]
+        <BLANKLINE>
+
         !!! Info
             _This example uses data taken from
             [https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json](
