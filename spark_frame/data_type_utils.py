@@ -1,9 +1,65 @@
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 from pyspark.sql.types import ArrayType, DataType, StructField, StructType
 
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.utils import assert_true, get_instantiated_spark_session
+
+
+def is_repeated(schema_field: StructField) -> bool:
+    return isinstance(schema_field.dataType, ArrayType)
+
+
+def is_struct(schema_field: StructField) -> bool:
+    return isinstance(schema_field.dataType, StructType)
+
+
+def is_nullable(schema_field: StructField) -> bool:
+    return schema_field.nullable
+
+
+def find_common_type_for_fields(left_field: StructField, right_field: StructField):
+    if is_repeated(right_field) != is_repeated(left_field):
+        return None
+    elif right_field.dataType == left_field.dataType:
+        return None
+    else:
+        return find_wider_type_for_two(left_field.dataType, right_field.dataType)
+
+
+def get_common_columns(left_schema: StructType, right_schema: StructType) -> List[Tuple[str, Optional[str]]]:
+    """Return a list of common Columns between two DataFrame schemas, casting them into the widest common type
+    when required.
+
+    When columns have incompatible types, they are simply not cast.
+
+    Args:
+        left_schema: A DataFrame schema
+        right_schema: Another DataFrame schema with common columns
+
+    Returns:
+        A list of Columns
+
+    Examples:
+
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> df1 = spark.sql('''SELECT 'A' as id, CAST(1 as BIGINT) as d, 'a' as a''')
+        >>> df2 = spark.sql('''SELECT 'A' as id, CAST(1 as DOUBLE) as d, ARRAY('a') as a''')
+        >>> common_cols = get_common_columns(df1.schema, df2.schema)
+        >>> common_cols
+        [('id', None), ('d', 'double'), ('a', None)]
+    """
+    left_fields = {field.name: field for field in left_schema}
+    right_fields = {field.name: field for field in right_schema}
+
+    def get_columns():
+        for name, left_field in left_fields.items():
+            if name in right_fields:
+                right_field: StructField = right_fields[name]
+                yield name, find_common_type_for_fields(left_field, right_field)
+
+    return list(get_columns())
 
 
 def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:

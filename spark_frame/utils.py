@@ -1,8 +1,11 @@
 import re
-from typing import List, Union, cast
+from typing import List, Optional, Union, cast
 
-from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import Column, DataFrame, SparkSession
+from pyspark.sql import functions as f
 from pyspark.sql.types import DataType, StructField, StructType
+
+StringOrColumn = Union[str, Column]
 
 
 def quote(col: str) -> str:
@@ -151,6 +154,59 @@ def split_col_name(col_name: str) -> List[str]:
     return col_parts
 
 
+def str_to_col(args: StringOrColumn) -> Column:
+    """Converts string or Column argument to Column types
+
+    Requires the SparkSession to be instantiated.
+
+    Examples:
+
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> str_to_col("id")
+        Column<'id'>
+        >>> str_to_col(f.expr("COUNT(1)"))
+        Column<'COUNT(1)'>
+        >>> str_to_col("*")
+        Column<'unresolvedstar()'>
+
+    """
+    if isinstance(args, str):
+        return f.col(args)
+    else:
+        return args
+
+
+def strip_margin(text: str):
+    """For every line in this string, strip a leading prefix consisting of whitespace, tabs and carriage returns
+    followed by | from the line.
+
+    If the first character is a newline, it is also removed.
+    This method is inspired from Scala's String.stripMargin.
+
+    Args:
+        text:
+
+    Returns:
+        A stripped string
+
+    Examples:
+
+        >>> print(strip_margin('''
+        ...     |a
+        ...     |b
+        ...     |c'''))
+        a
+        b
+        c
+    """
+    s = re.sub(r"\n[ \t\r]*\|", "\n", text)
+    if s.startswith("\n"):
+        return s[1:]
+    else:
+        return s
+
+
 def get_nested_col_type_from_schema(col_name: str, schema: StructType) -> DataType:
     """Fetch recursively the DataType of a column inside a DataFrame schema (or more generally any StructType)
 
@@ -296,6 +352,15 @@ def schema_string(df: DataFrame) -> str:
         <BLANKLINE>
     """
     return df._jdf.schema().treeString()
+
+
+def safe_struct_get(s: Optional[Column], field: str) -> Column:
+    """Get a column's subfield, unless the column is None, in which case it returns
+    a Column expression for the field itself."""
+    if s is None:
+        return f.col(field)
+    else:
+        return s[field]
 
 
 def assert_true(assertion: bool, error_message: str = None) -> None:
