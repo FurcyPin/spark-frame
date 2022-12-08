@@ -2,6 +2,7 @@ from typing import Dict, List, Optional, cast
 
 from pyspark.sql.types import ArrayType, DataType, StructField, StructType
 
+from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.utils import assert_true, get_instantiated_spark_session
 
 
@@ -60,7 +61,12 @@ def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:
         return None
 
 
-def flatten_schema(schema: StructType, explode: bool) -> StructType:
+def flatten_schema(
+    schema: StructType,
+    explode: bool,
+    struct_separator: str = STRUCT_SEPARATOR,
+    repetition_marker: str = REPETITION_MARKER,
+) -> StructType:
     """Transform a œ schema into a new schema where all structs have been flattened.
     The field names are kept, with a '.' separator for struct fields.
     If `explode` option is set, arrays are exploded with a '!' separator.
@@ -68,6 +74,8 @@ def flatten_schema(schema: StructType, explode: bool) -> StructType:
     Args:
         schema: A Spark [DataFrame][pyspark.sql.DataFrame]'s schema
         explode: If set, arrays are exploded and a '!' separator is appended to their name.
+        struct_separator: Separator used to delimit structs
+        repetition_marker: Separator used to delimit arrays
 
     Returns:
         A flattened schema
@@ -95,10 +103,10 @@ def flatten_schema(schema: StructType, explode: bool) -> StructType:
         prefix: str, data_type: DataType, is_nullable: bool, metadata: Dict[str, str]
     ) -> List[StructField]:
         if isinstance(data_type, StructType):
-            return flatten_struct_type(data_type, is_nullable, prefix + ".")
+            return flatten_struct_type(data_type, is_nullable, prefix + struct_separator)
         elif isinstance(data_type, ArrayType) and explode:
             return flatten_data_type(
-                prefix + "!", data_type.elementType, is_nullable or data_type.containsNull, metadata
+                prefix + repetition_marker, data_type.elementType, is_nullable or data_type.containsNull, metadata
             )
         else:
             return [StructField(prefix, data_type, is_nullable, metadata)]
@@ -108,7 +116,7 @@ def flatten_schema(schema: StructType, explode: bool) -> StructType:
         for field in schema:
             if isinstance(field.dataType, StructType):
                 res += flatten_struct_type(
-                    field.dataType, previous_nullable or field.nullable, prefix + field.name + "."
+                    field.dataType, previous_nullable or field.nullable, prefix + field.name + struct_separator
                 )
             else:
                 res += flatten_data_type(
