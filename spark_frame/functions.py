@@ -44,31 +44,6 @@ def empty_array(element_type: Union[DataType, str]) -> Column:
     return f.array_except(f.array(f.lit(None).cast(element_type)), f.array(f.lit(None)))
 
 
-def nullable(col: Column) -> Column:
-    """Make a `pyspark.sql.Column` nullable.
-    This is especially useful for literal which are always non-nullable by default.
-
-    Examples:
-
-        >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> from pyspark.sql import functions as f
-        >>> df = spark.sql('''SELECT 1 as a''').withColumn("b", f.lit("2"))
-        >>> df.printSchema()
-        root
-         |-- a: integer (nullable = false)
-         |-- b: string (nullable = false)
-        <BLANKLINE>
-        >>> res = df.withColumn('a', nullable(f.col('a'))).withColumn('b', nullable(f.col('b')))
-        >>> res.printSchema()
-        root
-         |-- a: integer (nullable = true)
-         |-- b: string (nullable = true)
-        <BLANKLINE>
-    """
-    return f.when(~col.isNull(), col)
-
-
 def generic_struct(*columns: str, col_name_alias: str = "name", col_value_alias: str = "value") -> Column:
     """Transform a set of columns into a generic array of struct of type ARRAY<STRUCT<name: STRING, value: STRING>
     (column_name -> column_value)
@@ -128,3 +103,28 @@ def generic_struct(*columns: str, col_name_alias: str = "name", col_value_alias:
             for c in columns
         ]
     )
+
+
+def nullable(col: Column) -> Column:
+    """Make a `pyspark.sql.Column` nullable.
+    This is especially useful for literal which are always non-nullable by default.
+
+    Examples:
+
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> from pyspark.sql import functions as f
+        >>> df = spark.sql('''SELECT 1 as a''').withColumn("b", f.lit("2"))
+        >>> df.printSchema()
+        root
+         |-- a: integer (nullable = false)
+         |-- b: string (nullable = false)
+        <BLANKLINE>
+        >>> res = df.withColumn('a', nullable(f.col('a'))).withColumn('b', nullable(f.col('b')))
+        >>> res.printSchema()
+        root
+         |-- a: integer (nullable = true)
+         |-- b: string (nullable = true)
+        <BLANKLINE>
+    """
+    return f.when(~col.isNull(), col)
