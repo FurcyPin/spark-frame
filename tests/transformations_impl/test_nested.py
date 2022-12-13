@@ -3,7 +3,8 @@ from typing import Callable, Dict
 from pyspark.sql import Column, SparkSession
 from pyspark.sql import functions as f
 
-from spark_frame.nested import PrintableFunction, resolve_nested_columns
+from spark_frame.fp.printable_function import PrintableFunction
+from spark_frame.nested import resolve_nested_columns
 from spark_frame.utils import schema_string, show_string, strip_margin
 
 

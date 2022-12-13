@@ -1,101 +1,17 @@
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union, cast
+from typing import Callable, Dict, List, Mapping, Optional, Tuple, Union, cast
 
 from pyspark.sql import Column
 from pyspark.sql import functions as f
 
+from spark_frame import fp
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
-from spark_frame.utils import StringOrColumn, assert_true, safe_struct_get, str_to_col
+from spark_frame.fp import PrintableFunction, higher_order
+from spark_frame.utils import StringOrColumn, assert_true, str_to_col
 
 ColumnTransformation = Callable[[Optional[Column]], Column]
 AnyKindOfTransformation = Union[str, Column, ColumnTransformation, "PrintableFunction"]
 OrderedTree = Union["OrderedTree", Dict[str, Union["OrderedTree", AnyKindOfTransformation]]]  # type: ignore
-
-
-class PrintableFunction:
-    """Wrapper for anonymous functions with a short description making them much human-friendly when printed.
-
-    Very useful when debugging, useless otherwise.
-
-    Args:
-        func: A function that takes a Column and return a Column.
-        alias: A string or a function that takes a string and return a string.
-
-    Examples:
-
-        >>> print(PrintableFunction(lambda s: s["c"], "my_function"))
-        my_function
-
-        >>> print(PrintableFunction(lambda s: s["c"], lambda s: f'{s}["c"]'))
-        lambda x: x["c"]
-
-        >>> func = PrintableFunction(lambda s: s.cast("Double"), lambda s: f'{s}.cast("Double")')
-        >>> print(func.alias("s"))
-        s.cast("Double")
-
-        Composition:
-
-        >>> f1 = PrintableFunction(lambda s: s.cast("Double"), lambda s: f'{s}.cast("Double")')
-        >>> f2 = PrintableFunction(lambda s: s * s, lambda s: f'{f"({s} * {s})"}')
-        >>> f2_then_f1 = PrintableFunction(lambda s: f1(f2(s)), lambda s: f1.alias(f2.alias(s)))
-        >>> print(f2_then_f1)
-        lambda x: (x * x).cast("Double")
-
-    """
-
-    def __init__(self, func: Callable[[Any], Any], alias: Union[str, Callable[[str], str]]) -> None:
-        self.func: Callable[[Any], Any] = func
-        self.alias: Union[str, Callable[[str], str]] = alias
-
-    def __repr__(self) -> str:
-        if callable(self.alias):
-            return f"lambda x: {cast(Callable, self.alias)('x')}"
-        else:
-            return cast(str, self.alias)
-
-    def __call__(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
-
-    def __instancecheck__(self, instance):
-        return isinstance(self.func, instance)
-
-
-class HigherOrder:
-
-    identity = PrintableFunction(lambda s: s, lambda s: s)
-
-    @staticmethod
-    def _safe_struct_get_alias(s: str, field: str) -> str:
-        """Return a string representation for the `safe_struct_get` method."""
-        if s is None:
-            return f"f.col('{field}')"
-        else:
-            return f"{s}[{field}]"
-
-    @staticmethod
-    def safe_struct_get(key: str):
-        return PrintableFunction(
-            lambda s: safe_struct_get(s, key), lambda s: HigherOrder._safe_struct_get_alias(s, key)
-        )
-
-    @staticmethod
-    def compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction:
-        if callable(f1.alias) and callable(f2.alias):
-            c1 = cast(Callable, f1.alias)
-            c2 = cast(Callable, f2.alias)
-            return PrintableFunction(lambda s: f1.func(f2.func(s)), lambda s: c1(c2(s)))
-        elif callable(f1.alias) and not callable(f2.alias):
-            c1 = cast(Callable, f1.alias)
-            a2 = str(f2.alias)
-            return PrintableFunction(lambda s: f1.func(f2.func(s)), c1(a2))
-        elif not callable(f1.alias) and callable(f2.alias):
-            a1 = str(f1.alias)
-            c2 = cast(Callable, f2.alias)
-            return PrintableFunction(lambda s: f1.func(f2.func(s)), lambda s: f"{a1}({c2(s)})")
-        else:
-            a1 = str(f1.alias)
-            a2 = str(f2.alias)
-            return PrintableFunction(lambda s: f1.func(f2.func(s)), f"{a1}({a2})")
 
 
 def __get_func(function: Union[ColumnTransformation, PrintableFunction]) -> ColumnTransformation:
@@ -305,7 +221,7 @@ def _build_struct_from_tree(node: OrderedTree, sort: bool = False) -> List[Colum
             col: AnyKindOfTransformation
             if has_children:
                 child_transformation = recurse(col_or_children)
-                col = HigherOrder.compose(child_transformation, HigherOrder.safe_struct_get(key))
+                col = fp.compose(child_transformation, higher_order.safe_struct_get(key))
             else:
                 col = col_or_children
             cols.append((col, key))
