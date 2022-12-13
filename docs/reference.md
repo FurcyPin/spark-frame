@@ -57,6 +57,9 @@ that _cannot_ be implemented with one single SQL query.
 ### ::: spark_frame.transformations_impl.parse_json_columns.parse_json_columns
 ---
 
+### ::: spark_frame.transformations_impl.sort_all_arrays.sort_all_arrays
+---
+
 ### ::: spark_frame.transformations_impl.unflatten.unflatten
 ---
 
