@@ -4,7 +4,11 @@ from pyspark.sql import Column, SparkSession
 from pyspark.sql import functions as f
 
 from spark_frame.fp.printable_function import PrintableFunction
-from spark_frame.nested import resolve_nested_columns
+from spark_frame.nested import (
+    _build_nested_struct_tree,
+    _build_transformation_from_tree,
+    resolve_nested_columns,
+)
 from spark_frame.utils import schema_string, show_string, strip_margin
 
 
@@ -12,6 +16,234 @@ def replace_named_functions_with_functions(
     transformations: Dict[str, PrintableFunction]
 ) -> Dict[str, Callable[[Column], Column]]:
     return {alias: transformation.func for alias, transformation in transformations.items()}
+
+
+class TestBuildTransformationFromTree:
+    """The purpose of this test class is mostly to make sure that PrintableFunctions are properly printed
+    The code's logic is mostly tested in TestResolveNestedColumns.
+    """
+
+    def test_value_with_string_expr_and_string_alias(self, spark: SparkSession):
+        """
+        GIVEN a transformation that returns a string expression and has an alias of type str
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {"a": PrintableFunction(lambda s: "a", "a")}
+        transformations = {"a": "a"}
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        actual = _build_transformation_from_tree(_build_nested_struct_tree(transformations))
+        assert str(named_actual) == """lambda x: [a.alias(a)]"""
+        assert str(actual) == """lambda x: [f.col('a').alias(a)]"""
+
+    def test_value_with_col_expr(self, spark: SparkSession):
+        """
+        GIVEN a transformation that returns a column
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {"a": PrintableFunction(lambda s: f.col("a"), lambda s: 'f.col("a")')}
+        transformations = {"a": f.col("a")}
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        actual = _build_transformation_from_tree(_build_nested_struct_tree(transformations))
+        assert str(named_actual) == """lambda x: [f.col("a").alias(a)]"""
+        assert str(actual) == """lambda x: [Column<'a'>.alias(a)]"""
+
+    def test_value_with_aliased_col_expr(self, spark: SparkSession):
+        """
+        GIVEN a transformation that returns an aliased column
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "a": PrintableFunction(
+                lambda s: f.col("a").alias("other_alias"), lambda s: 'f.col("a").alias("other_alias")'
+            )
+        }
+        transformations = {"a": f.col("a").alias("other_alias")}
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        actual = _build_transformation_from_tree(_build_nested_struct_tree(transformations))
+        assert str(named_actual) == """lambda x: [f.col("a").alias("other_alias").alias(a)]"""
+        assert str(actual) == """lambda x: [Column<'a AS other_alias'>.alias(a)]"""
+
+    def test_struct(self, spark: SparkSession):
+        """
+        GIVEN a transformation on a struct
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f"""{s}["a"].cast("DOUBLE")""")
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == """lambda x: [f.struct([x[s]["a"].cast("DOUBLE").alias(a)]).alias(s)]"""
+
+    def test_struct_with_static_expression(self, spark: SparkSession):
+        """
+        GIVEN a transformation on a struct that uses the full name of one of the struct's field (s.a)
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s.a": PrintableFunction(lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""")
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == """lambda x: [f.struct([f.col("s.a").cast("DOUBLE").alias(a)]).alias(s)]"""
+
+    def test_array(self, spark: SparkSession):
+        """
+        GIVEN a transformation on an array
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {"e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')}
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == """lambda x: [f.transform(x[e], lambda x: x.cast("DOUBLE")).alias(e)]"""
+
+    def test_array_struct(self, spark: SparkSession):
+        """
+        GIVEN a transformation on an array<struct>
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            'lambda x: [f.transform(x[s], lambda x: f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s)]'
+        )
+
+    def test_struct_in_struct(self, spark: SparkSession):
+        """
+        GIVEN a transformation on a struct inside a struct
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s1.s2.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            "lambda x: " '[f.struct([f.struct([x[s1][s2]["a"].cast("DOUBLE").alias(a)]).alias(s2)]).alias(s1)]'
+        )
+
+    def test_array_in_struct(self, spark: SparkSession):
+        """
+        GIVEN a transformation on an array inside a struct
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s1.e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")'),
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            "lambda x: [f.struct([f.transform(x[s1][e], lambda x: " 'x.cast("DOUBLE")).alias(e)]).alias(s1)]'
+        )
+
+    def test_array_struct_in_struct(self, spark: SparkSession):
+        """
+        GIVEN a transformation on an array<struct> inside a struct
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s1.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            "lambda x: [f.struct([f.transform(x[s1][s2], lambda x: "
+            'f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s2)]).alias(s1)]'
+        )
+
+    def test_array_in_array(self, spark: SparkSession):
+        """
+        GIVEN a transformation on an array inside an array
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {"e!!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')}
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            "lambda x: [f.transform(x[e], lambda x: f.transform(x, lambda x: " 'x.cast("DOUBLE"))).alias(e)]'
+        )
+
+    def test_array_struct_in_array(self, spark: SparkSession):
+        """
+        GIVEN a transformation on array<struct> inside an array
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s!!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            "lambda x: [f.transform(x[s], lambda x: f.transform(x, lambda x: "
+            'f.struct([x["a"].cast("DOUBLE").alias(a)]))).alias(s)]'
+        )
+
+    def test_struct_in_array_struct(self, spark: SparkSession):
+        """
+        GIVEN a transformation on struct inside an array<struct>
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s1!.s2.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            "lambda x: [f.transform(x[s1], lambda x: "
+            'f.struct([f.struct([x[s2]["a"].cast("DOUBLE").alias(a)]).alias(s2)])).alias(s1)]'
+        )
+
+    def test_array_in_array_struct(self, spark: SparkSession):
+        """
+        GIVEN a transformation on an array inside an array<struct>
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s1!.e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            "lambda x: [f.transform(x[s1], lambda x: f.struct([f.transform(x[e], lambda "
+            'x: x.cast("DOUBLE")).alias(e)])).alias(s1)]'
+        )
+
+    def test_array_struct_in_array_struct(self, spark: SparkSession):
+        """
+        GIVEN a transformation on an array<struct> inside an array<struct>
+        WHEN we print the PrintableFunction generated in resolve_nested_columns
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s1!.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
+        assert str(named_actual) == (
+            "lambda x: [f.transform(x[s1], lambda x: f.struct([f.transform(x[s2], lambda "
+            'x: f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s2)])).alias(s1)]'
+        )
+
+    def test_array_struct_in_array_struct_with_sort(self, spark: SparkSession):
+        """
+        GIVEN a transformation on an array<struct> inside an array<struct>
+        WHEN we print the PrintableFunction generated in resolve_nested_columns using sort = True
+        THEN the result should be human-readable
+        """
+        named_transformations = {
+            "s1!.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+        }
+        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations), sort=True)
+        assert str(named_actual) == (
+            "lambda x: [f.sort_array(f.transform(x[s1], lambda x: "
+            "f.struct([f.sort_array(f.transform(x[s2], lambda x: "
+            'f.struct([x["a"].cast("DOUBLE").alias(a)]))).alias(s2)]))).alias(s1)]'
+        )
 
 
 class TestResolveNestedColumns:
@@ -48,8 +280,8 @@ class TestResolveNestedColumns:
             |+---+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
         assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
 
     def test_value_with_col_expr(self, spark: SparkSession):
         """
@@ -84,8 +316,8 @@ class TestResolveNestedColumns:
             |+---+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
         assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
 
     def test_value_with_aliased_col_expr(self, spark: SparkSession):
         """
@@ -124,8 +356,8 @@ class TestResolveNestedColumns:
             |+---+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
         assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
 
     def test_struct(self, spark: SparkSession):
         """
@@ -162,8 +394,8 @@ class TestResolveNestedColumns:
             |+-----+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
         assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
 
     def test_struct_with_static_expression(self, spark: SparkSession):
         """
@@ -200,8 +432,8 @@ class TestResolveNestedColumns:
             |+-----+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
         assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
 
     def test_array(self, spark: SparkSession):
         """

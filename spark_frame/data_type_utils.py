@@ -7,14 +7,35 @@ from spark_frame.utils import assert_true, get_instantiated_spark_session
 
 
 def is_repeated(schema_field: StructField) -> bool:
+    """
+    >>> from pyspark.sql.types import IntegerType
+    >>> is_repeated(StructField("i", IntegerType()))
+    False
+    >>> is_repeated(StructField("a", ArrayType(IntegerType())))
+    True
+    """
     return isinstance(schema_field.dataType, ArrayType)
 
 
 def is_struct(schema_field: StructField) -> bool:
+    """
+    >>> from pyspark.sql.types import IntegerType
+    >>> is_struct(StructField("i", IntegerType()))
+    False
+    >>> is_struct(StructField("s", StructType([StructField("i", IntegerType())])))
+    True
+    """
     return isinstance(schema_field.dataType, StructType)
 
 
 def is_nullable(schema_field: StructField) -> bool:
+    """
+    >>> from pyspark.sql.types import IntegerType
+    >>> is_nullable(StructField("i", IntegerType()))
+    True
+    >>> is_nullable(StructField("i", IntegerType(), nullable=False))
+    False
+    """
     return schema_field.nullable
 
 
@@ -28,10 +49,10 @@ def find_common_type_for_fields(left_field: StructField, right_field: StructFiel
 
 
 def get_common_columns(left_schema: StructType, right_schema: StructType) -> List[Tuple[str, Optional[str]]]:
-    """Return a list of common Columns between two DataFrame schemas, casting them into the widest common type
-    when required.
+    """Return a list of common Columns between two DataFrame schemas, along with the widest common type for the
+    two columns.
 
-    When columns have incompatible types, they are simply not cast.
+    When columns already have the same type or have incompatible types, the type returned is None.
 
     Args:
         left_schema: A DataFrame schema
@@ -44,11 +65,11 @@ def get_common_columns(left_schema: StructType, right_schema: StructType) -> Lis
 
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> df1 = spark.sql('''SELECT 'A' as id, CAST(1 as BIGINT) as d, 'a' as a''')
-        >>> df2 = spark.sql('''SELECT 'A' as id, CAST(1 as DOUBLE) as d, ARRAY('a') as a''')
+        >>> df1 = spark.sql('''SELECT 'A' as id, CAST(1 as BIGINT) as a, 'a' as b, NULL as c''')
+        >>> df2 = spark.sql('''SELECT 'A' as id, CAST(1 as DOUBLE) as a, ARRAY('a') as b, NULL as d''')
         >>> common_cols = get_common_columns(df1.schema, df2.schema)
         >>> common_cols
-        [('id', None), ('d', 'double'), ('a', None)]
+        [('id', None), ('a', 'double'), ('b', None)]
     """
     left_fields = {field.name: field for field in left_schema}
     right_fields = {field.name: field for field in right_schema}
@@ -172,11 +193,11 @@ def flatten_schema(
         for field in schema:
             if isinstance(field.dataType, StructType):
                 res += flatten_struct_type(
-                    field.dataType, previous_nullable or field.nullable, prefix + field.name + struct_separator
+                    field.dataType, previous_nullable or is_nullable(field), prefix + field.name + struct_separator
                 )
             else:
                 res += flatten_data_type(
-                    prefix + field.name, field.dataType, previous_nullable or field.nullable, field.metadata
+                    prefix + field.name, field.dataType, previous_nullable or is_nullable(field), field.metadata
                 )
         return res
 

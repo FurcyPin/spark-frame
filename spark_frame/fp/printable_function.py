@@ -1,4 +1,4 @@
-from typing import Any, Callable, Union, cast
+from typing import Any, Callable, Optional, Union, cast
 
 
 class PrintableFunction:
@@ -29,12 +29,11 @@ class PrintableFunction:
         >>> f2_then_f1 = PrintableFunction(lambda s: f1(f2(s)), lambda s: f1.alias(f2.alias(s)))
         >>> print(f2_then_f1)
         lambda x: (x * x).cast("Double")
-
     """
 
-    def __init__(self, func: Callable[[Any], Any], alias: Union[str, Callable[[str], str]]) -> None:
+    def __init__(self, func: Callable[[Any], Any], alias: Union[str, Callable[[Optional[str]], str]]) -> None:
         self.func: Callable[[Any], Any] = func
-        self.alias: Union[str, Callable[[str], str]] = alias
+        self.alias: Union[str, Callable[[Optional[str]], str]] = alias
 
     def __repr__(self) -> str:
         if callable(self.alias):
@@ -45,5 +44,8 @@ class PrintableFunction:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-    def __instancecheck__(self, instance):
-        return isinstance(self.func, instance)
+    def apply_alias(self, x: Optional[str]) -> str:
+        if callable(self.alias):
+            return self.alias(x)
+        else:
+            return self.alias

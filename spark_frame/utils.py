@@ -185,7 +185,7 @@ def strip_margin(text: str):
     This method is inspired from Scala's String.stripMargin.
 
     Args:
-        text:
+        text: A multi-line string
 
     Returns:
         A stripped string
@@ -199,6 +199,14 @@ def strip_margin(text: str):
         a
         b
         c
+        >>> print(strip_margin('''a
+        ... |b
+        ...   |c
+        ...     |d'''))
+        a
+        b
+        c
+        d
     """
     s = re.sub(r"\n[ \t\r]*\|", "\n", text)
     if s.startswith("\n"):
@@ -309,20 +317,16 @@ def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, v
          name | Bob
         <BLANKLINE>
     """
-    if not isinstance(n, int) or isinstance(n, bool):
-        raise TypeError("Parameter 'n' (number of rows) must be an int")
-
-    if not isinstance(vertical, bool):
-        raise TypeError("Parameter 'vertical' must be a bool")
+    assert_true(isinstance(n, (int, bool)), TypeError("Parameter 'n' (number of rows) must be an int"))
+    assert_true(isinstance(vertical, bool), TypeError("Parameter 'vertical' must be a bool"))
+    assert_true(
+        isinstance(truncate, (int, bool)), TypeError(f"Parameter 'truncate={truncate}' should be either bool or int.")
+    )
 
     if isinstance(truncate, bool) and truncate:
         return df._jdf.showString(n, 20, vertical)
     else:
-        try:
-            int_truncate = int(truncate)
-        except ValueError:
-            raise TypeError("Parameter 'truncate={}' should be either bool or int.".format(truncate))
-        return df._jdf.showString(n, int_truncate, vertical)
+        return df._jdf.showString(n, int(truncate), vertical)
 
 
 def schema_string(df: DataFrame) -> str:
@@ -363,21 +367,36 @@ def safe_struct_get(s: Optional[Column], field: str) -> Column:
         return s[field]
 
 
-def assert_true(assertion: bool, error_message: str = None) -> None:
-    """Raise a ValueError with the given error_message if the assertion passed is false
+def assert_true(assertion: bool, error: Union[str, BaseException] = None) -> None:
+    """Raise an Exception with the given error_message if the assertion passed is false.
 
+    !!! Tip
+        This method is especially useful to get 100% coverage more easily, without having to write tests for every
+        single assertion to cover the cases when they fail (which are generally just there to provide a more helpful
+        error message to users when something that is not supposed to happen does happen)
+
+    Args:
+        assertion: The boolean result of an assertion
+        error: An Exception or a message string (in which case an AssertError with this message will be raised)
+
+    >>> assert_true(3==3, "3 <> 4")
     >>> assert_true(3==4, "3 <> 4")
     Traceback (most recent call last):
     ...
     AssertionError: 3 <> 4
-
-    >>> assert_true(3==3, "3 <> 4")
-
-    :param assertion: assertion that will be checked
-    :param error_message: error message to display if the assertion is false
+    >>> assert_true(3==4, ValueError("3 <> 4"))
+    Traceback (most recent call last):
+    ...
+    ValueError: 3 <> 4
+    >>> assert_true(3==4)
+    Traceback (most recent call last):
+    ...
+    AssertionError
     """
     if not assertion:
-        if error_message is None:
-            raise AssertionError()
+        if isinstance(error, BaseException):
+            raise error
+        elif isinstance(error, str):
+            raise AssertionError(error)
         else:
-            raise AssertionError(error_message)
+            raise AssertionError()

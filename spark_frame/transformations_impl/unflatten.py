@@ -3,8 +3,8 @@ from typing import Dict, List, Union
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
-from pyspark.sql.types import StructType
 
+from spark_frame.data_type_utils import is_struct
 from spark_frame.transformations_impl.flatten import flatten
 from spark_frame.utils import quote
 
@@ -123,7 +123,7 @@ def unflatten(df: DataFrame, separator: str = ".") -> DataFrame:
     # There is a little twist as we don't want to rebuild the struct if all its fields are null, so we add a CASE WHEN
 
     def has_structs(df: DataFrame) -> bool:
-        struct_fields = [field for field in df.schema if isinstance(field.dataType, StructType)]
+        struct_fields = [field for field in df.schema if is_struct(field)]
         return len(struct_fields) > 0
 
     if has_structs(df):
