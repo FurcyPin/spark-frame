@@ -7,14 +7,14 @@ from pyspark.sql.types import StructType
 from spark_frame.utils import quote_columns
 
 
-def flatten(df: DataFrame, separator: str = ".") -> DataFrame:
+def flatten(df: DataFrame, struct_separator: str = ".") -> DataFrame:
     """Flatten all the struct columns of a Spark [DataFrame][pyspark.sql.DataFrame].
     Nested fields names will be joined together using the specified separator
 
     Args:
         df: A Spark DataFrame
-        separator: A string used to separate the structs names from their elements.
-                   It might be useful to change the separator when some DataFrame's column names already contain dots
+        struct_separator: A string used to separate the structs names from their elements.
+            It might be useful to change the separator when some DataFrame's column names already contain dots
 
     Returns:
         A flattened DataFrame
@@ -75,7 +75,7 @@ def flatten(df: DataFrame, separator: str = ".") -> DataFrame:
                 expand_struct(struct_field, col_stack + [field.name])
             else:
                 column = f.col(".".join(quote_columns(col_stack + [field.name])))
-                cols.append(column.alias(separator.join(col_stack + [field.name])))
+                cols.append(column.alias(struct_separator.join(col_stack + [field.name])))
 
     expand_struct(df.schema, col_stack=[])
     return df.select(cols)

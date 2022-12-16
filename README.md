@@ -30,3 +30,10 @@ pip install spark-frame
 ```
 
 
+# Release notes
+
+# v0.0.3
+
+- New transformation: `spark_frame.transformations.convert_all_maps_to_arrays`.
+- New transformation: `spark_frame.transformations.sort_all_arrays`.
+- New transformation: `spark_frame.transformations.harmonize_dataframes`.
