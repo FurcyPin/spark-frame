@@ -17,10 +17,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.472b142f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.975780f9.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.08040f6c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.2505c338.min.css">
         
       
       
@@ -337,8 +337,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#spark_frame.transformations_impl.flatten.flatten" class="md-nav__link">
-    flatten()
+  <a href="#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays" class="md-nav__link">
+    convert_all_maps_to_arrays()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark_frame.transformations_impl.harmonize_dataframes.harmonize_dataframes" class="md-nav__link">
+    harmonize_dataframes()
   </a>
   
 </li>
@@ -351,8 +358,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#spark_frame.transformations_impl.sort_all_arrays.sort_all_arrays" class="md-nav__link">
+    sort_all_arrays()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#spark_frame.transformations_impl.unflatten.unflatten" class="md-nav__link">
     unflatten()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark_frame.transformations_impl.unpivot.unpivot" class="md-nav__link">
+    unpivot()
   </a>
   
 </li>
@@ -512,8 +533,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#spark_frame.transformations_impl.flatten.flatten" class="md-nav__link">
-    flatten()
+  <a href="#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays" class="md-nav__link">
+    convert_all_maps_to_arrays()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark_frame.transformations_impl.harmonize_dataframes.harmonize_dataframes" class="md-nav__link">
+    harmonize_dataframes()
   </a>
   
 </li>
@@ -526,8 +554,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#spark_frame.transformations_impl.sort_all_arrays.sort_all_arrays" class="md-nav__link">
+    sort_all_arrays()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#spark_frame.transformations_impl.unflatten.unflatten" class="md-nav__link">
     unflatten()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark_frame.transformations_impl.unpivot.unpivot" class="md-nav__link">
+    unpivot()
   </a>
   
 </li>
@@ -898,7 +940,32 @@ This is a workaround to the Spark method <code>typedLit</code> not being availab
 
       <details class="quote">
         <summary>Source code in <code>spark_frame/functions.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 72</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
 <span class="normal"> 73</span>
 <span class="normal"> 74</span>
 <span class="normal"> 75</span>
@@ -931,32 +998,7 @@ This is a workaround to the Spark method <code>typedLit</code> not being availab
 <span class="normal">102</span>
 <span class="normal">103</span>
 <span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
-<span class="normal">129</span>
-<span class="normal">130</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generic_struct</span><span class="p">(</span><span class="o">*</span><span class="n">columns</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">col_name_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">col_value_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
+<span class="normal">105</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generic_struct</span><span class="p">(</span><span class="o">*</span><span class="n">columns</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">col_name_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">col_value_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Transform a set of columns into a generic array of struct of type ARRAY&lt;STRUCT&lt;name: STRING, value: STRING&gt;</span>
 <span class="sd">    (column_name -&gt; column_value)</span>
 
@@ -1056,29 +1098,29 @@ This is especially useful for literal which are always non-nullable by default.<
 
       <details class="quote">
         <summary>Source code in <code>spark_frame/functions.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
-<span class="normal">54</span>
-<span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span>
-<span class="normal">62</span>
-<span class="normal">63</span>
-<span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">nullable</span><span class="p">(</span><span class="n">col</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">nullable</span><span class="p">(</span><span class="n">col</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Make a `pyspark.sql.Column` nullable.</span>
 <span class="sd">    This is especially useful for literal which are always non-nullable by default.</span>
 
@@ -1605,6 +1647,18 @@ that are part of cycles will end up with a NULL value as their furthest ancestor
 These methods generally offer <em>higher order</em> transformation that requires to inspect the schema or event the content
 of the input DataFrame(s) before generating the next transformation. Those are typically generic operations 
 that <em>cannot</em> be implemented with one single SQL query.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Since Spark 3.3.0, all transformations can be inlined using 
+<a href="pyspark.sql.DataFrame.transform">DataFrame.transform</a>, like this:</p>
+<p><code>python
+df.transform(flatten).withColumn(
+    "base_stats.Total",
+    f.col("`base_stats.Attack`") + f.col("`base_stats.Defense`") + f.col("`base_stats.HP`") +
+    f.col("`base_stats.Sp Attack`") + f.col("`base_stats.Sp Defense`") + f.col("`base_stats.Speed`")
+).transform(unflatten).show(vertical=True, truncate=False)</code>
+<em>This example is taken</em></p>
+</div>
 <hr />
 
 
@@ -1612,16 +1666,16 @@ that <em>cannot</em> be implemented with one single SQL query.</p>
 
 
 
-<h3 id="spark_frame.transformations_impl.flatten.flatten" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">flatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span></code>
+<h3 id="spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">convert_all_maps_to_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span></code>
 
 </h3>
 
 
   <div class="doc doc-contents first">
   
-      <p>Flatten all the struct columns of a Spark <a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a>.
-Nested fields names will be joined together using the specified separator</p>
+      <p>Transform all columns of type <code>Map&lt;K,V&gt;</code> inside the given DataFrame into <code>ARRAY&lt;STRUCT&lt;key: K, value: V&gt;&gt;</code>.
+This transformation works recursively on every nesting level.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1644,17 +1698,6 @@ Nested fields names will be joined together using the specified separator</p>
               <em>required</em>
           </td>
         </tr>
-        <tr>
-          <td><code>separator</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>A string used to separate the structs names from their elements.
-       It might be useful to change the separator when some DataFrame's column names already contain dots</p></td>
-          <td>
-                <code>&#39;.&#39;</code>
-          </td>
-        </tr>
     </tbody>
   </table>
 
@@ -1671,7 +1714,7 @@ Nested fields names will be joined together using the specified separator</p>
           <td>
                 <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
           </td>
-          <td><p>A flattened DataFrame</p></td>
+          <td><p>A new DataFrame in which all maps have been replaced with arrays of entries.</p></td>
         </tr>
     </tbody>
   </table>
@@ -1679,52 +1722,50 @@ Nested fields names will be joined together using the specified separator</p>
 <p><strong>Examples:</strong></p>
     <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;doctest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">(</span>
-<span class="gp">... </span>        <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})],</span>
-<span class="gp">... </span>        <span class="s2">&quot;id INT, s STRUCT&lt;a:INT, b:STRUCT&lt;c:INT, d:INT&gt;&gt;&quot;</span>
-<span class="gp">... </span>     <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;SELECT 1 as id, ARRAY(MAP(1, STRUCT(MAP(1, &quot;a&quot;) as m2))) as m1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 <span class="go">root</span>
-<span class="go"> |-- id: integer (nullable = true)</span>
-<span class="go"> |-- s: struct (nullable = true)</span>
-<span class="go"> |    |-- a: integer (nullable = true)</span>
-<span class="go"> |    |-- b: struct (nullable = true)</span>
-<span class="go"> |    |    |-- c: integer (nullable = true)</span>
-<span class="go"> |    |    |-- d: integer (nullable = true)</span>
+<span class="go"> |-- id: integer (nullable = false)</span>
+<span class="go"> |-- m1: array (nullable = false)</span>
+<span class="go"> |    |-- element: map (containsNull = false)</span>
+<span class="go"> |    |    |-- key: integer</span>
+<span class="go"> |    |    |-- value: struct (valueContainsNull = false)</span>
+<span class="go"> |    |    |    |-- m2: map (nullable = false)</span>
+<span class="go"> |    |    |    |    |-- key: integer</span>
+<span class="go"> |    |    |    |    |-- value: string (valueContainsNull = false)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">flatten</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
-<span class="go">root</span>
-<span class="go"> |-- id: integer (nullable = true)</span>
-<span class="go"> |-- s.a: integer (nullable = true)</span>
-<span class="go"> |-- s.b.c: integer (nullable = true)</span>
-<span class="go"> |-- s.b.d: integer (nullable = true)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+---+-------------------+</span>
+<span class="go">| id|                 m1|</span>
+<span class="go">+---+-------------------+</span>
+<span class="go">|  1|[{1 -&gt; {{1 -&gt; a}}}]|</span>
+<span class="go">+---+-------------------+</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">(</span>
-<span class="gp">... </span>        <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;a.a1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b.b1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;c.c1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;d.d1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})],</span>
-<span class="gp">... </span>        <span class="s2">&quot;id INT, `s.s1` STRUCT&lt;`a.a1`:INT, `b.b1`:STRUCT&lt;`c.c1`:INT, `d.d1`:INT&gt;&gt;&quot;</span>
-<span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res_df</span> <span class="o">=</span> <span class="n">convert_all_maps_to_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res_df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 <span class="go">root</span>
-<span class="go"> |-- id: integer (nullable = true)</span>
-<span class="go"> |-- s.s1: struct (nullable = true)</span>
-<span class="go"> |    |-- a.a1: integer (nullable = true)</span>
-<span class="go"> |    |-- b.b1: struct (nullable = true)</span>
-<span class="go"> |    |    |-- c.c1: integer (nullable = true)</span>
-<span class="go"> |    |    |-- d.d1: integer (nullable = true)</span>
+<span class="go"> |-- id: integer (nullable = false)</span>
+<span class="go"> |-- m1: array (nullable = false)</span>
+<span class="go"> |    |-- element: array (containsNull = false)</span>
+<span class="go"> |    |    |-- element: struct (containsNull = false)</span>
+<span class="go"> |    |    |    |-- key: integer (nullable = false)</span>
+<span class="go"> |    |    |    |-- value: struct (nullable = false)</span>
+<span class="go"> |    |    |    |    |-- m2: array (nullable = false)</span>
+<span class="go"> |    |    |    |    |    |-- element: struct (containsNull = false)</span>
+<span class="go"> |    |    |    |    |    |    |-- key: integer (nullable = false)</span>
+<span class="go"> |    |    |    |    |    |    |-- value: string (nullable = false)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">flatten</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;?&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
-<span class="go">root</span>
-<span class="go"> |-- id: integer (nullable = true)</span>
-<span class="go"> |-- s.s1?a.a1: integer (nullable = true)</span>
-<span class="go"> |-- s.s1?b.b1?c.c1: integer (nullable = true)</span>
-<span class="go"> |-- s.s1?b.b1?d.d1: integer (nullable = true)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res_df</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+---+-------------------+</span>
+<span class="go">| id|                 m1|</span>
+<span class="go">+---+-------------------+</span>
+<span class="go">|  1|[[{1, {[{1, a}]}}]]|</span>
+<span class="go">+---+-------------------+</span>
 </code></pre></div>
 
       <details class="quote">
-        <summary>Source code in <code>spark_frame/transformations_impl/flatten.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">10</span>
-<span class="normal">11</span>
-<span class="normal">12</span>
+        <summary>Source code in <code>spark_frame/transformations_impl/convert_all_maps_to_arrays.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
@@ -1793,78 +1834,331 @@ Nested fields names will be joined together using the specified separator</p>
 <span class="normal">78</span>
 <span class="normal">79</span>
 <span class="normal">80</span>
-<span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Flatten all the struct columns of a Spark [DataFrame][pyspark.sql.DataFrame].</span>
-<span class="sd">    Nested fields names will be joined together using the specified separator</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">convert_all_maps_to_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Transform all columns of type `Map&lt;K,V&gt;` inside the given DataFrame into `ARRAY&lt;STRUCT&lt;key: K, value: V&gt;&gt;`.</span>
+<span class="sd">    This transformation works recursively on every nesting level.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        df: A Spark DataFrame</span>
-<span class="sd">        separator: A string used to separate the structs names from their elements.</span>
-<span class="sd">                   It might be useful to change the separator when some DataFrame&#39;s column names already contain dots</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A flattened DataFrame</span>
+<span class="sd">        A new DataFrame in which all maps have been replaced with arrays of entries.</span>
 
 <span class="sd">    Examples:</span>
 
 <span class="sd">        &gt;&gt;&gt; from pyspark.sql import SparkSession</span>
 <span class="sd">        &gt;&gt;&gt; spark = SparkSession.builder.appName(&quot;doctest&quot;).getOrCreate()</span>
-<span class="sd">        &gt;&gt;&gt; df = spark.createDataFrame(</span>
-<span class="sd">        ...         [(1, {&quot;a&quot;: 1, &quot;b&quot;: {&quot;c&quot;: 1, &quot;d&quot;: 1}})],</span>
-<span class="sd">        ...         &quot;id INT, s STRUCT&lt;a:INT, b:STRUCT&lt;c:INT, d:INT&gt;&gt;&quot;</span>
-<span class="sd">        ...      )</span>
+<span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;SELECT 1 as id, ARRAY(MAP(1, STRUCT(MAP(1, &quot;a&quot;) as m2))) as m1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; df.printSchema()</span>
 <span class="sd">        root</span>
-<span class="sd">         |-- id: integer (nullable = true)</span>
-<span class="sd">         |-- s: struct (nullable = true)</span>
-<span class="sd">         |    |-- a: integer (nullable = true)</span>
-<span class="sd">         |    |-- b: struct (nullable = true)</span>
-<span class="sd">         |    |    |-- c: integer (nullable = true)</span>
-<span class="sd">         |    |    |-- d: integer (nullable = true)</span>
+<span class="sd">         |-- id: integer (nullable = false)</span>
+<span class="sd">         |-- m1: array (nullable = false)</span>
+<span class="sd">         |    |-- element: map (containsNull = false)</span>
+<span class="sd">         |    |    |-- key: integer</span>
+<span class="sd">         |    |    |-- value: struct (valueContainsNull = false)</span>
+<span class="sd">         |    |    |    |-- m2: map (nullable = false)</span>
+<span class="sd">         |    |    |    |    |-- key: integer</span>
+<span class="sd">         |    |    |    |    |-- value: string (valueContainsNull = false)</span>
 <span class="sd">        &lt;BLANKLINE&gt;</span>
-<span class="sd">        &gt;&gt;&gt; flatten(df).printSchema()</span>
-<span class="sd">        root</span>
-<span class="sd">         |-- id: integer (nullable = true)</span>
-<span class="sd">         |-- s.a: integer (nullable = true)</span>
-<span class="sd">         |-- s.b.c: integer (nullable = true)</span>
-<span class="sd">         |-- s.b.d: integer (nullable = true)</span>
+<span class="sd">        &gt;&gt;&gt; df.show()</span>
+<span class="sd">        +---+-------------------+</span>
+<span class="sd">        | id|                 m1|</span>
+<span class="sd">        +---+-------------------+</span>
+<span class="sd">        |  1|[{1 -&gt; {{1 -&gt; a}}}]|</span>
+<span class="sd">        +---+-------------------+</span>
 <span class="sd">        &lt;BLANKLINE&gt;</span>
-<span class="sd">        &gt;&gt;&gt; df = spark.createDataFrame(</span>
-<span class="sd">        ...         [(1, {&quot;a.a1&quot;: 1, &quot;b.b1&quot;: {&quot;c.c1&quot;: 1, &quot;d.d1&quot;: 1}})],</span>
-<span class="sd">        ...         &quot;id INT, `s.s1` STRUCT&lt;`a.a1`:INT, `b.b1`:STRUCT&lt;`c.c1`:INT, `d.d1`:INT&gt;&gt;&quot;</span>
-<span class="sd">        ... )</span>
-<span class="sd">        &gt;&gt;&gt; df.printSchema()</span>
+<span class="sd">        &gt;&gt;&gt; res_df = convert_all_maps_to_arrays(df)</span>
+<span class="sd">        &gt;&gt;&gt; res_df.printSchema()</span>
 <span class="sd">        root</span>
-<span class="sd">         |-- id: integer (nullable = true)</span>
-<span class="sd">         |-- s.s1: struct (nullable = true)</span>
-<span class="sd">         |    |-- a.a1: integer (nullable = true)</span>
-<span class="sd">         |    |-- b.b1: struct (nullable = true)</span>
-<span class="sd">         |    |    |-- c.c1: integer (nullable = true)</span>
-<span class="sd">         |    |    |-- d.d1: integer (nullable = true)</span>
+<span class="sd">         |-- id: integer (nullable = false)</span>
+<span class="sd">         |-- m1: array (nullable = false)</span>
+<span class="sd">         |    |-- element: array (containsNull = false)</span>
+<span class="sd">         |    |    |-- element: struct (containsNull = false)</span>
+<span class="sd">         |    |    |    |-- key: integer (nullable = false)</span>
+<span class="sd">         |    |    |    |-- value: struct (nullable = false)</span>
+<span class="sd">         |    |    |    |    |-- m2: array (nullable = false)</span>
+<span class="sd">         |    |    |    |    |    |-- element: struct (containsNull = false)</span>
+<span class="sd">         |    |    |    |    |    |    |-- key: integer (nullable = false)</span>
+<span class="sd">         |    |    |    |    |    |    |-- value: string (nullable = false)</span>
 <span class="sd">        &lt;BLANKLINE&gt;</span>
-<span class="sd">        &gt;&gt;&gt; flatten(df, &quot;?&quot;).printSchema()</span>
-<span class="sd">        root</span>
-<span class="sd">         |-- id: integer (nullable = true)</span>
-<span class="sd">         |-- s.s1?a.a1: integer (nullable = true)</span>
-<span class="sd">         |-- s.s1?b.b1?c.c1: integer (nullable = true)</span>
-<span class="sd">         |-- s.s1?b.b1?d.d1: integer (nullable = true)</span>
+<span class="sd">        &gt;&gt;&gt; res_df.show()</span>
+<span class="sd">        +---+-------------------+</span>
+<span class="sd">        | id|                 m1|</span>
+<span class="sd">        +---+-------------------+</span>
+<span class="sd">        |  1|[[{1, {[{1, a}]}}]]|</span>
+<span class="sd">        +---+-------------------+</span>
 <span class="sd">        &lt;BLANKLINE&gt;</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># The idea is to recursively write a &quot;SELECT s.b.c as `s.b.c`&quot; for each nested column.</span>
-    <span class="n">cols</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">expand_struct</span><span class="p">(</span><span class="n">struct</span><span class="p">:</span> <span class="n">StructType</span><span class="p">,</span> <span class="n">col_stack</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">struct</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="p">)</span> <span class="o">==</span> <span class="n">StructType</span><span class="p">:</span>
-                <span class="n">struct_field</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">StructType</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="p">)</span>
-                <span class="n">expand_struct</span><span class="p">(</span><span class="n">struct_field</span><span class="p">,</span> <span class="n">col_stack</span> <span class="o">+</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">column</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">quote_columns</span><span class="p">(</span><span class="n">col_stack</span> <span class="o">+</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">])))</span>
-                <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col_stack</span> <span class="o">+</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">])))</span>
+    <span class="k">def</span> <span class="nf">build_col</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="n">StructField</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrintableFunction</span><span class="p">:</span>
+        <span class="n">is_repeated</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">REPETITION_MARKER</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">STRUCT_SEPARATOR</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="p">,</span> <span class="n">MapType</span><span class="p">):</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="n">PrintableFunction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">map_entries</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;f.map_entries(</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="n">higher_order</span><span class="o">.</span><span class="n">identity</span>
+        <span class="k">if</span> <span class="n">is_repeated</span><span class="p">:</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="n">higher_order</span><span class="o">.</span><span class="n">identity</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="n">higher_order</span><span class="o">.</span><span class="n">safe_struct_get</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fp</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">)</span>
 
-    <span class="n">expand_struct</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">col_stack</span><span class="o">=</span><span class="p">[])</span>
-    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+    <span class="n">do_continue</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">while</span> <span class="n">do_continue</span><span class="p">:</span>
+        <span class="n">schema_flat</span> <span class="o">=</span> <span class="n">flatten_schema</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">explode</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">struct_separator</span><span class="o">=</span><span class="n">STRUCT_SEPARATOR</span><span class="p">,</span> <span class="n">repetition_marker</span><span class="o">=</span><span class="n">REPETITION_MARKER</span>
+        <span class="p">)</span>
+        <span class="n">schema_contains_map</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="p">,</span> <span class="n">MapType</span><span class="p">)</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">schema_flat</span><span class="p">])</span>
+        <span class="n">do_continue</span> <span class="o">=</span> <span class="n">schema_contains_map</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">build_col</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">schema_flat</span><span class="p">}</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">resolve_nested_columns</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">df</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div><hr />
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="spark_frame.transformations_impl.harmonize_dataframes.harmonize_dataframes" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">harmonize_dataframes</span><span class="p">(</span><span class="n">left_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">right_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">common_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">]</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Given two DataFrames, returns two new corresponding DataFrames with the same schemas by applying the following
+changes:
+- Only common columns are kept
+- Columns of type MAP<key, value> are cast into ARRAY<STRUCT\<key, value>>
+- Columns are re-order to have the same ordering in both DataFrames
+- When matching columns have different types, their type is widened to their most narrow common type.
+This transformation is applied recursively on nested columns, including those inside
+repeated records (a.k.a. ARRAY&lt;STRUCT&lt;&gt;&gt;).</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>left_df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A Spark DataFrame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>right_df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A Spark DataFrame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>common_columns</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Sequence">Sequence</span>[<span title="typing.Tuple">Tuple</span>[str, <span title="typing.Optional">Optional</span>[str]]]]</code>
+          </td>
+          <td><p>A list of (column name, type) tuples.
+Column names must appear in both DataFrames, and each column will be cast into the corresponding type.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a>, <a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a>]</code>
+          </td>
+          <td><p>Two new Spark DataFrames with the same schema</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;doctest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3 as b, 4 as c)) as s2) as s1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df2</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3.0 as b, &quot;4&quot; as c, 5 as d)) as s2) as s1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">pyspark.sql.utils.AnalysisException</span>: <span class="n">Union can only be performed on tables with the compatible column types. ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span> <span class="o">=</span> <span class="n">harmonize_dataframes</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+---+---------------+</span>
+<span class="go">| id|             s1|</span>
+<span class="go">+---+---------------+</span>
+<span class="go">|  1|{2, [{3.0, 4}]}|</span>
+<span class="go">|  1|{2, [{3.0, 4}]}|</span>
+<span class="go">+---+---------------+</span>
+</code></pre></div>
+
+      <details class="quote">
+        <summary>Source code in <code>spark_frame/transformations_impl/harmonize_dataframes.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">harmonize_dataframes</span><span class="p">(</span>
+    <span class="n">left_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">right_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">common_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Given two DataFrames, returns two new corresponding DataFrames with the same schemas by applying the following</span>
+<span class="sd">    changes:</span>
+<span class="sd">    - Only common columns are kept</span>
+<span class="sd">    - Columns of type MAP&lt;key, value&gt; are cast into ARRAY&lt;STRUCT&lt;key, value&gt;&gt;</span>
+<span class="sd">    - Columns are re-order to have the same ordering in both DataFrames</span>
+<span class="sd">    - When matching columns have different types, their type is widened to their most narrow common type.</span>
+<span class="sd">    This transformation is applied recursively on nested columns, including those inside</span>
+<span class="sd">    repeated records (a.k.a. ARRAY&lt;STRUCT&lt;&gt;&gt;).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        left_df: A Spark DataFrame</span>
+<span class="sd">        right_df: A Spark DataFrame</span>
+<span class="sd">        common_columns: A list of (column name, type) tuples.</span>
+<span class="sd">            Column names must appear in both DataFrames, and each column will be cast into the corresponding type.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Two new Spark DataFrames with the same schema</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from pyspark.sql import SparkSession</span>
+<span class="sd">        &gt;&gt;&gt; spark = SparkSession.builder.appName(&quot;doctest&quot;).getOrCreate()</span>
+<span class="sd">        &gt;&gt;&gt; df1 = spark.sql(&#39;SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3 as b, 4 as c)) as s2) as s1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; df2 = spark.sql(&#39;SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3.0 as b, &quot;4&quot; as c, 5 as d)) as s2) as s1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; df1.union(df2).show(truncate=False) # doctest: +ELLIPSIS</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          ...</span>
+<span class="sd">        pyspark.sql.utils.AnalysisException: Union can only be performed on tables with the compatible column types. ...</span>
+<span class="sd">        &gt;&gt;&gt; df1, df2 = harmonize_dataframes(df1, df2)</span>
+<span class="sd">        &gt;&gt;&gt; df1.union(df2).show()</span>
+<span class="sd">        +---+---------------+</span>
+<span class="sd">        | id|             s1|</span>
+<span class="sd">        +---+---------------+</span>
+<span class="sd">        |  1|{2, [{3.0, 4}]}|</span>
+<span class="sd">        |  1|{2, [{3.0, 4}]}|</span>
+<span class="sd">        +---+---------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">common_columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">left_schema_flat</span> <span class="o">=</span> <span class="n">flatten_schema</span><span class="p">(</span><span class="n">left_df</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">explode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">right_schema_flat</span> <span class="o">=</span> <span class="n">flatten_schema</span><span class="p">(</span><span class="n">right_df</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">explode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">common_columns</span> <span class="o">=</span> <span class="n">get_common_columns</span><span class="p">(</span><span class="n">left_schema_flat</span><span class="p">,</span> <span class="n">right_schema_flat</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">build_col</span><span class="p">(</span><span class="n">col_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">col_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">PrintableFunction</span><span class="p">:</span>
+        <span class="n">is_repeated</span> <span class="o">=</span> <span class="n">col_name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">REPETITION_MARKER</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">col_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">STRUCT_SEPARATOR</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">col_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tpe</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">col_type</span><span class="p">)</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="n">PrintableFunction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tpe</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">.cast(</span><span class="si">{</span><span class="n">tpe</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="n">higher_order</span><span class="o">.</span><span class="n">identity</span>
+        <span class="k">if</span> <span class="n">is_repeated</span><span class="p">:</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="n">higher_order</span><span class="o">.</span><span class="n">identity</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="n">higher_order</span><span class="o">.</span><span class="n">safe_struct_get</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fp</span><span class="o">.</span><span class="n">compose</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">)</span>
+
+    <span class="n">common_columns_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">col_name</span><span class="p">:</span> <span class="n">build_col</span><span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">col_type</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">col_type</span><span class="p">)</span> <span class="ow">in</span> <span class="n">common_columns</span><span class="p">}</span>
+    <span class="n">resolved_columns</span> <span class="o">=</span> <span class="n">resolve_nested_columns</span><span class="p">(</span><span class="n">common_columns_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">left_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">resolved_columns</span><span class="p">),</span> <span class="n">right_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">resolved_columns</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -2283,6 +2577,392 @@ instead of replacing that column it will create a new column outside the struct 
 
 
 
+<h3 id="spark_frame.transformations_impl.sort_all_arrays.sort_all_arrays" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">sort_all_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Given a DataFrame, sort all fields of type <code>ARRAY</code> in a canonical order, making them comparable.
+This also applies to nested fields, even those inside other arrays.</p>
+<div class="admonition warning">
+<p class="admonition-title">Limitations</p>
+<ul>
+<li>Arrays containing sub-fields of type Map cannot be sorted, as the Map type is not comparable.</li>
+<li>Fields located inside Maps will not be affected.</li>
+<li>A possible workaround to these limitations is to use the transformation <a href="/reference/#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays"><code>convert_all_maps_to_arrays</code></a></li>
+</ul>
+</div>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A Spark DataFrame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A new DataFrame where all arrays have been sorted.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+<p><strong>Examples:</strong></p>
+    <p><em>Example 1:</em> with a simple <code>ARRAY&lt;INT&gt;</code></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;doctest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;SELECT 1 as id, ARRAY(3, 2, 1) as a&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+---+---------+</span>
+<span class="go">| id|        a|</span>
+<span class="go">+---+---------+</span>
+<span class="go">|  1|[3, 2, 1]|</span>
+<span class="go">+---+---------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sort_all_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+---+---------+</span>
+<span class="go">| id|        a|</span>
+<span class="go">+---+---------+</span>
+<span class="go">|  1|[1, 2, 3]|</span>
+<span class="go">+---+---------+</span>
+</code></pre></div>
+    <p><em>Example 2:</em> with an <code>ARRAY&lt;STRUCT&lt;...&gt;&gt;</code></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;SELECT ARRAY(STRUCT(2 as a, 1 as b), STRUCT(1 as a, 2 as b), STRUCT(1 as a, 1 as b)) as s&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+------------------------+</span>
+<span class="go">|s                       |</span>
+<span class="go">+------------------------+</span>
+<span class="go">|[{2, 1}, {1, 2}, {1, 1}]|</span>
+<span class="go">+------------------------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">sort_all_arrays</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+------------------------+</span>
+<span class="go">|s                       |</span>
+<span class="go">+------------------------+</span>
+<span class="go">|[{1, 1}, {1, 2}, {2, 1}]|</span>
+<span class="go">+------------------------+</span>
+</code></pre></div>
+    <p><em>Example 3:</em> with an <code>ARRAY&lt;STRUCT&lt;STRUCT&lt;...&gt;&gt;&gt;</code></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;SELECT ARRAY(</span>
+<span class="gp">... </span><span class="s1">        STRUCT(STRUCT(2 as a, 2 as b) as s),</span>
+<span class="gp">... </span><span class="s1">        STRUCT(STRUCT(1 as a, 2 as b) as s)</span>
+<span class="gp">... </span><span class="s1">    ) as l1</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+--------------------+</span>
+<span class="go">|l1                  |</span>
+<span class="go">+--------------------+</span>
+<span class="go">|[{{2, 2}}, {{1, 2}}]|</span>
+<span class="go">+--------------------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">sort_all_arrays</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+--------------------+</span>
+<span class="go">|l1                  |</span>
+<span class="go">+--------------------+</span>
+<span class="go">|[{{1, 2}}, {{2, 2}}]|</span>
+<span class="go">+--------------------+</span>
+</code></pre></div>
+    <p><em>Example 4:</em> with an <code>ARRAY&lt;ARRAY&lt;ARRAY&lt;INT&gt;&gt;&gt;</code></p>
+<p>As this example shows, the innermost arrays are sorted before the outermost arrays.</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;SELECT ARRAY(</span>
+<span class="gp">... </span><span class="s1">        ARRAY(ARRAY(4, 1), ARRAY(3, 2)),</span>
+<span class="gp">... </span><span class="s1">        ARRAY(ARRAY(2, 2), ARRAY(2, 1))</span>
+<span class="gp">... </span><span class="s1">    ) as l1</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+------------------------------------+</span>
+<span class="go">|l1                                  |</span>
+<span class="go">+------------------------------------+</span>
+<span class="go">|[[[4, 1], [3, 2]], [[2, 2], [2, 1]]]|</span>
+<span class="go">+------------------------------------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">sort_all_arrays</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+------------------------------------+</span>
+<span class="go">|l1                                  |</span>
+<span class="go">+------------------------------------+</span>
+<span class="go">|[[[1, 2], [2, 2]], [[1, 4], [2, 3]]]|</span>
+<span class="go">+------------------------------------+</span>
+</code></pre></div>
+
+      <details class="quote">
+        <summary>Source code in <code>spark_frame/transformations_impl/sort_all_arrays.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 10</span>
+<span class="normal"> 11</span>
+<span class="normal"> 12</span>
+<span class="normal"> 13</span>
+<span class="normal"> 14</span>
+<span class="normal"> 15</span>
+<span class="normal"> 16</span>
+<span class="normal"> 17</span>
+<span class="normal"> 18</span>
+<span class="normal"> 19</span>
+<span class="normal"> 20</span>
+<span class="normal"> 21</span>
+<span class="normal"> 22</span>
+<span class="normal"> 23</span>
+<span class="normal"> 24</span>
+<span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">sort_all_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Given a DataFrame, sort all fields of type `ARRAY` in a canonical order, making them comparable.</span>
+<span class="sd">    This also applies to nested fields, even those inside other arrays.</span>
+
+<span class="sd">    !!! warning &quot;Limitations&quot;</span>
+<span class="sd">        - Arrays containing sub-fields of type Map cannot be sorted, as the Map type is not comparable.</span>
+<span class="sd">        - Fields located inside Maps will not be affected.</span>
+<span class="sd">        - A possible workaround to these limitations is to use the transformation [`convert_all_maps_to_arrays`](</span>
+<span class="sd">        /reference/#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: A Spark DataFrame</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A new DataFrame where all arrays have been sorted.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        *Example 1:* with a simple `ARRAY&lt;INT&gt;`</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyspark.sql import SparkSession</span>
+<span class="sd">        &gt;&gt;&gt; spark = SparkSession.builder.appName(&quot;doctest&quot;).getOrCreate()</span>
+<span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;SELECT 1 as id, ARRAY(3, 2, 1) as a&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; df.show()</span>
+<span class="sd">        +---+---------+</span>
+<span class="sd">        | id|        a|</span>
+<span class="sd">        +---+---------+</span>
+<span class="sd">        |  1|[3, 2, 1]|</span>
+<span class="sd">        +---+---------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; sort_all_arrays(df).show()</span>
+<span class="sd">        +---+---------+</span>
+<span class="sd">        | id|        a|</span>
+<span class="sd">        +---+---------+</span>
+<span class="sd">        |  1|[1, 2, 3]|</span>
+<span class="sd">        +---+---------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        *Example 2:* with an `ARRAY&lt;STRUCT&lt;...&gt;&gt;`</span>
+
+<span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;SELECT ARRAY(STRUCT(2 as a, 1 as b), STRUCT(1 as a, 2 as b), STRUCT(1 as a, 1 as b)) as s&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; df.show(truncate=False)</span>
+<span class="sd">        +------------------------+</span>
+<span class="sd">        |s                       |</span>
+<span class="sd">        +------------------------+</span>
+<span class="sd">        |[{2, 1}, {1, 2}, {1, 1}]|</span>
+<span class="sd">        +------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; df.transform(sort_all_arrays).show(truncate=False)</span>
+<span class="sd">        +------------------------+</span>
+<span class="sd">        |s                       |</span>
+<span class="sd">        +------------------------+</span>
+<span class="sd">        |[{1, 1}, {1, 2}, {2, 1}]|</span>
+<span class="sd">        +------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        *Example 3:* with an `ARRAY&lt;STRUCT&lt;STRUCT&lt;...&gt;&gt;&gt;`</span>
+
+<span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;&#39;&#39;SELECT ARRAY(</span>
+<span class="sd">        ...         STRUCT(STRUCT(2 as a, 2 as b) as s),</span>
+<span class="sd">        ...         STRUCT(STRUCT(1 as a, 2 as b) as s)</span>
+<span class="sd">        ...     ) as l1</span>
+<span class="sd">        ... &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; df.show(truncate=False)</span>
+<span class="sd">        +--------------------+</span>
+<span class="sd">        |l1                  |</span>
+<span class="sd">        +--------------------+</span>
+<span class="sd">        |[{{2, 2}}, {{1, 2}}]|</span>
+<span class="sd">        +--------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; df.transform(sort_all_arrays).show(truncate=False)</span>
+<span class="sd">        +--------------------+</span>
+<span class="sd">        |l1                  |</span>
+<span class="sd">        +--------------------+</span>
+<span class="sd">        |[{{1, 2}}, {{2, 2}}]|</span>
+<span class="sd">        +--------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        *Example 4:* with an `ARRAY&lt;ARRAY&lt;ARRAY&lt;INT&gt;&gt;&gt;`</span>
+
+<span class="sd">        As this example shows, the innermost arrays are sorted before the outermost arrays.</span>
+
+<span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;&#39;&#39;SELECT ARRAY(</span>
+<span class="sd">        ...         ARRAY(ARRAY(4, 1), ARRAY(3, 2)),</span>
+<span class="sd">        ...         ARRAY(ARRAY(2, 2), ARRAY(2, 1))</span>
+<span class="sd">        ...     ) as l1</span>
+<span class="sd">        ... &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; df.show(truncate=False)</span>
+<span class="sd">        +------------------------------------+</span>
+<span class="sd">        |l1                                  |</span>
+<span class="sd">        +------------------------------------+</span>
+<span class="sd">        |[[[4, 1], [3, 2]], [[2, 2], [2, 1]]]|</span>
+<span class="sd">        +------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; df.transform(sort_all_arrays).show(truncate=False)</span>
+<span class="sd">        +------------------------------------+</span>
+<span class="sd">        |l1                                  |</span>
+<span class="sd">        +------------------------------------+</span>
+<span class="sd">        |[[[1, 2], [2, 2]], [[1, 4], [2, 3]]]|</span>
+<span class="sd">        +------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">schema_flat</span> <span class="o">=</span> <span class="n">flatten_schema</span><span class="p">(</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">explode</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">struct_separator</span><span class="o">=</span><span class="n">STRUCT_SEPARATOR</span><span class="p">,</span> <span class="n">repetition_marker</span><span class="o">=</span><span class="n">REPETITION_MARKER</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">build_col</span><span class="p">(</span><span class="n">col_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrintableFunction</span><span class="p">:</span>
+        <span class="n">is_repeated</span> <span class="o">=</span> <span class="n">col_name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">REPETITION_MARKER</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">col_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">STRUCT_SEPARATOR</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">is_repeated</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">higher_order</span><span class="o">.</span><span class="n">identity</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">higher_order</span><span class="o">.</span><span class="n">safe_struct_get</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">build_col</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">schema_flat</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">resolve_nested_columns</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div><hr />
+
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="spark_frame.transformations_impl.unflatten.unflatten" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">unflatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span></code>
 
@@ -2496,7 +3176,7 @@ Nested fields names will be separated from each other using the specified separa
     <span class="c1"># There is a little twist as we don&#39;t want to rebuild the struct if all its fields are null, so we add a CASE WHEN</span>
 
     <span class="k">def</span> <span class="nf">has_structs</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="n">struct_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">schema</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="p">,</span> <span class="n">StructType</span><span class="p">)]</span>
+        <span class="n">struct_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">schema</span> <span class="k">if</span> <span class="n">is_struct</span><span class="p">(</span><span class="n">field</span><span class="p">)]</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">struct_fields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
     <span class="k">if</span> <span class="n">has_structs</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
@@ -2505,6 +3185,345 @@ Nested fields names will be separated from each other using the specified separa
     <span class="n">tree</span> <span class="o">=</span> <span class="n">_build_nested_struct_tree</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">separator</span><span class="p">)</span>
     <span class="n">cols</span> <span class="o">=</span> <span class="n">_build_struct_from_tree</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">separator</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div><hr />
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="spark_frame.transformations_impl.unpivot.unpivot" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">unpivot</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">pivot_columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">key_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;key&#39;</span><span class="p">,</span> <span class="n">value_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Unpivot the given DataFrame along the specified pivot columns.
+All columns that are not pivot columns should have the same type.</p>
+<p>This is the inverse transformation of the <a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.GroupedData.pivot.html#pyspark.sql.GroupedData.pivot">pyspark.sql.GroupedData.pivot</a> operation.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A DataFrame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pivot_columns</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td><p>The list of columns names on which to perform the pivot</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>key_alias</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Alias given to the 'key' column</p></td>
+          <td>
+                <code>&#39;key&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>value_alias</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Alias given to the 'value' column</p></td>
+          <td>
+                <code>&#39;value&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>An unpivotted DataFrame</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;doctest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">([</span>
+<span class="gp">... </span>   <span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="s2">&quot;Orange&quot;</span><span class="p">,</span>  <span class="kc">None</span><span class="p">,</span> <span class="mi">4000</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+<span class="gp">... </span>   <span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="s2">&quot;Beans&quot;</span><span class="p">,</span>   <span class="kc">None</span><span class="p">,</span> <span class="mi">1500</span><span class="p">,</span> <span class="mi">2000</span><span class="p">),</span>
+<span class="gp">... </span>   <span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="s2">&quot;Banana&quot;</span><span class="p">,</span>  <span class="mi">2000</span><span class="p">,</span>  <span class="mi">400</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+<span class="gp">... </span>   <span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="s2">&quot;Carrots&quot;</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+<span class="gp">... </span>   <span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="s2">&quot;Orange&quot;</span><span class="p">,</span>  <span class="mi">5000</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">5000</span><span class="p">),</span>
+<span class="gp">... </span>   <span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="s2">&quot;Beans&quot;</span><span class="p">,</span>   <span class="kc">None</span><span class="p">,</span> <span class="mi">1500</span><span class="p">,</span> <span class="mi">2000</span><span class="p">),</span>
+<span class="gp">... </span>   <span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="s2">&quot;Banana&quot;</span><span class="p">,</span>  <span class="kc">None</span><span class="p">,</span> <span class="mi">1400</span><span class="p">,</span>  <span class="mi">400</span><span class="p">),</span>
+<span class="gp">... </span>   <span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="s2">&quot;Carrots&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>  <span class="mi">200</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+<span class="gp">... </span> <span class="p">],</span> <span class="s2">&quot;year INT, product STRING, Canada INT, China INT, Mexico INT&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+----+-------+------+-----+------+</span>
+<span class="go">|year|product|Canada|China|Mexico|</span>
+<span class="go">+----+-------+------+-----+------+</span>
+<span class="go">|2018| Orange|  null| 4000|  null|</span>
+<span class="go">|2018|  Beans|  null| 1500|  2000|</span>
+<span class="go">|2018| Banana|  2000|  400|  null|</span>
+<span class="go">|2018|Carrots|  2000| 1200|  null|</span>
+<span class="go">|2019| Orange|  5000| null|  5000|</span>
+<span class="go">|2019|  Beans|  null| 1500|  2000|</span>
+<span class="go">|2019| Banana|  null| 1400|   400|</span>
+<span class="go">|2019|Carrots|  null|  200|  null|</span>
+<span class="go">+----+-------+------+-----+------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpivot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;product&#39;</span><span class="p">],</span> <span class="n">key_alias</span><span class="o">=</span><span class="s1">&#39;country&#39;</span><span class="p">,</span> <span class="n">value_alias</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="go">+----+-------+-------+-----+</span>
+<span class="go">|year|product|country|total|</span>
+<span class="go">+----+-------+-------+-----+</span>
+<span class="go">|2018| Orange| Canada| null|</span>
+<span class="go">|2018| Orange|  China| 4000|</span>
+<span class="go">|2018| Orange| Mexico| null|</span>
+<span class="go">|2018|  Beans| Canada| null|</span>
+<span class="go">|2018|  Beans|  China| 1500|</span>
+<span class="go">|2018|  Beans| Mexico| 2000|</span>
+<span class="go">|2018| Banana| Canada| 2000|</span>
+<span class="go">|2018| Banana|  China|  400|</span>
+<span class="go">|2018| Banana| Mexico| null|</span>
+<span class="go">|2018|Carrots| Canada| 2000|</span>
+<span class="go">|2018|Carrots|  China| 1200|</span>
+<span class="go">|2018|Carrots| Mexico| null|</span>
+<span class="go">|2019| Orange| Canada| 5000|</span>
+<span class="go">|2019| Orange|  China| null|</span>
+<span class="go">|2019| Orange| Mexico| 5000|</span>
+<span class="go">|2019|  Beans| Canada| null|</span>
+<span class="go">|2019|  Beans|  China| 1500|</span>
+<span class="go">|2019|  Beans| Mexico| 2000|</span>
+<span class="go">|2019| Banana| Canada| null|</span>
+<span class="go">|2019| Banana|  China| 1400|</span>
+<span class="go">|2019| Banana| Mexico|  400|</span>
+<span class="go">|2019|Carrots| Canada| null|</span>
+<span class="go">|2019|Carrots|  China|  200|</span>
+<span class="go">|2019|Carrots| Mexico| null|</span>
+<span class="go">+----+-------+-------+-----+</span>
+</code></pre></div>
+
+      <details class="quote">
+        <summary>Source code in <code>spark_frame/transformations_impl/unpivot.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">  9</span>
+<span class="normal"> 10</span>
+<span class="normal"> 11</span>
+<span class="normal"> 12</span>
+<span class="normal"> 13</span>
+<span class="normal"> 14</span>
+<span class="normal"> 15</span>
+<span class="normal"> 16</span>
+<span class="normal"> 17</span>
+<span class="normal"> 18</span>
+<span class="normal"> 19</span>
+<span class="normal"> 20</span>
+<span class="normal"> 21</span>
+<span class="normal"> 22</span>
+<span class="normal"> 23</span>
+<span class="normal"> 24</span>
+<span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">unpivot</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">pivot_columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">key_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">value_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Unpivot the given DataFrame along the specified pivot columns.</span>
+<span class="sd">    All columns that are not pivot columns should have the same type.</span>
+
+<span class="sd">    This is the inverse transformation of the [pyspark.sql.GroupedData.pivot][] operation.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: A DataFrame</span>
+<span class="sd">        pivot_columns: The list of columns names on which to perform the pivot</span>
+<span class="sd">        key_alias: Alias given to the &#39;key&#39; column</span>
+<span class="sd">        value_alias: Alias given to the &#39;value&#39; column</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        An unpivotted DataFrame</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyspark.sql import SparkSession</span>
+<span class="sd">        &gt;&gt;&gt; spark = SparkSession.builder.appName(&quot;doctest&quot;).getOrCreate()</span>
+<span class="sd">        &gt;&gt;&gt; df = spark.createDataFrame([</span>
+<span class="sd">        ...    (2018, &quot;Orange&quot;,  None, 4000, None),</span>
+<span class="sd">        ...    (2018, &quot;Beans&quot;,   None, 1500, 2000),</span>
+<span class="sd">        ...    (2018, &quot;Banana&quot;,  2000,  400, None),</span>
+<span class="sd">        ...    (2018, &quot;Carrots&quot;, 2000, 1200, None),</span>
+<span class="sd">        ...    (2019, &quot;Orange&quot;,  5000, None, 5000),</span>
+<span class="sd">        ...    (2019, &quot;Beans&quot;,   None, 1500, 2000),</span>
+<span class="sd">        ...    (2019, &quot;Banana&quot;,  None, 1400,  400),</span>
+<span class="sd">        ...    (2019, &quot;Carrots&quot;, None,  200, None),</span>
+<span class="sd">        ...  ], &quot;year INT, product STRING, Canada INT, China INT, Mexico INT&quot;</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; df.show()</span>
+<span class="sd">        +----+-------+------+-----+------+</span>
+<span class="sd">        |year|product|Canada|China|Mexico|</span>
+<span class="sd">        +----+-------+------+-----+------+</span>
+<span class="sd">        |2018| Orange|  null| 4000|  null|</span>
+<span class="sd">        |2018|  Beans|  null| 1500|  2000|</span>
+<span class="sd">        |2018| Banana|  2000|  400|  null|</span>
+<span class="sd">        |2018|Carrots|  2000| 1200|  null|</span>
+<span class="sd">        |2019| Orange|  5000| null|  5000|</span>
+<span class="sd">        |2019|  Beans|  null| 1500|  2000|</span>
+<span class="sd">        |2019| Banana|  null| 1400|   400|</span>
+<span class="sd">        |2019|Carrots|  null|  200|  null|</span>
+<span class="sd">        +----+-------+------+-----+------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; unpivot(df, [&#39;year&#39;, &#39;product&#39;], key_alias=&#39;country&#39;, value_alias=&#39;total&#39;).show(100)</span>
+<span class="sd">        +----+-------+-------+-----+</span>
+<span class="sd">        |year|product|country|total|</span>
+<span class="sd">        +----+-------+-------+-----+</span>
+<span class="sd">        |2018| Orange| Canada| null|</span>
+<span class="sd">        |2018| Orange|  China| 4000|</span>
+<span class="sd">        |2018| Orange| Mexico| null|</span>
+<span class="sd">        |2018|  Beans| Canada| null|</span>
+<span class="sd">        |2018|  Beans|  China| 1500|</span>
+<span class="sd">        |2018|  Beans| Mexico| 2000|</span>
+<span class="sd">        |2018| Banana| Canada| 2000|</span>
+<span class="sd">        |2018| Banana|  China|  400|</span>
+<span class="sd">        |2018| Banana| Mexico| null|</span>
+<span class="sd">        |2018|Carrots| Canada| 2000|</span>
+<span class="sd">        |2018|Carrots|  China| 1200|</span>
+<span class="sd">        |2018|Carrots| Mexico| null|</span>
+<span class="sd">        |2019| Orange| Canada| 5000|</span>
+<span class="sd">        |2019| Orange|  China| null|</span>
+<span class="sd">        |2019| Orange| Mexico| 5000|</span>
+<span class="sd">        |2019|  Beans| Canada| null|</span>
+<span class="sd">        |2019|  Beans|  China| 1500|</span>
+<span class="sd">        |2019|  Beans| Mexico| 2000|</span>
+<span class="sd">        |2019| Banana| Canada| null|</span>
+<span class="sd">        |2019| Banana|  China| 1400|</span>
+<span class="sd">        |2019| Banana| Mexico|  400|</span>
+<span class="sd">        |2019|Carrots| Canada| null|</span>
+<span class="sd">        |2019|Carrots|  China|  200|</span>
+<span class="sd">        |2019|Carrots| Mexico| null|</span>
+<span class="sd">        +----+-------+-------+-----+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pivoted_columns</span> <span class="o">=</span> <span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">dtypes</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pivot_columns</span><span class="p">]</span>
+    <span class="n">cols</span><span class="p">,</span> <span class="n">types</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">pivoted_columns</span><span class="p">)</span>
+
+    <span class="c1"># Check that all columns have the same type.</span>
+    <span class="n">assert_true</span><span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">types</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="s2">&quot;All pivoted columns should be of the same type:</span><span class="se">\n</span><span class="s2"> Pivoted columns are: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pivoted_columns</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create and explode an array of (column_name, column_value) structs</span>
+    <span class="n">kvs</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">explode</span><span class="p">(</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">struct</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">key_alias</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">quote</span><span class="p">(</span><span class="n">c</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">value_alias</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;kvs&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">quote_columns</span><span class="p">(</span><span class="n">pivot_columns</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="n">kvs</span><span class="p">])</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+        <span class="n">quote_columns</span><span class="p">(</span><span class="n">pivot_columns</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;kvs.*&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -3897,8 +4916,9 @@ This method is equivalent to calling <a class="autorefs autorefs-external" href=
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d6c3db9e.min.js"></script>
+      <script src="../assets/javascripts/bundle.5a2dcb6a.min.js"></script>
       
+    
     
   </body>
 </html>

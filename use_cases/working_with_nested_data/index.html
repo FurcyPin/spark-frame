@@ -17,10 +17,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.472b142f.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.975780f9.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.08040f6c.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
         
       
       
@@ -470,7 +470,19 @@ boilerplate significantly.</p>
 This makes pipelines much easier to maintain. If a new column is added to your source table, you don't need
 to update this data enrichment code to propagate it automatically. On the other hand, with the first SQL
 solution, you would have had to specifically add this new field to the query to propagate it.</p>
-<div class="admonition info">
+<p>We can even use <a href="pyspark.sql.DataFrame.transform">DataFrame.transform</a> to inline everything!</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">flatten</span><span class="p">)</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;base_stats.Total&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;`base_stats.Attack`&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;`base_stats.Defense`&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;`base_stats.HP`&quot;</span><span class="p">)</span> <span class="o">+</span>
+<span class="gp">... </span>    <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;`base_stats.Sp Attack`&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;`base_stats.Sp Defense`&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;`base_stats.Speed`&quot;</span><span class="p">)</span>
+<span class="gp">... </span>  <span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">unflatten</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">vertical</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">-RECORD 0-----------------------------------</span>
+<span class="go"> base_stats | {49, 49, 45, 65, 65, 45, 318}</span>
+<span class="go"> id         | 1</span>
+<span class="go"> name       | {Bulbasaur, Bulbizarre}</span>
+<span class="go"> types      | [Grass, Poison]</span>
+</code></pre></div>
+    <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>_This example uses data taken from
 <a href="https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json">https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json</a>.</p>
@@ -514,12 +526,12 @@ Nested fields names will be joined together using the specified separator</p>
           </td>
         </tr>
         <tr>
-          <td><code>separator</code></td>
+          <td><code>struct_separator</code></td>
           <td>
                 <code>str</code>
           </td>
           <td><p>A string used to separate the structs names from their elements.
-       It might be useful to change the separator when some DataFrame's column names already contain dots</p></td>
+It might be useful to change the separator when some DataFrame's column names already contain dots</p></td>
           <td>
                 <code>&#39;.&#39;</code>
           </td>
@@ -662,14 +674,14 @@ Nested fields names will be joined together using the specified separator</p>
 <span class="normal">78</span>
 <span class="normal">79</span>
 <span class="normal">80</span>
-<span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">struct_separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Flatten all the struct columns of a Spark [DataFrame][pyspark.sql.DataFrame].</span>
 <span class="sd">    Nested fields names will be joined together using the specified separator</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        df: A Spark DataFrame</span>
-<span class="sd">        separator: A string used to separate the structs names from their elements.</span>
-<span class="sd">                   It might be useful to change the separator when some DataFrame&#39;s column names already contain dots</span>
+<span class="sd">        struct_separator: A string used to separate the structs names from their elements.</span>
+<span class="sd">            It might be useful to change the separator when some DataFrame&#39;s column names already contain dots</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        A flattened DataFrame</span>
@@ -730,7 +742,7 @@ Nested fields names will be joined together using the specified separator</p>
                 <span class="n">expand_struct</span><span class="p">(</span><span class="n">struct_field</span><span class="p">,</span> <span class="n">col_stack</span> <span class="o">+</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">column</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">quote_columns</span><span class="p">(</span><span class="n">col_stack</span> <span class="o">+</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">])))</span>
-                <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col_stack</span> <span class="o">+</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">])))</span>
+                <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">struct_separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col_stack</span> <span class="o">+</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">])))</span>
 
     <span class="n">expand_struct</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">col_stack</span><span class="o">=</span><span class="p">[])</span>
     <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
@@ -955,7 +967,7 @@ Nested fields names will be separated from each other using the specified separa
     <span class="c1"># There is a little twist as we don&#39;t want to rebuild the struct if all its fields are null, so we add a CASE WHEN</span>
 
     <span class="k">def</span> <span class="nf">has_structs</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="n">struct_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">schema</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="p">,</span> <span class="n">StructType</span><span class="p">)]</span>
+        <span class="n">struct_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">schema</span> <span class="k">if</span> <span class="n">is_struct</span><span class="p">(</span><span class="n">field</span><span class="p">)]</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">struct_fields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
     <span class="k">if</span> <span class="n">has_structs</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
@@ -1046,8 +1058,9 @@ Nested fields names will be separated from each other using the specified separa
     <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d6c3db9e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.5a2dcb6a.min.js"></script>
       
+    
     
   </body>
 </html>
