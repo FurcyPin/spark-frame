@@ -22,7 +22,6 @@ def unpivot(df: DataFrame, pivot_columns: List[str], key_alias: str = "key", val
         An unpivotted DataFrame
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame([

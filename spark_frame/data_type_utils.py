@@ -63,7 +63,6 @@ def get_common_columns(left_schema: StructType, right_schema: StructType) -> Lis
         A list of Columns
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df1 = spark.sql('''SELECT 'A' as id, CAST(1 as BIGINT) as a, 'a' as b, NULL as c''')
@@ -105,7 +104,6 @@ def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:
         a simpleString representing the smallest common type, None if such type does not exist
 
     Examples:
-
         >>> from pyspark.sql.types import DecimalType, LongType, DoubleType, IntegerType
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
@@ -159,7 +157,6 @@ def flatten_schema(
         A flattened schema
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame(
@@ -218,7 +215,6 @@ def nested_fields(df: DataFrame) -> List[str]:
         The list of all flattened field names in this DataFrame
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> from pyspark.sql import functions as f
         >>> from spark_frame.data_type_utils import flatten_schema

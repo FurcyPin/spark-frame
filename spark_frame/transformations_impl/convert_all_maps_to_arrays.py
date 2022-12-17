@@ -20,7 +20,6 @@ def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
         A new DataFrame in which all maps have been replaced with arrays of entries.
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.sql('SELECT 1 as id, ARRAY(MAP(1, STRUCT(MAP(1, "a") as m2))) as m1')

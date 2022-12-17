@@ -19,7 +19,6 @@ def schema_from_json(json_string: str) -> StructType:
         A StructType object representing the DataFrame schema
 
     Examples:
-
         >>> schema_from_json('''{"fields":[
         ...     {"metadata":{},"name":"a","nullable":true,"type":"byte"},
         ...     {"metadata":{},"name":"b","nullable":true,"type":"decimal(16,8)"}
@@ -69,7 +68,6 @@ def schema_from_simple_string(schema_string: str) -> DataType:
         AssertionError: If no SparkContext has been instantiated first.
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> schema_from_simple_string("int ")
@@ -120,7 +118,6 @@ def schema_to_json(schema: DataType) -> str:
         A single-line json string representing the DataFrame schema.
 
     Examples:
-
         >>> from pyspark.sql.types import *
         >>> schema_to_json(IntegerType())
         '"integer"'
@@ -147,7 +144,6 @@ def schema_to_pretty_json(schema: DataType) -> str:
         A multi-line indented json string representing the DataFrame schema.
 
     Examples:
-
         >>> from pyspark.sql.types import *
         >>> print(schema_to_pretty_json(IntegerType()))
         "integer"
@@ -193,7 +189,6 @@ def schema_to_simple_string(schema: DataType) -> str:
         A simpleString representing the DataFrame schema.
 
     Examples:
-
         >>> from pyspark.sql.types import *
         >>> schema_to_simple_string(IntegerType())
         'int'

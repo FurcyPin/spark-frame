@@ -84,7 +84,6 @@ def unflatten(df: DataFrame, separator: str = ".") -> DataFrame:
         A flattened DataFrame
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame([(1, 1, 1, 1)], "id INT, `s.a` INT, `s.b.c` INT, `s.b.d` INT")

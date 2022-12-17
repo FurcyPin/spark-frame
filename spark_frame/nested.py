@@ -19,7 +19,6 @@ def __find_first_occurrence(string, *chars: str) -> int:
     Return -1 if no such occurrence is found.
 
     Examples:
-
         >>> __find_first_occurrence("a.!b", "!")
         2
         >>> __find_first_occurrence("a.!b", "!", ".")
@@ -37,7 +36,6 @@ def __split_string_and_keep_separator(string: str, *separators: str) -> Tuple[st
     If the input string does not contain any of the separator, returns the string and None.
 
     Examples:
-
         >>> __split_string_and_keep_separator("a.!b", "!", ".")
         ('a', '.!b')
         >>> __split_string_and_keep_separator("a!!b", "!", ".")
@@ -64,7 +62,6 @@ def _build_nested_struct_tree(column_transformations: Mapping[str, AnyKindOfTran
         An ordered tree
 
     Examples:
-
         >>> _build_nested_struct_tree({
         ...   "s!.c": PrintableFunction(lambda s: s["c"], 'trans_c') ,
         ...   "s!.d": PrintableFunction(lambda s: s["d"].cast("DOUBLE"), 'trans_d'),

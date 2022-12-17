@@ -24,7 +24,6 @@ def sort_all_arrays(df: DataFrame) -> DataFrame:
         A new DataFrame where all arrays have been sorted.
 
     Examples:
-
         *Example 1:* with a simple `ARRAY<INT>`
 
         >>> from pyspark.sql import SparkSession

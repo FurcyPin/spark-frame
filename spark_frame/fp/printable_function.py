@@ -11,7 +11,6 @@ class PrintableFunction:
         alias: A string or a function that takes a string and return a string.
 
     Examples:
-
         >>> print(PrintableFunction(lambda s: s["c"], "my_function"))
         my_function
 

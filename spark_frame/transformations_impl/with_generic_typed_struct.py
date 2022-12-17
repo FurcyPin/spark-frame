@@ -19,7 +19,6 @@ def _get_nested_col_type_from_schema(col_name: str, schema: StructType) -> DataT
         The type of this column in the schema
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame([
@@ -104,7 +103,6 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
         All fields of the struct columns to convert must be of basic types.
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame(
