@@ -11,54 +11,58 @@ def quote(col: str) -> str:
     """Puts the given column name into quotes.
 
     This is useful in particular when some column names contains dots,
-    which usually happens after using the :func:`flatten` operation.
+    which usually happens after using the `flatten` transformation.
+
+    Args:
+        col: A column name
+
+    Returns:
+        The column name put inside quotes
 
     Examples:
+        >>> quote('a')
+        '`a`'
+        >>> quote('a.b')
+        '`a.b`'
 
-    >>> quote('a')
-    '`a`'
-    >>> quote('a.b')
-    '`a.b`'
+        Column names can even contain backquotes, by escaping backquotes with another backquote.
 
-    Column names can even contain backquotes, by escaping backquotes with another backquote.
+        >>> quote('a`b')
+        '`a``b`'
 
-    >>> quote('a`b')
-    '`a``b`'
-
-    Differs from `quote_idempotent` on this specific case
-    >>> quote('`a`')
-    '```a```'
-
-    :param col:
-    :return:
+        Differs from `quote_idempotent` on this specific case
+        >>> quote('`a`')
+        '```a```'
     """
     return "`" + col.replace("`", "``") + "`"
 
 
 def quote_idempotent(col: str) -> str:
-    """Puts the given column name into quotes if it is not already
+    """Puts the given column name into quotes if it is not already.
 
     This is useful in particular when some column names contains dots,
-    which usually happens after using the :func:`flatten` operation.
+    which usually happens after using the `flatten` transformation.
+
+    Args:
+        col: A column name
+
+    Returns:
+        The column name put inside quotes if it is not already
 
     Examples:
+        >>> quote_idempotent('a')
+        '`a`'
+        >>> quote_idempotent('a.b')
+        '`a.b`'
 
-    >>> quote_idempotent('a')
-    '`a`'
-    >>> quote_idempotent('a.b')
-    '`a.b`'
+        Column names can even contain backquotes, by escaping backquotes with another backquote.
 
-    Column names can even contain backquotes, by escaping backquotes with another backquote.
+        >>> quote_idempotent('a`b')
+        '`a``b`'
 
-    >>> quote_idempotent('a`b')
-    '`a``b`'
-
-    Differs from `quote` on this specific case
-    >>> quote_idempotent('`a`')
-    '`a`'
-
-    :param col:
-    :return:
+        Differs from `quote` on this specific case
+        >>> quote_idempotent('`a`')
+        '`a`'
     """
     return quote(unquote(col))
 
@@ -69,8 +73,12 @@ def quote_columns(columns: List[str]) -> List[str]:
     This is useful in particular when some column names contains dots,
     which usually happens after using the :func:`flatten` operation.
 
-    :param columns:
-    :return:
+    Args:
+        columns: A list of column names
+
+    Returns:
+        A list with each column name put into quotes
+
     """
     return [quote(col) for col in columns]
 
@@ -78,22 +86,24 @@ def quote_columns(columns: List[str]) -> List[str]:
 def unquote(col_name: str) -> str:
     """Removes quotes from a quoted column name.
 
+    Args:
+        col_name: A column name
+
+    Returns:
+        The column name with quotes removed
+
     Examples:
+        >>> unquote('a')
+        'a'
+        >>> unquote('`a`')
+        'a'
+        >>> unquote('`a.b`')
+        'a.b'
 
-    >>> unquote('a')
-    'a'
-    >>> unquote('`a`')
-    'a'
-    >>> unquote('`a.b`')
-    'a.b'
+        Column names can even contain backquotes, by escaping backquotes with another backquote.
 
-    Columns names can even contain backquotes, by escaping backquotes with another backquote.
-
-    >>> unquote('`a``b`')
-    'a`b'
-
-    :param col_name:
-    :return:
+        >>> unquote('`a``b`')
+        'a`b'
     """
     if col_name[0] == "`" and col_name[-1] == "`":
         col_name = col_name[1:-1]
@@ -120,46 +130,54 @@ __split_col_name_regex = re.compile(
 def split_col_name(col_name: str) -> List[str]:
     """Splits a Spark column name representing a nested field into a list of path parts.
 
+    Args:
+        col_name: A column name
+
+    Returns:
+        The column name split by nesting level
+
     Examples:
-    In this example: `a` is a struct containing a field `b`.
+        In this example: `a` is a struct containing a field `b`.
 
-    >>> split_col_name("a.b")
-    ['a', 'b']
-    >>> split_col_name("ab")
-    ['ab']
+        >>> split_col_name("a.b")
+        ['a', 'b']
+        >>> split_col_name("ab")
+        ['ab']
 
-    Field names can contain dots when escaped between backquotes (`)
+        Field names can contain dots when escaped between backquotes (`)
 
-    >>> split_col_name("`a.b`")
-    ['a.b']
-    >>> split_col_name("`a.b`.`c.d`")
-    ['a.b', 'c.d']
-    >>> split_col_name("`a.b`.c.`d`")
-    ['a.b', 'c', 'd']
+        >>> split_col_name("`a.b`")
+        ['a.b']
+        >>> split_col_name("`a.b`.`c.d`")
+        ['a.b', 'c.d']
+        >>> split_col_name("`a.b`.c.`d`")
+        ['a.b', 'c', 'd']
 
-    Field names can even contain backquotes, by escaping backquotes with another backquote.
+        Field names can even contain backquotes, by escaping backquotes with another backquote.
 
-    >>> split_col_name("`a``b`")
-    ['a`b']
-    >>> split_col_name("`.a.``.b.`")
-    ['.a.`.b.']
-    >>> split_col_name("`ab`.`c``d`.fg")
-    ['ab', 'c`d', 'fg']
-
-    :param col_name:
-    :return:
+        >>> split_col_name("`a``b`")
+        ['a`b']
+        >>> split_col_name("`.a.``.b.`")
+        ['.a.`.b.']
+        >>> split_col_name("`ab`.`c``d`.fg")
+        ['ab', 'c`d', 'fg']
     """
     col_parts = [unquote(match[0]) for match in __split_col_name_regex.findall(col_name)]
     return col_parts
 
 
-def str_to_col(args: StringOrColumn) -> Column:
+def str_to_col(col: StringOrColumn) -> Column:
     """Converts string or Column argument to Column types
 
     Requires the SparkSession to be instantiated.
 
-    Examples:
+    Args:
+        col: A column name or Column expression
 
+    Returns:
+        A Column expression
+
+    Examples:
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> str_to_col("id")
@@ -168,12 +186,11 @@ def str_to_col(args: StringOrColumn) -> Column:
         Column<'COUNT(1)'>
         >>> str_to_col("*")
         Column<'unresolvedstar()'>
-
     """
-    if isinstance(args, str):
-        return f.col(args)
+    if isinstance(col, str):
+        return f.col(col)
     else:
-        return args
+        return col
 
 
 def strip_margin(text: str):
@@ -190,7 +207,6 @@ def strip_margin(text: str):
         A stripped string
 
     Examples:
-
         >>> print(strip_margin('''
         ...     |a
         ...     |b
@@ -239,7 +255,6 @@ def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, v
         A string representing the first `n` rows of the DataFrame
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.sql('''
@@ -337,19 +352,20 @@ def assert_true(assertion: bool, error: Union[str, BaseException] = None) -> Non
         assertion: The boolean result of an assertion
         error: An Exception or a message string (in which case an AssertError with this message will be raised)
 
-    >>> assert_true(3==3, "3 <> 4")
-    >>> assert_true(3==4, "3 <> 4")
-    Traceback (most recent call last):
-    ...
-    AssertionError: 3 <> 4
-    >>> assert_true(3==4, ValueError("3 <> 4"))
-    Traceback (most recent call last):
-    ...
-    ValueError: 3 <> 4
-    >>> assert_true(3==4)
-    Traceback (most recent call last):
-    ...
-    AssertionError
+    Examples:
+        >>> assert_true(3==3, "3 <> 4")
+        >>> assert_true(3==4, "3 <> 4")
+        Traceback (most recent call last):
+        ...
+        AssertionError: 3 <> 4
+        >>> assert_true(3==4, ValueError("3 <> 4"))
+        Traceback (most recent call last):
+        ...
+        ValueError: 3 <> 4
+        >>> assert_true(3==4)
+        Traceback (most recent call last):
+        ...
+        AssertionError
     """
     if not assertion:
         if isinstance(error, BaseException):
