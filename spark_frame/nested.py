@@ -199,51 +199,53 @@ def _build_transformation_from_tree(root: OrderedTree, sort: bool = False) -> Pr
 def resolve_nested_columns(columns: Mapping[str, AnyKindOfTransformation], sort: bool = False) -> List[Column]:
     """Builds a list of column expressions to manipulate structs and repeated records
 
-    >>> from pyspark.sql import SparkSession
-    >>> from pyspark.sql import functions as f
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-
-    >>> df = spark.sql('''
-    ...     SELECT INLINE(ARRAY(
-    ...       STRUCT(ARRAY(ARRAY(1), ARRAY(2, 3)) as e)
-    ...     ))
-    ... ''')
-    >>> df.printSchema()
-    root
-     |-- e: array (nullable = false)
-     |    |-- element: array (containsNull = false)
-     |    |    |-- element: integer (containsNull = false)
-    <BLANKLINE>
-    >>> df.show(truncate=False)
-    +-------------+
-    |e            |
-    +-------------+
-    |[[1], [2, 3]]|
-    +-------------+
-    <BLANKLINE>
-    >>> res_df = df.select(*resolve_nested_columns({
-    ...     "e!!": lambda e: e.cast("DOUBLE"),
-    ... }, sort=True))
-    >>> res_df.printSchema()
-    root
-     |-- e: array (nullable = false)
-     |    |-- element: array (containsNull = false)
-     |    |    |-- element: double (containsNull = false)
-    <BLANKLINE>
-    >>> res_df.show(truncate=False)
-    +-------------------+
-    |e                  |
-    +-------------------+
-    |[[1.0], [2.0, 3.0]]|
-    +-------------------+
-    <BLANKLINE>
-
     Args:
         columns: A mapping (column_name -> function to apply to this column)
         sort: If set to true, all arrays will be automatically sorted.
 
     Returns:
+        A list of Columns that can be passed to `DataFrame.select` to apply the corresponding transformation to each
+        nested column
 
+    Examples:
+        >>> from pyspark.sql import SparkSession
+        >>> from pyspark.sql import functions as f
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+
+        >>> df = spark.sql('''
+        ...     SELECT INLINE(ARRAY(
+        ...       STRUCT(ARRAY(ARRAY(1), ARRAY(2, 3)) as e)
+        ...     ))
+        ... ''')
+        >>> df.printSchema()
+        root
+         |-- e: array (nullable = false)
+         |    |-- element: array (containsNull = false)
+         |    |    |-- element: integer (containsNull = false)
+        <BLANKLINE>
+        >>> df.show(truncate=False)
+        +-------------+
+        |e            |
+        +-------------+
+        |[[1], [2, 3]]|
+        +-------------+
+        <BLANKLINE>
+        >>> res_df = df.select(*resolve_nested_columns({
+        ...     "e!!": lambda e: e.cast("DOUBLE"),
+        ... }, sort=True))
+        >>> res_df.printSchema()
+        root
+         |-- e: array (nullable = false)
+         |    |-- element: array (containsNull = false)
+         |    |    |-- element: double (containsNull = false)
+        <BLANKLINE>
+        >>> res_df.show(truncate=False)
+        +-------------------+
+        |e                  |
+        +-------------------+
+        |[[1.0], [2.0, 3.0]]|
+        +-------------------+
+        <BLANKLINE>
     """
     tree = _build_nested_struct_tree(columns)
     root_transformation = _build_transformation_from_tree(tree, sort)
