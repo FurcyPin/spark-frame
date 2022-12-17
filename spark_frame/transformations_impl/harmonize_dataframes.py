@@ -7,7 +7,7 @@ from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.data_type_utils import flatten_schema, get_common_columns
 from spark_frame.fp import higher_order
 from spark_frame.fp.printable_function import PrintableFunction
-from spark_frame.nested import resolve_nested_columns
+from spark_frame.nested_impl.package import resolve_nested_fields
 
 
 def harmonize_dataframes(
@@ -70,5 +70,5 @@ def harmonize_dataframes(
         return fp.compose(f1, f2)
 
     common_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in common_columns}
-    resolved_columns = resolve_nested_columns(common_columns_dict)
+    resolved_columns = resolve_nested_fields(common_columns_dict)
     return left_df.select(*resolved_columns), right_df.select(*resolved_columns)

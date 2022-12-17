@@ -6,7 +6,7 @@ from spark_frame import fp
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.data_type_utils import flatten_schema
 from spark_frame.fp import PrintableFunction, higher_order
-from spark_frame.nested import resolve_nested_columns
+from spark_frame.nested_impl.package import resolve_nested_fields
 
 
 def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
@@ -86,5 +86,5 @@ def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
         schema_contains_map = any([isinstance(field.dataType, MapType) for field in schema_flat])
         do_continue = schema_contains_map
         columns = {field.name: build_col(field) for field in schema_flat}
-        df = df.select(*resolve_nested_columns(columns))
+        df = df.select(*resolve_nested_fields(columns))
     return df

@@ -4,10 +4,10 @@ from pyspark.sql import Column, SparkSession
 from pyspark.sql import functions as f
 
 from spark_frame.fp.printable_function import PrintableFunction
-from spark_frame.nested import (
+from spark_frame.nested_impl.package import (
     _build_nested_struct_tree,
     _build_transformation_from_tree,
-    resolve_nested_columns,
+    resolve_nested_fields,
 )
 from spark_frame.utils import schema_string, show_string, strip_margin
 
@@ -246,7 +246,7 @@ class TestBuildTransformationFromTree:
         )
 
 
-class TestResolveNestedColumns:
+class TestResolveNestedFields:
     def test_value_with_string_expr(self, spark: SparkSession):
         """
         GIVEN a DataFrame with a simple value
@@ -280,8 +280,8 @@ class TestResolveNestedColumns:
             |+---+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
 
     def test_value_with_col_expr(self, spark: SparkSession):
         """
@@ -316,8 +316,8 @@ class TestResolveNestedColumns:
             |+---+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
 
     def test_value_with_aliased_col_expr(self, spark: SparkSession):
         """
@@ -356,8 +356,8 @@ class TestResolveNestedColumns:
             |+---+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
 
     def test_struct(self, spark: SparkSession):
         """
@@ -394,8 +394,8 @@ class TestResolveNestedColumns:
             |+-----+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
 
     def test_struct_with_static_expression(self, spark: SparkSession):
         """
@@ -432,8 +432,8 @@ class TestResolveNestedColumns:
             |+-----+
             |"""
         )
-        assert show_string(df.select(*resolve_nested_columns(named_transformations))) == expected
-        assert show_string(df.select(*resolve_nested_columns(transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
+        assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
 
     def test_array(self, spark: SparkSession):
         """
@@ -482,8 +482,8 @@ class TestResolveNestedColumns:
             |+----------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -540,8 +540,8 @@ class TestResolveNestedColumns:
             |+-------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -598,8 +598,8 @@ class TestResolveNestedColumns:
             |+-------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -656,8 +656,8 @@ class TestResolveNestedColumns:
             |+------------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -716,8 +716,8 @@ class TestResolveNestedColumns:
             |+---------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -772,8 +772,8 @@ class TestResolveNestedColumns:
             |+-------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -832,8 +832,8 @@ class TestResolveNestedColumns:
             |+---------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -892,8 +892,8 @@ class TestResolveNestedColumns:
             |+---------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -952,8 +952,8 @@ class TestResolveNestedColumns:
             |+--------------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -1014,8 +1014,8 @@ class TestResolveNestedColumns:
             |+-----------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations))
-        actual = df.select(*resolve_nested_columns(transformations))
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
@@ -1079,8 +1079,8 @@ class TestResolveNestedColumns:
             |+------------------------------------+
             |"""
         )
-        actual_named = df.select(*resolve_nested_columns(named_transformations, sort=True))
-        actual = df.select(*resolve_nested_columns(transformations, sort=True))
+        actual_named = df.select(*resolve_nested_fields(named_transformations, sort=True))
+        actual = df.select(*resolve_nested_fields(transformations, sort=True))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named, truncate=False) == expected
         assert schema_string(actual) == expected_schema
