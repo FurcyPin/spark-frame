@@ -15,7 +15,6 @@ def compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction:
         The composition of f1 with f2.
 
     Examples:
-
         >>> f = PrintableFunction(lambda x: x+1, lambda s: f'{s} + 1')
         >>> g = PrintableFunction(lambda x: x.cast("Double"), lambda s: f'({s}).cast("Double")')
         >>> compose(g, f)

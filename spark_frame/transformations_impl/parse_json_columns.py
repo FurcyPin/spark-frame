@@ -33,7 +33,6 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
         A new DataFrame
 
     Examples:
-
         **Example 1 :**
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()

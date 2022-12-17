@@ -18,7 +18,6 @@ def empty_array(element_type: Union[DataType, str]) -> Column:
         A Spark Column representing an empty array.
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> from pyspark.sql import functions as f
@@ -57,7 +56,6 @@ def generic_struct(*columns: str, col_name_alias: str = "name", col_value_alias:
         A Spark Column
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.sql('''
@@ -110,7 +108,6 @@ def nullable(col: Column) -> Column:
     This is especially useful for literal which are always non-nullable by default.
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> from pyspark.sql import functions as f

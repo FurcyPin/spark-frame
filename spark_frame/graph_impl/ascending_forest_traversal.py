@@ -345,7 +345,6 @@ def ascending_forest_traversal(
         ancestor, respectively.
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
 

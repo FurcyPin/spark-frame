@@ -20,7 +20,6 @@ def flatten(df: DataFrame, struct_separator: str = ".") -> DataFrame:
         A flattened DataFrame
 
     Examples:
-
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame(
