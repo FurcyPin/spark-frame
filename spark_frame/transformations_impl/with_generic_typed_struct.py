@@ -1,16 +1,70 @@
 import re
-from typing import List, Optional, cast
+from typing import List, Optional, Union, cast
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
-from pyspark.sql.types import StructField, StructType
+from pyspark.sql.types import DataType, StructField, StructType
 
-from spark_frame.utils import (
-    assert_true,
-    get_nested_col_type_from_schema,
-    quote,
-    unquote,
-)
+from spark_frame.utils import assert_true, quote, split_col_name, unquote
+
+
+def _get_nested_col_type_from_schema(col_name: str, schema: StructType) -> DataType:
+    """Fetch recursively the DataType of a column inside a DataFrame schema (or more generally any StructType)
+
+    Args:
+        col_name: The DataFrame schema (or StructField) in which the column type will be fetched.
+        schema: The name of the column to get
+
+    Returns:
+        The type of this column in the schema
+
+    Examples:
+
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> df = spark.createDataFrame([
+        ...      (1, {"a.b" : {"c.d": 1, "e": "1", "f`g": True}}),
+        ...      (2, {"a.b" : {"c.d": 2, "e": "2", "f`g": True}}),
+        ...      (3, {"a.b" : {"c.d": 3, "e": "3", "f`g": True}}),
+        ...   ],
+        ...   "id INT, `a.b` STRUCT<`c.d`:INT, e:STRING, `f``g`:BOOLEAN>"
+        ... )
+        >>> _get_nested_col_type_from_schema("`a.b`.`c.d`",df.schema).simpleString()
+        'int'
+        >>> _get_nested_col_type_from_schema("`a.b`.e",df.schema).simpleString()
+        'string'
+        >>> _get_nested_col_type_from_schema("`a.b`.`f``g`",df.schema).simpleString()
+        'boolean'
+
+        With wrong column name:
+        >>> df = spark.createDataFrame(
+        ...     [
+        ...         (1, {"a": "A"}),
+        ...         (2, {"a": "B"}),
+        ...         (3, {"a": "C"}),
+        ...     ],
+        ...     "id INT, s STRUCT<a:STRING>",
+        ... )
+        >>> _get_nested_col_type_from_schema("s.b", df.schema)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot resolve column name "s.b"
+    """
+    col_parts = split_col_name(col_name)
+
+    def get_col(col: str, fields: List[StructField]) -> StructField:
+        for field in fields:
+            if field.name == col:
+                return field
+        raise ValueError(f'Cannot resolve column name "{col_name}"')
+
+    struct: Union[StructType, DataType] = schema
+    for col_part in col_parts:
+        assert_true(isinstance(struct, StructType))
+        struct = cast(StructType, struct)
+        struct = get_col(col_part, struct.fields).dataType
+    assert_true(isinstance(struct, DataType))
+    return cast(DataType, struct)
 
 
 def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
@@ -159,7 +213,7 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
         )
 
     for col_name in col_names:
-        schema = get_nested_col_type_from_schema(col_name, df.schema)
+        schema = _get_nested_col_type_from_schema(col_name, df.schema)
         assert_true(isinstance(schema, StructType))
         schema = cast(StructType, schema)
         columns = [field_to_col(field, col_name) for field in schema.fields]

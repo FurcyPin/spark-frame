@@ -3,7 +3,6 @@ from typing import List, Optional, Union, cast
 
 from pyspark.sql import Column, DataFrame, SparkSession
 from pyspark.sql import functions as f
-from pyspark.sql.types import DataType, StructField, StructType
 
 StringOrColumn = Union[str, Column]
 
@@ -213,47 +212,6 @@ def strip_margin(text: str):
         return s[1:]
     else:
         return s
-
-
-def get_nested_col_type_from_schema(col_name: str, schema: StructType) -> DataType:
-    """Fetch recursively the DataType of a column inside a DataFrame schema (or more generally any StructType)
-
-    Example:
-    >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-    >>> df = spark.createDataFrame([
-    ...      (1, {"a.b" : {"c.d": 1, "e": "1", "f`g": True}}),
-    ...      (2, {"a.b" : {"c.d": 2, "e": "2", "f`g": True}}),
-    ...      (3, {"a.b" : {"c.d": 3, "e": "3", "f`g": True}}),
-    ...   ],
-    ...   "id INT, `a.b` STRUCT<`c.d`:INT, e:STRING, `f``g`:BOOLEAN>"
-    ... )
-    >>> get_nested_col_type_from_schema("`a.b`.`c.d`",df.schema).simpleString()
-    'int'
-    >>> get_nested_col_type_from_schema("`a.b`.e",df.schema).simpleString()
-    'string'
-    >>> get_nested_col_type_from_schema("`a.b`.`f``g`",df.schema).simpleString()
-    'boolean'
-
-    :param schema: the DataFrame schema (or StructField) in which the column type will be fetched.
-    :param col_name: the name of the column to get
-    :return:
-    """
-    col_parts = split_col_name(col_name)
-
-    def get_col(col: str, fields: List[StructField]) -> StructField:
-        for field in fields:
-            if field.name == col:
-                return field
-        raise ValueError(f'Cannot resolve column name "{col_name}"')
-
-    struct: Union[StructType, DataType] = schema
-    for col_part in col_parts:
-        assert_true(isinstance(struct, StructType))
-        struct = cast(StructType, struct)
-        struct = get_col(col_part, struct.fields).dataType
-    assert_true(isinstance(struct, DataType))
-    return cast(DataType, struct)
 
 
 def get_instantiated_spark_session() -> SparkSession:
