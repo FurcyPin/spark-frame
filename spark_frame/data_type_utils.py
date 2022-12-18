@@ -1,6 +1,5 @@
 from typing import Dict, List, Optional, Tuple, cast
 
-from pyspark.sql import DataFrame
 from pyspark.sql.types import ArrayType, DataType, StructField, StructType
 
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
@@ -143,7 +142,7 @@ def flatten_schema(
     struct_separator: str = STRUCT_SEPARATOR,
     repetition_marker: str = REPETITION_MARKER,
 ) -> StructType:
-    """Transform a œ schema into a new schema where all structs have been flattened.
+    """Transform a schema into a new schema where all structs have been flattened.
     The field names are kept, with a '.' separator for struct fields.
     If `explode` option is set, arrays are exploded with a '!' separator.
 
@@ -200,64 +199,3 @@ def flatten_schema(
         return res
 
     return StructType(flatten_struct_type(schema))
-
-
-def nested_fields(df: DataFrame) -> List[str]:
-    """Return the name of all the fields (including nested sub-fields) in the given DataFrame.
-
-    - Structs are flattened with a `.` after their name.
-    - Arrays are unnested with a `!` character after their name.
-
-    Args:
-        df: A Spark DataFrame
-
-    Returns:
-        The list of all flattened field names in this DataFrame
-
-    Examples:
-        >>> from pyspark.sql import SparkSession
-        >>> from pyspark.sql import functions as f
-        >>> from spark_frame.data_type_utils import flatten_schema
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> df = spark.sql('''SELECT
-        ...     1 as id,
-        ...     ARRAY(STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d)) as b, ARRAY(5, 6) as e)) as s1,
-        ...     STRUCT(7 as f) as s2,
-        ...     ARRAY(ARRAY(1, 2), ARRAY(3, 4)) as s3,
-        ...     ARRAY(ARRAY(STRUCT(1 as c, 2 as d)), ARRAY(STRUCT(3 as c, 4 as d))) as s4
-        ... ''')
-        >>> df.printSchema()
-        root
-         |-- id: integer (nullable = false)
-         |-- s1: array (nullable = false)
-         |    |-- element: struct (containsNull = false)
-         |    |    |-- a: integer (nullable = false)
-         |    |    |-- b: array (nullable = false)
-         |    |    |    |-- element: struct (containsNull = false)
-         |    |    |    |    |-- c: integer (nullable = false)
-         |    |    |    |    |-- d: integer (nullable = false)
-         |    |    |-- e: array (nullable = false)
-         |    |    |    |-- element: integer (containsNull = false)
-         |-- s2: struct (nullable = false)
-         |    |-- f: integer (nullable = false)
-         |-- s3: array (nullable = false)
-         |    |-- element: array (containsNull = false)
-         |    |    |-- element: integer (containsNull = false)
-         |-- s4: array (nullable = false)
-         |    |-- element: array (containsNull = false)
-         |    |    |-- element: struct (containsNull = false)
-         |    |    |    |-- c: integer (nullable = false)
-         |    |    |    |-- d: integer (nullable = false)
-        <BLANKLINE>
-        >>> for field in nested_fields(df): print(field)
-        id
-        s1!.a
-        s1!.b!.c
-        s1!.b!.d
-        s1!.e!
-        s2.f
-        s3!!
-        s4!!.c
-        s4!!.d
-    """
-    return [col.name for col in flatten_schema(df.schema, explode=True)]
