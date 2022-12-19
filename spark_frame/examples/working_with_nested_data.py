@@ -121,7 +121,7 @@ def transform_nested_fields():
         to update this data enrichment code to propagate it automatically. On the other hand, with the first SQL
         solution, you would have had to specifically add this new field to the query to propagate it.
 
-        We can even use [DataFrame.transform](pyspark.sql.DataFrame.transform) to inline everything!
+        We can even use [DataFrame.transform][pyspark.sql.DataFrame.transform] to inline everything!
 
         >>> df.transform(flatten).withColumn(
         ...     "base_stats.Total",
