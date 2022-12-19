@@ -76,7 +76,7 @@ class TestBuildTransformationFromTree:
             "s.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f"""{s}["a"].cast("DOUBLE")""")
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
-        assert str(named_actual) == """lambda x: [f.struct([x[s]["a"].cast("DOUBLE").alias(a)]).alias(s)]"""
+        assert str(named_actual) == """lambda x: [f.struct([x['s']["a"].cast("DOUBLE").alias(a)]).alias(s)]"""
 
     def test_struct_with_static_expression(self, spark: SparkSession):
         """
@@ -98,7 +98,7 @@ class TestBuildTransformationFromTree:
         """
         named_transformations = {"e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')}
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
-        assert str(named_actual) == """lambda x: [f.transform(x[e], lambda x: x.cast("DOUBLE")).alias(e)]"""
+        assert str(named_actual) == """lambda x: [f.transform(x['e'], lambda x: x.cast("DOUBLE")).alias(e)]"""
 
     def test_array_struct(self, spark: SparkSession):
         """
@@ -111,7 +111,7 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            'lambda x: [f.transform(x[s], lambda x: f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s)]'
+            """lambda x: [f.transform(x['s'], lambda x: f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s)]"""
         )
 
     def test_struct_in_struct(self, spark: SparkSession):
@@ -125,7 +125,7 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: " '[f.struct([f.struct([x[s1][s2]["a"].cast("DOUBLE").alias(a)]).alias(s2)]).alias(s1)]'
+            """lambda x: [f.struct([f.struct([x['s1']['s2']["a"].cast("DOUBLE").alias(a)]).alias(s2)]).alias(s1)]"""
         )
 
     def test_array_in_struct(self, spark: SparkSession):
@@ -139,7 +139,7 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.struct([f.transform(x[s1][e], lambda x: " 'x.cast("DOUBLE")).alias(e)]).alias(s1)]'
+            "lambda x: [f.struct([f.transform(x['s1']['e'], lambda x: " 'x.cast("DOUBLE")).alias(e)]).alias(s1)]'
         )
 
     def test_array_struct_in_struct(self, spark: SparkSession):
@@ -153,8 +153,8 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.struct([f.transform(x[s1][s2], lambda x: "
-            'f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s2)]).alias(s1)]'
+            "lambda x: [f.struct([f.transform(x['s1']['s2'], lambda x: "
+            """f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s2)]).alias(s1)]"""
         )
 
     def test_array_in_array(self, spark: SparkSession):
@@ -166,7 +166,7 @@ class TestBuildTransformationFromTree:
         named_transformations = {"e!!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')}
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.transform(x[e], lambda x: f.transform(x, lambda x: " 'x.cast("DOUBLE"))).alias(e)]'
+            "lambda x: [f.transform(x['e'], lambda x: f.transform(x, lambda x: " 'x.cast("DOUBLE"))).alias(e)]'
         )
 
     def test_array_struct_in_array(self, spark: SparkSession):
@@ -180,7 +180,7 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.transform(x[s], lambda x: f.transform(x, lambda x: "
+            "lambda x: [f.transform(x['s'], lambda x: f.transform(x, lambda x: "
             'f.struct([x["a"].cast("DOUBLE").alias(a)]))).alias(s)]'
         )
 
@@ -195,8 +195,8 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.transform(x[s1], lambda x: "
-            'f.struct([f.struct([x[s2]["a"].cast("DOUBLE").alias(a)]).alias(s2)])).alias(s1)]'
+            "lambda x: [f.transform(x['s1'], lambda x: "
+            """f.struct([f.struct([x['s2']["a"].cast("DOUBLE").alias(a)]).alias(s2)])).alias(s1)]"""
         )
 
     def test_array_in_array_struct(self, spark: SparkSession):
@@ -210,7 +210,7 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.transform(x[s1], lambda x: f.struct([f.transform(x[e], lambda "
+            "lambda x: [f.transform(x['s1'], lambda x: f.struct([f.transform(x['e'], lambda "
             'x: x.cast("DOUBLE")).alias(e)])).alias(s1)]'
         )
 
@@ -225,7 +225,7 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.transform(x[s1], lambda x: f.struct([f.transform(x[s2], lambda "
+            "lambda x: [f.transform(x['s1'], lambda x: f.struct([f.transform(x['s2'], lambda "
             'x: f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s2)])).alias(s1)]'
         )
 
@@ -240,8 +240,8 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations), sort=True)
         assert str(named_actual) == (
-            "lambda x: [f.sort_array(f.transform(x[s1], lambda x: "
-            "f.struct([f.sort_array(f.transform(x[s2], lambda x: "
+            "lambda x: [f.sort_array(f.transform(x['s1'], lambda x: "
+            "f.struct([f.sort_array(f.transform(x['s2'], lambda x: "
             'f.struct([x["a"].cast("DOUBLE").alias(a)]))).alias(s2)]))).alias(s1)]'
         )
 
