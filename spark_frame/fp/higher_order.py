@@ -16,9 +16,9 @@ def __get_func(function: Union[Callable, PrintableFunction]) -> Callable:
 def __safe_struct_get_alias(s: Optional[str], field: str) -> str:
     """Return a string representation for the `safe_struct_get` method."""
     if s is None:
-        return f"f.col('{field}')"
+        return f"f.col({repr(field)})"
     else:
-        return f"{s}[{field}]"
+        return f"{s}[{repr(field)}]"
 
 
 def alias(name: str) -> PrintableFunction:
@@ -38,7 +38,7 @@ def safe_struct_get(key: str) -> PrintableFunction:
     a Column expression for the field itself.
 
     >>> safe_struct_get("c")
-    lambda x: x[c]
+    lambda x: x['c']
     >>> safe_struct_get("c").alias(None)
     "f.col('c')"
     """
