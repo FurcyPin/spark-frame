@@ -73,6 +73,15 @@ that _cannot_ be implemented with one single SQL query.
 ---
 
 
+## spark_frame.nested
+
+
+### ::: spark_frame.nested_impl.unnest_all_fields.unnest_all_fields
+---
+
+### ::: spark_frame.nested_impl.unnest_field.unnest_field
+---
+
 
 ## spark_frame.schema_utils
 

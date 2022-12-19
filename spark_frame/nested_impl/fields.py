@@ -11,7 +11,7 @@ def fields(df: DataFrame) -> List[str]:
     - Structs are flattened with a `.` after their name.
     - Arrays are unnested with a `!` character after their name.
 
-    !!! Warning "Limitations"
+    !!! warning "Limitations"
         Fields of type Map<K,V> are not flattened
 
     Args:

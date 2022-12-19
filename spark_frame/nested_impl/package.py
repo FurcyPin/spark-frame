@@ -1,13 +1,29 @@
 from collections import OrderedDict
-from typing import Callable, Dict, List, Mapping, Optional, Tuple, Union, cast
+from typing import (
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
-from pyspark.sql import Column
+from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 
 from spark_frame import fp
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.fp import PrintableFunction, higher_order
-from spark_frame.utils import assert_true, str_to_col
+from spark_frame.utils import (
+    assert_true,
+    group_by_key,
+    quote,
+    quote_columns,
+    str_to_col,
+)
 
 ColumnTransformation = Callable[[Optional[Column]], Column]
 AnyKindOfTransformation = Union[str, Column, ColumnTransformation, "PrintableFunction"]
@@ -30,17 +46,17 @@ def __find_first_occurrence(string, *chars: str) -> int:
     return -1
 
 
-def __split_string_and_keep_separator(string: str, *separators: str) -> Tuple[str, Optional[str]]:
+def _split_string_and_keep_separator(string: str, *separators: str) -> Tuple[str, Optional[str]]:
     """Split a string in half on the first occurrence of any one of the given separator.
     The separator is kept in the second half of the string.
     If the input string does not contain any of the separator, returns the string and None.
 
     Examples:
-        >>> __split_string_and_keep_separator("a.!b", "!", ".")
+        >>> _split_string_and_keep_separator("a.!b", "!", ".")
         ('a', '.!b')
-        >>> __split_string_and_keep_separator("a!!b", "!", ".")
+        >>> _split_string_and_keep_separator("a!!b", "!", ".")
         ('a', '!!b')
-        >>> __split_string_and_keep_separator("ab", "!", ".")
+        >>> _split_string_and_keep_separator("ab", "!", ".")
         ('ab', None)
     """
     i = __find_first_occurrence(string, *separators)
@@ -86,7 +102,7 @@ def _build_nested_struct_tree(column_transformations: Mapping[str, Optional[AnyK
     """
 
     def rec_insert(node: OrderedTree, alias: str, column: Optional[AnyKindOfTransformation]) -> None:
-        node_col, child_col = __split_string_and_keep_separator(alias, STRUCT_SEPARATOR, REPETITION_MARKER)
+        node_col, child_col = _split_string_and_keep_separator(alias, STRUCT_SEPARATOR, REPETITION_MARKER)
         if child_col is not None and node_col == "":
             node_col = child_col[0]
             child_col = child_col[1:]
@@ -250,3 +266,206 @@ def resolve_nested_fields(columns: Mapping[str, AnyKindOfTransformation], sort: 
     tree = _build_nested_struct_tree(columns)
     root_transformation = _build_transformation_from_tree(tree, sort)
     return root_transformation(None)
+
+
+def unnest_fields(
+    df: DataFrame, fields: Union[str, List[str]], keep_columns: Optional[List[str]] = None
+) -> List[DataFrame]:
+    """Given a DataFrame, return a list of DataFrames where all the specified columns have been recursively
+    unnested (a.k.a. exploded). This produce one DataFrame for each possible granularity.
+
+    Args:
+        df: A Spark DataFrame
+        fields: One or several nested field names.
+        keep_columns:
+
+    Returns:
+        A list of DataFrames
+
+    Examples:
+        >>> from pyspark.sql import SparkSession
+        >>> from pyspark.sql import functions as f
+        >>> from spark_frame import nested
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> df = spark.sql('''SELECT
+        ...     1 as id,
+        ...     ARRAY(STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d)) as b, ARRAY(5, 6) as e)) as s1,
+        ...     STRUCT(7 as f) as s2,
+        ...     ARRAY(ARRAY(1, 2), ARRAY(3, 4)) as s3,
+        ...     ARRAY(ARRAY(STRUCT(1 as e, 2 as f)), ARRAY(STRUCT(3 as e, 4 as f))) as s4
+        ... ''')
+        >>> nested.fields(df)
+        ['id', 's1!.a', 's1!.b!.c', 's1!.b!.d', 's1!.e!', 's2.f', 's3!!', 's4!!.e', 's4!!.f']
+        >>> df.show(truncate=False)
+        +---+-----------------------+---+----------------+--------------------+
+        |id |s1                     |s2 |s3              |s4                  |
+        +---+-----------------------+---+----------------+--------------------+
+        |1  |[{2, [{3, 4}], [5, 6]}]|{7}|[[1, 2], [3, 4]]|[[{1, 2}], [{3, 4}]]|
+        +---+-----------------------+---+----------------+--------------------+
+        <BLANKLINE>
+        >>> for res_df in unnest_fields(df, ['id', 's2.f']): res_df.show()
+        +---+----+
+        | id|s2.f|
+        +---+----+
+        |  1|   7|
+        +---+----+
+        <BLANKLINE>
+        >>> for res_df in unnest_fields(df, 's1!'): res_df.show(truncate=False)
+        +---------------------+
+        |s1!                  |
+        +---------------------+
+        |{2, [{3, 4}], [5, 6]}|
+        +---------------------+
+        <BLANKLINE>
+        >>> for res_df in unnest_fields(df, 's1!.b!'): res_df.show(truncate=False)
+        +------+
+        |s1!.b!|
+        +------+
+        |{3, 4}|
+        +------+
+        <BLANKLINE>
+        >>> for res_df in unnest_fields(df, 's1!.e!'): res_df.show(truncate=False)
+        +------+
+        |s1!.e!|
+        +------+
+        |5     |
+        |6     |
+        +------+
+        <BLANKLINE>
+        >>> for res_df in unnest_fields(df, 's1!.e'): res_df.show(truncate=False)
+        +------+
+        |s1!.e |
+        +------+
+        |[5, 6]|
+        +------+
+        <BLANKLINE>
+        >>> for res_df in unnest_fields(df, 's3!'): res_df.show(truncate=False)
+        +------+
+        |s3!   |
+        +------+
+        |[1, 2]|
+        |[3, 4]|
+        +------+
+        <BLANKLINE>
+        >>> for res_df in unnest_fields(df, 's3!!'): res_df.show(truncate=False)
+        +----+
+        |s3!!|
+        +----+
+        |1   |
+        |2   |
+        |3   |
+        |4   |
+        +----+
+        <BLANKLINE>
+
+        >>> from spark_frame import nested
+        >>> for res_df in unnest_fields(df, nested.fields(df), keep_columns=["id"]): res_df.show(truncate=False)
+        +---+-----+
+        |id |s1!.a|
+        +---+-----+
+        |1  |2    |
+        +---+-----+
+        <BLANKLINE>
+        +---+--------+--------+
+        |id |s1!.b!.c|s1!.b!.d|
+        +---+--------+--------+
+        |1  |3       |4       |
+        +---+--------+--------+
+        <BLANKLINE>
+        +---+------+
+        |id |s1!.e!|
+        +---+------+
+        |1  |5     |
+        |1  |6     |
+        +---+------+
+        <BLANKLINE>
+        +---+----+
+        |id |s2.f|
+        +---+----+
+        |1  |7   |
+        +---+----+
+        <BLANKLINE>
+        +---+----+
+        |id |s3!!|
+        +---+----+
+        |1  |1   |
+        |1  |2   |
+        |1  |3   |
+        |1  |4   |
+        +---+----+
+        <BLANKLINE>
+        +---+------+------+
+        |id |s4!!.e|s4!!.f|
+        +---+------+------+
+        |1  |1     |2     |
+        |1  |3     |4     |
+        +---+------+------+
+        <BLANKLINE>
+
+        Making sure keep_columns works with columns inside structs
+        >>> for res_df in unnest_fields(df, 's1!', keep_columns=["s2.f"]): res_df.show(truncate=False)
+        +----+---------------------+
+        |s2.f|s1!                  |
+        +----+---------------------+
+        |7   |{2, [{3, 4}], [5, 6]}|
+        +----+---------------------+
+        <BLANKLINE>
+    """
+    if keep_columns is None:
+        keep_columns_list = []
+    else:
+        keep_columns_list = keep_columns
+    if isinstance(fields, str):
+        fields = [fields]
+    fields = [field for field in fields if field not in keep_columns_list]
+
+    def recurse_node_with_multiple_items(
+        node: OrderedTree,
+        current_df: DataFrame,
+        prefix: str,
+        quoted_prefix: str,
+    ) -> Generator[Tuple[DataFrame, Column], None, None]:
+        for key, children in node.items():
+            yield from recurse_item(node, key, children, current_df, prefix, quoted_prefix)
+
+    def recurse_item(
+        node: OrderedTree,
+        key: str,
+        children: Optional[OrderedTree],
+        current_df: DataFrame,
+        prefix: str,
+        quoted_prefix: str,
+    ) -> Generator[Tuple[DataFrame, Column], None, None]:
+        is_struct = key == STRUCT_SEPARATOR
+        is_repeated = key == REPETITION_MARKER
+        has_children = children is not None
+        if is_struct:
+            assert_true(len(node) == 1, "Error, this should not happen: tree node of type struct with siblings")
+            assert_true(has_children, "Error, this should not happen: struct without children")
+            yield from recurse_node_with_multiple_items(
+                children, current_df, prefix=prefix + key, quoted_prefix=quoted_prefix + key
+            )
+        elif is_repeated:
+            assert_true(len(node) == 1, "Error, this should not happen: tree node of type array with siblings")
+            exploded_col = f.explode(f.col(quoted_prefix)).alias(prefix + key)
+            keep_cols = [f.col(keep_col).alias(keep_col) for keep_col in keep_columns_list]
+            new_df = current_df.select(*keep_cols, exploded_col)
+            if has_children:
+                yield from recurse_node_with_multiple_items(
+                    children, new_df, prefix=prefix + key, quoted_prefix=quote(prefix + key)
+                )
+            else:
+                yield new_df, f.col(quote(prefix + key))
+        elif has_children:
+            yield from recurse_node_with_multiple_items(
+                children, current_df, prefix=prefix + key, quoted_prefix=quoted_prefix + quote(key)
+            )
+        else:
+            yield current_df, f.col(quoted_prefix + quote(key)).alias(prefix + key)
+
+    col_dict = {col: None for col in fields}
+    root_tree = _build_nested_struct_tree(col_dict)
+    dataframe_and_columns = recurse_node_with_multiple_items(root_tree, df, prefix="", quoted_prefix="")
+    grouped_res = group_by_key(dataframe_and_columns)
+    res = [df.select(*quote_columns(keep_columns_list), *cols) for df, cols in grouped_res.items()]
+    return res
