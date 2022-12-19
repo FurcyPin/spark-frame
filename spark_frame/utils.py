@@ -311,7 +311,7 @@ def get_instantiated_spark_session() -> SparkSession:
 
 def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, vertical: bool = False) -> str:
     """Write the first ``n`` rows to the console into a string.
-    This is similar to [DataFrame.show](pyspark.sql.DataFrame.show) except it returns a string instead of directly
+    This is similar to [DataFrame.show][pyspark.sql.DataFrame.show] except it returns a string instead of directly
     writing it to stdout.
 
     Args:
@@ -375,7 +375,7 @@ def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, v
 
 def schema_string(df: DataFrame) -> str:
     """Write the DataFrame schema to a string.
-    This is similar to [DataFrame.printSchema](pyspark.sql.DataFrame.printSchema) except it returns a string instead
+    This is similar to [DataFrame.printSchema][pyspark.sql.DataFrame.printSchema] except it returns a string instead
     of directly writing it to stdout.
 
     Args:

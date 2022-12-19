@@ -11,7 +11,7 @@ from spark_frame.nested_impl.package import ColumnTransformation, resolve_nested
 def with_fields(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFrame:
     """Return a new [DataFrame](pyspark.sql.DataFrame) by adding or replacing (when they already exist) columns.
 
-    This method is similar to the [DataFrame.withColumn](pyspark.sql.DataFrame.withColumn) method, with the extra
+    This method is similar to the [DataFrame.withColumn][pyspark.sql.DataFrame.withColumn] method, with the extra
     capability of working on nested and repeated fields (structs and arrays).
 
     The syntax for column names works as follows:
