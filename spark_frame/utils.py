@@ -1,10 +1,81 @@
 import re
-from typing import List, Optional, Union, cast
+from typing import Dict, Iterable, List, Optional, Tuple, TypeVar, Union, cast
 
 from pyspark.sql import Column, DataFrame, SparkSession
 from pyspark.sql import functions as f
 
 StringOrColumn = Union[str, Column]
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+def is_sub_field(sub_field: str, field: str):
+    """Return True if `sub_field` is a sub-field of `field`
+
+    >>> is_sub_field("a", "a")
+    True
+    >>> is_sub_field("a", "b")
+    False
+
+    >>> is_sub_field("a.b", "a")
+    True
+    >>> is_sub_field("a.b", "b")
+    False
+
+    >>> is_sub_field("a", "a.b")
+    False
+
+    """
+    return sub_field == field or sub_field.startswith(field + ".")
+
+
+def is_sub_field_of_any(sub_field: str, fields: List[str]):
+    """Return True if `sub_field` is a sub-field of `field`
+
+    >>> is_sub_field_of_any("a", ["a", "b"])
+    True
+    >>> is_sub_field_of_any("a", ["b", "c"])
+    False
+
+    >>> is_sub_field_of_any("a.b", ["a", "b"])
+    True
+    >>> is_sub_field_of_any("a.b", ["b", "c"])
+    False
+
+    >>> is_sub_field_of_any("a", ["a.b"])
+    False
+
+    >>> is_sub_field_of_any("a", [])
+    False
+
+    """
+    return any([is_sub_field(sub_field, field) for field in fields])
+
+
+def group_by_key(items: Iterable[Tuple[K, V]]) -> Dict[K, List[V]]:
+    """Group the values of a list of tuples by their key.
+
+    Args:
+        items: An iterable of tuples (key, value).
+
+    Returns:
+        A dictionary where the keys are the keys from the input tuples,
+        and the values are lists of the corresponding values.
+
+    Examples:
+        >>> items = [('a', 1), ('b', 2), ('a', 3), ('c', 4), ('b', 5)]
+        >>> group_by_key(items)
+        {'a': [1, 3], 'b': [2, 5], 'c': [4]}
+        >>> group_by_key([])
+        {}
+    """
+    result: Dict[K, List[V]] = {}
+    for key, value in items:
+        if key in result:
+            result[key].append(value)
+        else:
+            result[key] = [value]
+    return result
 
 
 def quote(col: str) -> str:
