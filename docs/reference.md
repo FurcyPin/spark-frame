@@ -99,6 +99,8 @@ much easier. Before diving into it, it is important to explicit the concept of `
 ### ::: spark_frame.nested_impl.unnest_field.unnest_field
 ---
 
+### ::: spark_frame.nested_impl.with_fields.with_fields
+---
 
 ## spark_frame.schema_utils
 
