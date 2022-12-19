@@ -13,6 +13,10 @@ def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
     """Transform all columns of type `Map<K,V>` inside the given DataFrame into `ARRAY<STRUCT<key: K, value: V>>`.
     This transformation works recursively on every nesting level.
 
+    !!! warning "Limitations"
+        Currently, this method does not work on DataFrames with field names containing dots (`.`)
+        or exclamation marks (`!`).
+
     Args:
         df: A Spark DataFrame
 
@@ -62,7 +66,6 @@ def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
         |  1|[[{1, {[{1, a}]}}]]|
         +---+-------------------+
         <BLANKLINE>
-
     """
 
     def build_col(field: StructField) -> PrintableFunction:
