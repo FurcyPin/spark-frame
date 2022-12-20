@@ -3,6 +3,7 @@ from typing import Callable, Dict
 from pyspark.sql import Column, SparkSession
 from pyspark.sql import functions as f
 
+from spark_frame import nested
 from spark_frame.fp.printable_function import PrintableFunction
 from spark_frame.nested_impl.package import (
     _build_nested_struct_tree,
@@ -33,8 +34,8 @@ class TestBuildTransformationFromTree:
         transformations = {"a": "a"}
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         actual = _build_transformation_from_tree(_build_nested_struct_tree(transformations))
-        assert str(named_actual) == """lambda x: [a.alias(a)]"""
-        assert str(actual) == """lambda x: [f.col('a').alias(a)]"""
+        assert str(named_actual) == """lambda x: [a.alias('a')]"""
+        assert str(actual) == """lambda x: [f.col('a').alias('a')]"""
 
     def test_value_with_col_expr(self, spark: SparkSession):
         """
@@ -46,8 +47,8 @@ class TestBuildTransformationFromTree:
         transformations = {"a": f.col("a")}
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         actual = _build_transformation_from_tree(_build_nested_struct_tree(transformations))
-        assert str(named_actual) == """lambda x: [f.col("a").alias(a)]"""
-        assert str(actual) == """lambda x: [Column<'a'>.alias(a)]"""
+        assert str(named_actual) == """lambda x: [f.col("a").alias('a')]"""
+        assert str(actual) == """lambda x: [Column<'a'>.alias('a')]"""
 
     def test_value_with_aliased_col_expr(self, spark: SparkSession):
         """
@@ -63,8 +64,8 @@ class TestBuildTransformationFromTree:
         transformations = {"a": f.col("a").alias("other_alias")}
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         actual = _build_transformation_from_tree(_build_nested_struct_tree(transformations))
-        assert str(named_actual) == """lambda x: [f.col("a").alias("other_alias").alias(a)]"""
-        assert str(actual) == """lambda x: [Column<'a AS other_alias'>.alias(a)]"""
+        assert str(named_actual) == """lambda x: [f.col("a").alias("other_alias").alias('a')]"""
+        assert str(actual) == """lambda x: [Column<'a AS other_alias'>.alias('a')]"""
 
     def test_struct(self, spark: SparkSession):
         """
@@ -73,10 +74,10 @@ class TestBuildTransformationFromTree:
         THEN the result should be human-readable
         """
         named_transformations = {
-            "s.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f"""{s}["a"].cast("DOUBLE")""")
+            "s.a": PrintableFunction(lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""")
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
-        assert str(named_actual) == """lambda x: [f.struct([x['s']["a"].cast("DOUBLE").alias(a)]).alias(s)]"""
+        assert str(named_actual) == """lambda x: [f.struct([f.col("s.a").cast("DOUBLE").alias('a')]).alias('s')]"""
 
     def test_struct_with_static_expression(self, spark: SparkSession):
         """
@@ -88,7 +89,7 @@ class TestBuildTransformationFromTree:
             "s.a": PrintableFunction(lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""")
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
-        assert str(named_actual) == """lambda x: [f.struct([f.col("s.a").cast("DOUBLE").alias(a)]).alias(s)]"""
+        assert str(named_actual) == """lambda x: [f.struct([f.col("s.a").cast("DOUBLE").alias('a')]).alias('s')]"""
 
     def test_array(self, spark: SparkSession):
         """
@@ -98,7 +99,7 @@ class TestBuildTransformationFromTree:
         """
         named_transformations = {"e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')}
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
-        assert str(named_actual) == """lambda x: [f.transform(x['e'], lambda x: x.cast("DOUBLE")).alias(e)]"""
+        assert str(named_actual) == """lambda x: [f.transform(x['e'], lambda x: x.cast("DOUBLE")).alias('e')]"""
 
     def test_array_struct(self, spark: SparkSession):
         """
@@ -111,7 +112,7 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            """lambda x: [f.transform(x['s'], lambda x: f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s)]"""
+            """lambda x: [f.transform(x['s'], lambda x: f.struct([x["a"].cast("DOUBLE").alias('a')])).alias('s')]"""
         )
 
     def test_struct_in_struct(self, spark: SparkSession):
@@ -121,11 +122,14 @@ class TestBuildTransformationFromTree:
         THEN the result should be human-readable
         """
         named_transformations = {
-            "s1.s2.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+            "s1.s2.a": PrintableFunction(
+                lambda s: f.col("s1")["s2"]["a"].cast("DOUBLE"), lambda s: 'f.col("s1")["s2"]["a"].cast("DOUBLE")'
+            )
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            """lambda x: [f.struct([f.struct([x['s1']['s2']["a"].cast("DOUBLE").alias(a)]).alias(s2)]).alias(s1)]"""
+            """lambda x: [f.struct([f.struct([f.col("s1")["s2"]["a"]"""
+            """.cast("DOUBLE").alias('a')]).alias('s2')]).alias('s1')]"""
         )
 
     def test_array_in_struct(self, spark: SparkSession):
@@ -139,7 +143,7 @@ class TestBuildTransformationFromTree:
         }
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.struct([f.transform(x['s1']['e'], lambda x: " 'x.cast("DOUBLE")).alias(e)]).alias(s1)]'
+            """lambda x: [f.struct([f.transform(x['s1']['e'], lambda x: x.cast("DOUBLE")).alias('e')]).alias('s1')]"""
         )
 
     def test_array_struct_in_struct(self, spark: SparkSession):
@@ -154,7 +158,7 @@ class TestBuildTransformationFromTree:
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
             "lambda x: [f.struct([f.transform(x['s1']['s2'], lambda x: "
-            """f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s2)]).alias(s1)]"""
+            """f.struct([x["a"].cast("DOUBLE").alias('a')])).alias('s2')]).alias('s1')]"""
         )
 
     def test_array_in_array(self, spark: SparkSession):
@@ -166,7 +170,7 @@ class TestBuildTransformationFromTree:
         named_transformations = {"e!!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')}
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
-            "lambda x: [f.transform(x['e'], lambda x: f.transform(x, lambda x: " 'x.cast("DOUBLE"))).alias(e)]'
+            """lambda x: [f.transform(x['e'], lambda x: f.transform(x, lambda x: x.cast("DOUBLE"))).alias('e')]"""
         )
 
     def test_array_struct_in_array(self, spark: SparkSession):
@@ -181,7 +185,7 @@ class TestBuildTransformationFromTree:
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
             "lambda x: [f.transform(x['s'], lambda x: f.transform(x, lambda x: "
-            'f.struct([x["a"].cast("DOUBLE").alias(a)]))).alias(s)]'
+            """f.struct([x["a"].cast("DOUBLE").alias('a')]))).alias('s')]"""
         )
 
     def test_struct_in_array_struct(self, spark: SparkSession):
@@ -196,7 +200,7 @@ class TestBuildTransformationFromTree:
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
             "lambda x: [f.transform(x['s1'], lambda x: "
-            """f.struct([f.struct([x['s2']["a"].cast("DOUBLE").alias(a)]).alias(s2)])).alias(s1)]"""
+            """f.struct([f.struct([x["a"].cast("DOUBLE").alias('a')]).alias('s2')])).alias('s1')]"""
         )
 
     def test_array_in_array_struct(self, spark: SparkSession):
@@ -211,7 +215,7 @@ class TestBuildTransformationFromTree:
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
             "lambda x: [f.transform(x['s1'], lambda x: f.struct([f.transform(x['e'], lambda "
-            'x: x.cast("DOUBLE")).alias(e)])).alias(s1)]'
+            """x: x.cast("DOUBLE")).alias('e')])).alias('s1')]"""
         )
 
     def test_array_struct_in_array_struct(self, spark: SparkSession):
@@ -226,7 +230,7 @@ class TestBuildTransformationFromTree:
         named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(named_actual) == (
             "lambda x: [f.transform(x['s1'], lambda x: f.struct([f.transform(x['s2'], lambda "
-            'x: f.struct([x["a"].cast("DOUBLE").alias(a)])).alias(s2)])).alias(s1)]'
+            """x: f.struct([x["a"].cast("DOUBLE").alias('a')])).alias('s2')])).alias('s1')]"""
         )
 
     def test_array_struct_in_array_struct_with_sort(self, spark: SparkSession):
@@ -242,7 +246,7 @@ class TestBuildTransformationFromTree:
         assert str(named_actual) == (
             "lambda x: [f.sort_array(f.transform(x['s1'], lambda x: "
             "f.struct([f.sort_array(f.transform(x['s2'], lambda x: "
-            'f.struct([x["a"].cast("DOUBLE").alias(a)]))).alias(s2)]))).alias(s1)]'
+            """f.struct([x["a"].cast("DOUBLE").alias('a')]))).alias('s2')]))).alias('s1')]"""
         )
 
 
@@ -358,7 +362,7 @@ class TestResolveNestedFields:
             |"""
         )
         named_transformations = {
-            "s.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f"""{s}["a"].cast("DOUBLE")""")
+            "s.a": PrintableFunction(lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""")
         }
         transformations = replace_named_functions_with_functions(named_transformations)
         expected = strip_margin(
@@ -530,7 +534,9 @@ class TestResolveNestedFields:
             |"""
         )
         named_transformations = {
-            "s1.s2.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+            "s1.s2.a": PrintableFunction(
+                lambda s: f.col("s1")["s2"]["a"].cast("DOUBLE"), lambda s: 'f.col("s1")["s2"]["a"].cast("DOUBLE")'
+            )
         }
         transformations = replace_named_functions_with_functions(named_transformations)
         expected_schema = strip_margin(
@@ -769,31 +775,34 @@ class TestResolveNestedFields:
 
     def test_struct_in_array_struct(self, spark: SparkSession):
         """
-        GIVEN a DataFrame with a struct inside an array<struct>
-        WHEN we use resolve_nested_columns on it
+        GIVEN a DataFrame with a struct inside a struct inside an array
+        WHEN we use resolve_nested_columns with a transformation that access an element from the outermost struct
         THEN the transformation should work
         """
-        df = spark.sql("SELECT ARRAY(STRUCT(STRUCT(2 as a) as s2)) as s1")
+        df = spark.sql("SELECT ARRAY(STRUCT(1 as a, STRUCT(2 as b) as s2)) as s1")
         assert schema_string(df) == strip_margin(
             """
-        |root
-        | |-- s1: array (nullable = false)
-        | |    |-- element: struct (containsNull = false)
-        | |    |    |-- s2: struct (nullable = false)
-        | |    |    |    |-- a: integer (nullable = false)
-        |"""
+            |root
+            | |-- s1: array (nullable = false)
+            | |    |-- element: struct (containsNull = false)
+            | |    |    |-- a: integer (nullable = false)
+            | |    |    |-- s2: struct (nullable = false)
+            | |    |    |    |-- b: integer (nullable = false)
+            |"""
         )
         assert show_string(df) == strip_margin(
             """
-        |+-------+
-        ||     s1|
-        |+-------+
-        ||[{{2}}]|
-        |+-------+
-        |"""
+            |+----------+
+            ||        s1|
+            |+----------+
+            ||[{1, {2}}]|
+            |+----------+
+            |"""
         )
+        # Here, the lambda function is applied to the elements of `s1`, not `s2`
         named_transformations = {
-            "s1!.s2.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
+            "s1!.a": PrintableFunction(lambda s1: s1["a"], lambda s1: f'{s1}["a"]'),
+            "s1!.s2.b": PrintableFunction(lambda s1: s1["a"].cast("DOUBLE"), lambda s1: f'{s1}["a"].cast("DOUBLE")'),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
         expected_schema = strip_margin(
@@ -801,17 +810,18 @@ class TestResolveNestedFields:
             |root
             | |-- s1: array (nullable = false)
             | |    |-- element: struct (containsNull = false)
+            | |    |    |-- a: integer (nullable = false)
             | |    |    |-- s2: struct (nullable = false)
-            | |    |    |    |-- a: double (nullable = false)
+            | |    |    |    |-- b: double (nullable = false)
             |"""
         )
         expected = strip_margin(
             """
-            |+---------+
-            ||       s1|
-            |+---------+
-            ||[{{2.0}}]|
-            |+---------+
+            |+------------+
+            ||          s1|
+            |+------------+
+            ||[{1, {1.0}}]|
+            |+------------+
             |"""
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
@@ -993,3 +1003,168 @@ class TestResolveNestedFields:
         assert show_string(actual_named, truncate=False) == expected
         assert schema_string(actual) == expected_schema
         assert show_string(actual, truncate=False) == expected
+
+    def test_struct_in_array_struct_in_array_struct(self, spark: SparkSession):
+        """
+        GIVEN a DataFrame with a struct inside an array<struct> inside an array<struct>
+        WHEN we use resolve_nested_columns with a transformation that access an element from the outermost struct
+        THEN the transformation should work
+        """
+        df = spark.sql("""SELECT ARRAY(STRUCT(ARRAY(STRUCT(1 as a, STRUCT(2 as b) as s3)) as s2)) as s1""")
+        assert nested.schema_string(df) == strip_margin(
+            """
+            |root
+            | |-- s1!.s2!.a: integer (nullable = false)
+            | |-- s1!.s2!.s3.b: integer (nullable = false)
+            |"""
+        )
+        assert show_string(df) == strip_margin(
+            """
+            |+--------------+
+            ||            s1|
+            |+--------------+
+            ||[{[{1, {2}}]}]|
+            |+--------------+
+            |"""
+        )
+        # Here, the lambda function is applied to the elements of `s1`, not `s2`
+        named_transformations = {
+            "s1!.s2!.a": PrintableFunction(lambda s2: s2["a"], lambda s2: f'{s2}["a"]'),
+            "s1!.s2!.s3.b": PrintableFunction(
+                lambda s2: s2["a"].cast("DOUBLE"), lambda s2: f'{s2}["a"].cast("DOUBLE")'
+            ),
+        }
+        transformations = replace_named_functions_with_functions(named_transformations)
+        expected_schema = strip_margin(
+            """
+            |root
+            | |-- s1!.s2!.a: integer (nullable = false)
+            | |-- s1!.s2!.s3.b: double (nullable = false)
+            |"""
+        )
+        expected = strip_margin(
+            """
+            |+----------------+
+            ||              s1|
+            |+----------------+
+            ||[{[{1, {1.0}}]}]|
+            |+----------------+
+            |"""
+        )
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
+        assert nested.schema_string(actual_named) == expected_schema
+        assert show_string(actual_named) == expected
+        assert nested.schema_string(actual) == expected_schema
+        assert show_string(actual) == expected
+
+    def test_struct_in_struct_in_array_struct_in_struct_in_array_struct(self, spark: SparkSession):
+        """
+        GIVEN a DataFrame with a struct inside a struct inside an array<struct> inside a struct inside an array<struct>
+        WHEN we use resolve_nested_columns with a transformation that access an element from the outermost struct
+        THEN the transformation should work
+        """
+        df = spark.sql(
+            """SELECT
+            ARRAY(STRUCT(STRUCT(
+                ARRAY(STRUCT(STRUCT(1 as a, STRUCT(2 as b) as s5) as s4)) as s3
+            ) as s2)) as s1
+        """
+        )
+        assert nested.schema_string(df) == strip_margin(
+            """
+            |root
+            | |-- s1!.s2.s3!.s4.a: integer (nullable = false)
+            | |-- s1!.s2.s3!.s4.s5.b: integer (nullable = false)
+            |"""
+        )
+        assert show_string(df) == strip_margin(
+            """
+            |+------------------+
+            ||                s1|
+            |+------------------+
+            ||[{{[{{1, {2}}}]}}]|
+            |+------------------+
+            |"""
+        )
+        # Here, the lambda function is applied to the elements of `s1`, not `s2`
+        named_transformations = {
+            "s1!.s2.s3!.s4.a": PrintableFunction(lambda s3: s3["s4"]["a"], lambda s3: f'{s3}["s4"]["a"]'),
+            "s1!.s2.s3!.s4.s5.b": PrintableFunction(
+                lambda s3: s3["s4"]["a"].cast("DOUBLE"), lambda s3: f'{s3}["s4"]["a"].cast("DOUBLE")'
+            ),
+        }
+        transformations = replace_named_functions_with_functions(named_transformations)
+        expected_schema = strip_margin(
+            """
+            |root
+            | |-- s1!.s2.s3!.s4.a: integer (nullable = false)
+            | |-- s1!.s2.s3!.s4.s5.b: double (nullable = false)
+            |"""
+        )
+        expected = strip_margin(
+            """
+            |+--------------------+
+            ||                  s1|
+            |+--------------------+
+            ||[{{[{{1, {1.0}}}]}}]|
+            |+--------------------+
+            |"""
+        )
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        actual = df.select(*resolve_nested_fields(transformations))
+        assert nested.schema_string(actual_named) == expected_schema
+        assert show_string(actual_named) == expected
+        assert nested.schema_string(actual) == expected_schema
+        assert show_string(actual) == expected
+
+    def test_struct_in_struct_in_array_struct_in_struct_in_array_struct_with_none(self, spark: SparkSession):
+        """
+        GIVEN a DataFrame with a struct inside a struct inside an array<struct> inside a struct inside an array<struct>
+        WHEN we use resolve_nested_columns with a None transformation
+        THEN the transformation should work
+        """
+        df = spark.sql(
+            """SELECT
+            ARRAY(STRUCT(STRUCT(
+                ARRAY(STRUCT(STRUCT(1 as a, STRUCT(2 as b) as s5) as s4)) as s3
+            ) as s2)) as s1
+        """
+        )
+        assert nested.schema_string(df) == strip_margin(
+            """
+            |root
+            | |-- s1!.s2.s3!.s4.a: integer (nullable = false)
+            | |-- s1!.s2.s3!.s4.s5.b: integer (nullable = false)
+            |"""
+        )
+        assert show_string(df) == strip_margin(
+            """
+            |+------------------+
+            ||                s1|
+            |+------------------+
+            ||[{{[{{1, {2}}}]}}]|
+            |+------------------+
+            |"""
+        )
+        # Here, the lambda function is applied to the elements of `s1`, not `s2`
+        named_transformations = {"s1!.s2.s3!.s4.a": None, "s1!.s2.s3!.s4.s5.b": None}
+        expected_schema = strip_margin(
+            """
+            |root
+            | |-- s1!.s2.s3!.s4.a: integer (nullable = false)
+            | |-- s1!.s2.s3!.s4.s5.b: integer (nullable = false)
+            |"""
+        )
+        expected = strip_margin(
+            """
+            |+------------------+
+            ||                s1|
+            |+------------------+
+            ||[{{[{{1, {2}}}]}}]|
+            |+------------------+
+            |"""
+        )
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        assert nested.schema_string(actual_named) == expected_schema
+        assert show_string(actual_named) == expected

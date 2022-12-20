@@ -3,11 +3,10 @@ from typing import Optional, Sequence, Tuple, cast
 from pyspark.sql import DataFrame
 
 from spark_frame import fp
-from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.data_type_utils import flatten_schema, get_common_columns
 from spark_frame.fp import higher_order
 from spark_frame.fp.printable_function import PrintableFunction
-from spark_frame.nested_impl.package import resolve_nested_fields
+from spark_frame.nested_impl.package import _deepest_granularity, resolve_nested_fields
 
 
 def harmonize_dataframes(
@@ -56,17 +55,13 @@ def harmonize_dataframes(
         common_columns = get_common_columns(left_schema_flat, right_schema_flat)
 
     def build_col(col_name: str, col_type: Optional[str]) -> PrintableFunction:
-        is_repeated = col_name[-1] == REPETITION_MARKER
-        col = col_name.split(STRUCT_SEPARATOR)[-1]
+        parent_structs = _deepest_granularity(col_name)
         if col_type is not None:
             tpe = cast(str, col_type)
             f1 = PrintableFunction(lambda s: s.cast(tpe), lambda s: f"{s}.cast({tpe})")
         else:
             f1 = higher_order.identity
-        if is_repeated:
-            f2 = higher_order.identity
-        else:
-            f2 = higher_order.safe_struct_get(col)
+        f2 = higher_order.recursive_struct_get(parent_structs)
         return fp.compose(f1, f2)
 
     common_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in common_columns}

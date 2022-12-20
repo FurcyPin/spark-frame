@@ -1,7 +1,8 @@
-from typing import Callable, Optional, Union
+from typing import Callable, List, Optional, Union
 
 from pyspark.sql import functions as f
 
+from spark_frame import fp
 from spark_frame.fp.printable_function import PrintableFunction
 
 
@@ -23,7 +24,7 @@ def __safe_struct_get_alias(s: Optional[str], field: str) -> str:
 
 def alias(name: str) -> PrintableFunction:
     """Return a PrintableFunction version of the `pyspark.sql.Column.alias` method"""
-    return PrintableFunction(lambda s: s.alias(name), lambda s: str(s) + f".alias({name})")
+    return PrintableFunction(lambda s: s.alias(name), lambda s: str(s) + f".alias({repr(name)})")
 
 
 identity = PrintableFunction(lambda s: s, lambda s: str(s))
@@ -45,6 +46,22 @@ def safe_struct_get(key: str) -> PrintableFunction:
     from spark_frame.utils import safe_struct_get as _safe_struct_get
 
     return PrintableFunction(lambda s: _safe_struct_get(s, key), lambda s: __safe_struct_get_alias(s, key))
+
+
+def recursive_struct_get(keys: List[str]) -> PrintableFunction:
+    """Return a PrintableFunction that recursively applies get to a nested structure.
+
+    >>> recursive_struct_get([])
+    lambda x: x
+    >>> recursive_struct_get(["a", "b", "c"])
+    lambda x: x['a']['b']['c']
+    >>> recursive_struct_get(["a", "b", "c"]).alias(None)
+    "f.col('a')['b']['c']"
+    """
+    if len(keys) == 0:
+        return identity
+    else:
+        return fp.compose(recursive_struct_get(keys[1:]), safe_struct_get(keys[0]))
 
 
 def transform(transformation: Union[Callable, PrintableFunction]) -> PrintableFunction:

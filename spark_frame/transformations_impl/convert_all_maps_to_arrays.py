@@ -6,7 +6,7 @@ from spark_frame import fp
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.data_type_utils import flatten_schema
 from spark_frame.fp import PrintableFunction, higher_order
-from spark_frame.nested_impl.package import resolve_nested_fields
+from spark_frame.nested_impl.package import _deepest_granularity, resolve_nested_fields
 
 
 def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
@@ -69,16 +69,12 @@ def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
     """
 
     def build_col(field: StructField) -> PrintableFunction:
-        is_repeated = field.name[-1] == REPETITION_MARKER
-        col = field.name.split(STRUCT_SEPARATOR)[-1]
+        parent_structs = _deepest_granularity(field.name)
         if isinstance(field.dataType, MapType):
             f1 = PrintableFunction(lambda s: f.map_entries(s), lambda s: f"f.map_entries({s})")
         else:
             f1 = higher_order.identity
-        if is_repeated:
-            f2 = higher_order.identity
-        else:
-            f2 = higher_order.safe_struct_get(col)
+        f2 = higher_order.recursive_struct_get(parent_structs)
         return fp.compose(f1, f2)
 
     do_continue = True
