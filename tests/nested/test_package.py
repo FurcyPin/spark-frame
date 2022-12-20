@@ -253,13 +253,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it with a string expression
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-                STRUCT(1 as a)
-            ))
-            """
-        )
+        df = spark.sql("SELECT 1 as a")
         assert show_string(df) == strip_margin(
             """
             |+---+
@@ -289,13 +283,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it with a column expression
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-                STRUCT(1 as a)
-            ))
-            """
-        )
+        df = spark.sql("SELECT 1 as a")
         assert show_string(df) == strip_margin(
             """
             |+---+
@@ -325,13 +313,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it with a column expression using a different alias
         THEN the transformation should work and the alias should be ignored
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-                STRUCT(1 as a)
-            ))
-            """
-        )
+        df = spark.sql("SELECT 1 as a")
         assert show_string(df) == strip_margin(
             """
             |+---+
@@ -365,13 +347,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-                STRUCT(STRUCT(2 as a) as s)
-            ))
-            """
-        )
+        df = spark.sql("SELECT STRUCT(2 as a) as s")
         assert show_string(df) == strip_margin(
             """
             |+---+
@@ -403,13 +379,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it without lambda expression
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-                STRUCT(STRUCT(2 as a) as s)
-            ))
-            """
-        )
+        df = spark.sql("SELECT STRUCT(2 as a) as s")
         assert show_string(df) == strip_margin(
             """
             |+---+
@@ -441,13 +411,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-                STRUCT(ARRAY(2, 3) as e)
-            ))
-            """
-        )
+        df = spark.sql("SELECT ARRAY(2, 3) as e")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -495,13 +459,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-                STRUCT(ARRAY(STRUCT(2 as a)) as s)
-            ))
-            """
-        )
+        df = spark.sql("SELECT ARRAY(STRUCT(2 as a)) as s")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -553,13 +511,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-              STRUCT(STRUCT(STRUCT(2 as a) as s2) as s1)
-            ))
-            """
-        )
+        df = spark.sql("SELECT STRUCT(STRUCT(2 as a) as s2) as s1")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -611,13 +563,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-              STRUCT(STRUCT(ARRAY(2, 3) as e) as s1)
-            ))
-            """
-        )
+        df = spark.sql("SELECT STRUCT(ARRAY(2, 3) as e) as s1")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -669,13 +615,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-              STRUCT(STRUCT(ARRAY(STRUCT(2 as a)) as s2) as s1)
-            ))
-            """
-        )
+        df = spark.sql("SELECT STRUCT(ARRAY(STRUCT(2 as a)) as s2) as s1")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -729,13 +669,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-              STRUCT(ARRAY(ARRAY(1)) as e)
-            ))
-            """
-        )
+        df = spark.sql("SELECT ARRAY(ARRAY(1)) as e")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -785,13 +719,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-              STRUCT(ARRAY(ARRAY(STRUCT(1 as a))) as s)
-            ))
-            """
-        )
+        df = spark.sql("SELECT ARRAY(ARRAY(STRUCT(1 as a))) as s")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -845,13 +773,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-              STRUCT(ARRAY(STRUCT(STRUCT(2 as a) as s2)) as s1)
-            ))
-            """
-        )
+        df = spark.sql("SELECT ARRAY(STRUCT(STRUCT(2 as a) as s2)) as s1")
         assert schema_string(df) == strip_margin(
             """
         |root
@@ -905,13 +827,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-              STRUCT(ARRAY(STRUCT(ARRAY(2, 3) as e)) as s1)
-            ))
-            """
-        )
+        df = spark.sql("SELECT ARRAY(STRUCT(ARRAY(2, 3) as e)) as s1")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -965,13 +881,7 @@ class TestResolveNestedFields:
         WHEN we use resolve_nested_columns on it
         THEN the transformation should work
         """
-        df = spark.sql(
-            """
-            SELECT INLINE(ARRAY(
-              STRUCT(ARRAY(STRUCT(ARRAY(STRUCT(2 as a)) as s2)) as s1)
-            ))
-            """
-        )
+        df = spark.sql("SELECT ARRAY(STRUCT(ARRAY(STRUCT(2 as a)) as s2)) as s1")
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -1029,12 +939,10 @@ class TestResolveNestedFields:
         """
         df = spark.sql(
             """
-            SELECT INLINE(ARRAY(
-              STRUCT(ARRAY(
-                STRUCT(ARRAY(STRUCT(4 as a), STRUCT(3 as a)) as s2),
-                STRUCT(ARRAY(STRUCT(5 as a), STRUCT(2 as a)) as s2)
-              ) as s1)
-            ))
+                SELECT ARRAY(
+                    STRUCT(ARRAY(STRUCT(4 as a), STRUCT(3 as a)) as s2),
+                    STRUCT(ARRAY(STRUCT(5 as a), STRUCT(2 as a)) as s2)
+                ) as s1
             """
         )
         assert schema_string(df) == strip_margin(
