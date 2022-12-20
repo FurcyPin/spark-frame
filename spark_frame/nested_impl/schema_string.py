@@ -49,7 +49,7 @@ def schema_string(df: DataFrame) -> str:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> from pyspark.sql import functions as f
+        >>> from spark_frame import nested
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT
         ...     1 as id,
@@ -81,7 +81,7 @@ def schema_string(df: DataFrame) -> str:
          |    |    |    |-- e: integer (nullable = false)
          |    |    |    |-- f: integer (nullable = false)
         <BLANKLINE>
-        >>> print(schema_string(df))
+        >>> print(nested.schema_string(df))
         root
          |-- id: integer (nullable = false)
          |-- s1!.a: integer (nullable = false)

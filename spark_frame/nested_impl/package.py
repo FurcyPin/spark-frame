@@ -161,7 +161,7 @@ def _build_transformation_from_tree(root: OrderedTree, sort: bool = False) -> Pr
 
     !!! Warning
         Arrays containing sub-elements of type Map cannot be sorted. When using this option, one must make sure
-        that all Maps have been cast to Array<Struct> with [functions.map_entries](pyspark.sql.functions.map_entries)
+        that all Maps have been cast to Array<Struct> with [functions.map_entries][pyspark.sql.functions.map_entries]
 
     Args:
         root: The root of the abstract tree
@@ -215,8 +215,20 @@ def _build_transformation_from_tree(root: OrderedTree, sort: bool = False) -> Pr
 def resolve_nested_fields(columns: Mapping[str, AnyKindOfTransformation], sort: bool = False) -> List[Column]:
     """Builds a list of column expressions to manipulate structs and repeated records
 
+    The syntax for column names works as follows:
+    - "." is the separator for struct elements
+    - "!" must be appended at the end of fields that are repeated
+
+    The following types of transformation are allowed:
+    - String and column expressions can be used on any non-repeated field, even nested ones.
+    - When working on repeated fields, transformations must be expressed as higher order functions
+      (e.g. lambda expressions)
+    - `None` can also be used to represent the identity transformation, this is useful to select a field without
+       changing and without having to repeat its name.
+
+
     Args:
-        columns: A mapping (column_name -> function to apply to this column)
+        columns: A mapping (column_name -> transformation to apply to this column)
         sort: If set to true, all arrays will be automatically sorted.
 
     Returns:

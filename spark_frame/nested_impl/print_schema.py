@@ -25,7 +25,7 @@ def print_schema(df: DataFrame) -> None:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> from pyspark.sql import functions as f
+        >>> from spark_frame import nested
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT
         ...     1 as id,
@@ -57,7 +57,7 @@ def print_schema(df: DataFrame) -> None:
          |    |    |    |-- e: integer (nullable = false)
          |    |    |    |-- f: integer (nullable = false)
         <BLANKLINE>
-        >>> print_schema(df)
+        >>> nested.print_schema(df)
         root
          |-- id: integer (nullable = false)
          |-- s1!.a: integer (nullable = false)
