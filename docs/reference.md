@@ -90,6 +90,9 @@ much easier. Before diving into it, it is important to explicit the concept of `
 ### ::: spark_frame.nested_impl.print_schema.print_schema
 ---
 
+### ::: spark_frame.nested_impl.select_impl.select
+---
+
 ### ::: spark_frame.nested_impl.schema_string.schema_string
 ---
 
