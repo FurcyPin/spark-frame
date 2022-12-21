@@ -1,19 +1,3 @@
-from pyspark.sql import SparkSession
-
-
-def _get_sample_data():
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
-    df = spark.sql(
-        """
-        SELECT
-            1 as id,
-            STRUCT("Bulbasaur" as english, "Bulbizarre" as french) as name,
-            ARRAY("Grass", "Poison") as types
-    """
-    )
-    return df
-
-
 def fields():
     """First, let's distinguish the notion of `Column` and `Field`.
     Both terms are already used in Spark, but we chose here to make the following distinction:
@@ -102,3 +86,18 @@ def fields():
             to automatically cast all the maps of a DataFrame into `ARRAY<STRUCT<key, value>>`.
     """
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
+
+
+def _get_sample_data():
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    df = spark.sql(
+        """
+        SELECT
+            1 as id,
+            STRUCT("Bulbasaur" as english, "Bulbizarre" as french) as name,
+            ARRAY("Grass", "Poison") as types
+    """
+    )
+    return df
