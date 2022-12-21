@@ -1,8 +1,8 @@
 ## spark_frame.functions
 
 Like with [pyspark.sql.functions](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/functions.html), 
-the methods in this module all return [Column](pyspark.sql.Column) expressions and can be used to build operations
-on Spark [DataFrames](pyspark.sql.DataFrame) using `select`, `withColumn`, etc.
+the methods in this module all return [Column][pyspark.sql.Column] expressions and can be used to build operations
+on Spark [DataFrames][pyspark.sql.DataFrame] using `select`, `withColumn`, etc.
 
 ---
 
@@ -29,7 +29,7 @@ This module contains implementations of graph algorithms and related methods.
 ## spark_frame.transformations
 
 Unlike those in [spark_frame.functions](#spark_framefunctions), the methods in this module all take at least one
-[DataFrame](pyspark.sql.DataFrame) as argument and return a new transformed DataFrame.
+[DataFrame][pyspark.sql.DataFrame] as argument and return a new transformed DataFrame.
 These methods generally offer _higher order_ transformation that requires to inspect the schema or event the content
 of the input DataFrame(s) before generating the next transformation. Those are typically generic operations 
 that _cannot_ be implemented with one single SQL query.
@@ -37,7 +37,7 @@ that _cannot_ be implemented with one single SQL query.
 !!! tip
 
     Since Spark 3.3.0, all transformations can be inlined using 
-    [DataFrame.transform](pyspark.sql.DataFrame.transform), like this:
+    [DataFrame.transform][pyspark.sql.DataFrame.transform], like this:
 
     ```python
     df.transform(flatten).withColumn(
