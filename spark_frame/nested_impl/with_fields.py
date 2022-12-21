@@ -38,7 +38,6 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
     Examples:
 
         *Example 1: non-repeated fields*
-
         >>> from pyspark.sql import SparkSession
         >>> from pyspark.sql import functions as f
         >>> from spark_frame import nested
@@ -58,59 +57,70 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
         +---+------+
         <BLANKLINE>
 
-        Transformations on non-repeated fields may be expressed as a string representing a column name,
-        a Column expression, or a higher-order function (lambda expression or function).
+        Transformations on non-repeated fields may be expressed as a string representing a column name
+        or a Column expression.
         >>> new_df = nested.with_fields(df, {
         ...     "s.id": "id",                                 # column name (string)
         ...     "s.c": f.col("s.a") + f.col("s.b"),           # Column expression
-        ...     "s.d": lambda s: f.col("s.a") + f.col("s.b")  # higher-order function
         ... })
-        >>> df.printSchema()
+        >>> new_df.printSchema()
         root
          |-- id: integer (nullable = false)
          |-- s: struct (nullable = false)
          |    |-- a: integer (nullable = false)
          |    |-- b: integer (nullable = false)
+         |    |-- id: integer (nullable = false)
+         |    |-- c: integer (nullable = false)
         <BLANKLINE>
         >>> new_df.show()
-        +---+---------------+
-        | id|              s|
-        +---+---------------+
-        |  1|{2, 3, 1, 5, 5}|
-        +---+---------------+
+        +---+------------+
+        | id|           s|
+        +---+------------+
+        |  1|{2, 3, 1, 5}|
+        +---+------------+
         <BLANKLINE>
 
         *Example 2: repeated fields*
-
-        >>> df = spark.sql('SELECT 1 as id, ARRAY(STRUCT(1 as a, 2 as b), STRUCT(3 as a, 4 as b)) as s')
+        >>> df = spark.sql('''
+        ...     SELECT
+        ...         1 as id,
+        ...         ARRAY(STRUCT(1 as a, STRUCT(2 as c) as b), STRUCT(3 as a, STRUCT(4 as c) as b)) as s
+        ... ''')
         >>> nested.print_schema(df)
         root
          |-- id: integer (nullable = false)
          |-- s!.a: integer (nullable = false)
-         |-- s!.b: integer (nullable = false)
+         |-- s!.b.c: integer (nullable = false)
         <BLANKLINE>
         >>> df.show()
-        +---+----------------+
-        | id|               s|
-        +---+----------------+
-        |  1|[{1, 2}, {3, 4}]|
-        +---+----------------+
+        +---+--------------------+
+        | id|                   s|
+        +---+--------------------+
+        |  1|[{1, {2}}, {3, {4}}]|
+        +---+--------------------+
         <BLANKLINE>
 
-        Transformations on repeated fields may only be expressed higher-order functions (lambda expression or function).
-        The value passed to this function will correspond to the parent struct or array of the concerned field.
-        >>> df.transform(nested.with_fields, {
-        ...     "s!.c": lambda s: s["a"] + s["b"]}
-        ... ).show(truncate=False)
-        +---+----------------------+
-        |id |s                     |
-        +---+----------------------+
-        |1  |[{1, 2, 3}, {3, 4, 7}]|
-        +---+----------------------+
+        Transformations on repeated fields may be expressed as a higher-order function (lambda expression or function).
+        The value passed to this function will correspond to the last repeated element.
+        >>> new_df = df.transform(nested.with_fields, {
+        ...     "s!.b.d": lambda s: s["a"] + s["b"]["c"]}
+        ... )
+        >>> nested.print_schema(new_df)
+        root
+         |-- id: integer (nullable = false)
+         |-- s!.a: integer (nullable = false)
+         |-- s!.b.c: integer (nullable = false)
+         |-- s!.b.d: integer (nullable = false)
+        <BLANKLINE>
+        >>> new_df.show(truncate=False)
+        +---+--------------------------+
+        |id |s                         |
+        +---+--------------------------+
+        |1  |[{1, {2, 3}}, {3, {4, 7}}]|
+        +---+--------------------------+
         <BLANKLINE>
 
         *Example 3: field repeated twice*
-
         >>> df = spark.sql('SELECT 1 as id, ARRAY(STRUCT(ARRAY(1, 2, 3) as e)) as s')
         >>> nested.print_schema(df)
         root
@@ -125,7 +135,7 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
         +---+-------------+
         <BLANKLINE>
 
-        Here, the lambda expression will be applied to each element of the array field `e`.
+        Here, the lambda expression will be applied to the last repeated element `e`.
         >>> df.transform(nested.with_fields, {"s!.e!": lambda e : e.cast("DOUBLE")}).show()
         +---+-------------------+
         | id|                  s|
