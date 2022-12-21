@@ -67,7 +67,7 @@ def _get_nested_col_type_from_schema(col_name: str, schema: StructType) -> DataT
 
 
 def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
-    """Transform the specified struct columns of a given [Dataframe](pyspark.sql.DataFrame) into
+    """Transform the specified struct columns of a given [Dataframe][pyspark.sql.DataFrame] into
     generic typed struct columns with the following generic schema
     (based on [https://spark.apache.org/docs/latest/sql-ref-datatypes.html](
     https://spark.apache.org/docs/latest/sql-ref-datatypes.html)) :

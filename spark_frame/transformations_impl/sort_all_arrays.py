@@ -4,7 +4,7 @@ from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.data_type_utils import flatten_schema
 from spark_frame.fp import higher_order
 from spark_frame.fp.printable_function import PrintableFunction
-from spark_frame.nested_impl.package import resolve_nested_fields
+from spark_frame.nested_impl.package import _deepest_granularity, resolve_nested_fields
 
 
 def sort_all_arrays(df: DataFrame) -> DataFrame:
@@ -115,12 +115,8 @@ def sort_all_arrays(df: DataFrame) -> DataFrame:
     )
 
     def build_col(col_name: str) -> PrintableFunction:
-        is_repeated = col_name[-1] == REPETITION_MARKER
-        col = col_name.split(STRUCT_SEPARATOR)[-1]
-        if is_repeated:
-            return higher_order.identity
-        else:
-            return higher_order.safe_struct_get(col)
+        parent_structs = _deepest_granularity(col_name)
+        return higher_order.recursive_struct_get(parent_structs)
 
     columns = {field.name: build_col(field.name) for field in schema_flat}
     return df.select(*resolve_nested_fields(columns, sort=True))

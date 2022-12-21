@@ -26,7 +26,7 @@ from spark_frame.utils import (
 )
 
 ColumnTransformation = Callable[[Optional[Column]], Column]
-AnyKindOfTransformation = Union[str, Column, ColumnTransformation, "PrintableFunction"]
+AnyKindOfTransformation = Union[str, Column, ColumnTransformation, "PrintableFunction", None]
 OrderedTree = Union["OrderedTree", Dict[str, Union["OrderedTree", Optional[AnyKindOfTransformation]]]]  # type: ignore
 
 
@@ -64,6 +64,20 @@ def _split_string_and_keep_separator(string: str, *separators: str) -> Tuple[str
         return string, None
     else:
         return string[:i], string[i:]
+
+
+def _deepest_granularity(field_name: str) -> List[str]:
+    """Return the part of a field_name corresponding to it's deepest granularity
+
+    Examples:
+        >>> _deepest_granularity("a")
+        ['a']
+        >>> _deepest_granularity("a!")
+        []
+        >>> _deepest_granularity("a!.b.c")
+        ['b', 'c']
+    """
+    return [s for s in field_name.split(REPETITION_MARKER)[-1].split(STRUCT_SEPARATOR) if s != ""]
 
 
 def _build_nested_struct_tree(column_transformations: Mapping[str, Optional[AnyKindOfTransformation]]) -> OrderedTree:
@@ -119,7 +133,9 @@ def _build_nested_struct_tree(column_transformations: Mapping[str, Optional[AnyK
     return tree
 
 
-def _convert_transformation_to_printable_function(transformation: AnyKindOfTransformation) -> PrintableFunction:
+def _convert_transformation_to_printable_function(
+    transformation: AnyKindOfTransformation, parent_structs: List[str]
+) -> PrintableFunction:
     """Transform any kind of column transformation (str, Column, Callable[[Column], Column], PrintableFunction)
     into a PrintableFunction"""
     if isinstance(transformation, PrintableFunction):
@@ -133,10 +149,15 @@ def _convert_transformation_to_printable_function(transformation: AnyKindOfTrans
     elif isinstance(transformation, Column):
         col_trans = cast(Column, transformation)
         return PrintableFunction(lambda x: col_trans, lambda x: str(col_trans))
-    else:
-        assert_true(isinstance(transformation, str), f"Error, unsupported type: {type(transformation)}")
+    elif isinstance(transformation, str):
         str_trans = cast(str, transformation)
         return PrintableFunction(lambda x: f.col(str_trans), lambda x: f"f.col('{str_trans}')")
+    else:
+        assert_true(transformation is None, f"Error, unsupported transformation type: {type(transformation)}")
+        if parent_structs[-1] == REPETITION_MARKER:
+            return higher_order.identity
+        else:
+            return higher_order.recursive_struct_get(parent_structs)
 
 
 def _merge_functions(functions: List[PrintableFunction]) -> PrintableFunction:
@@ -161,7 +182,7 @@ def _build_transformation_from_tree(root: OrderedTree, sort: bool = False) -> Pr
 
     !!! Warning
         Arrays containing sub-elements of type Map cannot be sorted. When using this option, one must make sure
-        that all Maps have been cast to Array<Struct> with [functions.map_entries](pyspark.sql.functions.map_entries)
+        that all Maps have been cast to Array<Struct> with [functions.map_entries][pyspark.sql.functions.map_entries]
 
     Args:
         root: The root of the abstract tree
@@ -171,16 +192,19 @@ def _build_transformation_from_tree(root: OrderedTree, sort: bool = False) -> Pr
         A PrintableFunction that produces a list of Column expressions
     """
 
-    def recurse_node_with_multiple_items(node: OrderedTree) -> List[PrintableFunction]:
-        return [recurse_item(node, key, col_or_children) for key, col_or_children in node.items()]
+    def recurse_node_with_multiple_items(node: OrderedTree, parent_structs: List[str]) -> List[PrintableFunction]:
+        return [recurse_item(node, key, col_or_children, parent_structs) for key, col_or_children in node.items()]
 
-    def recurse_node_with_one_item(node: OrderedTree) -> PrintableFunction:
+    def recurse_node_with_one_item(node: OrderedTree, parent_structs: List[str]) -> PrintableFunction:
         assert_true(len(node) == 1, "Error, this should not happen: non-struct node with more than one child")
         key, col_or_children = next(iter(node.items()))
-        return recurse_item(node, key, col_or_children)
+        return recurse_item(node, key, col_or_children, parent_structs)
 
     def recurse_item(
-        node: OrderedTree, key: str, col_or_children: Union[AnyKindOfTransformation, OrderedTree]
+        node: OrderedTree,
+        key: str,
+        col_or_children: Union[AnyKindOfTransformation, OrderedTree],
+        parent_structs: List[str],
     ) -> PrintableFunction:
         is_struct = key == STRUCT_SEPARATOR
         is_repeated = key == REPETITION_MARKER
@@ -188,26 +212,34 @@ def _build_transformation_from_tree(root: OrderedTree, sort: bool = False) -> Pr
         if is_struct:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type struct with siblings")
             assert_true(has_children, "Error, this should not happen: struct without children")
-            children_transformations = recurse_node_with_multiple_items(col_or_children)
+            children_transformations = recurse_node_with_multiple_items(col_or_children, parent_structs)
             merged_transformation = _merge_functions(children_transformations)
             res = fp.compose(higher_order.struct, merged_transformation)
             return res
         if is_repeated:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type array with siblings")
-            transform_col = recurse_node_with_one_item(col_or_children) if has_children else col_or_children
-            res = higher_order.transform(cast(Callable, transform_col))
+            if has_children:
+                repeated_col = recurse_node_with_one_item(col_or_children, parent_structs=[])
+            else:
+                repeated_col = _convert_transformation_to_printable_function(
+                    cast(AnyKindOfTransformation, col_or_children), [key]
+                )
+            res = higher_order.transform(cast(Callable, repeated_col))
+            res = fp.compose(res, higher_order.recursive_struct_get(parent_structs))
             if sort:
                 res = fp.compose(higher_order.sort_array, res)
             return res
         if has_children:
-            child_transformation = recurse_node_with_one_item(col_or_children)
-            col = fp.compose(child_transformation, higher_order.safe_struct_get(key))
+            child_transformation = recurse_node_with_one_item(col_or_children, parent_structs + [key])
+            col = child_transformation  # fp.compose(child_transformation, higher_order.safe_struct_get(key))
         else:
-            col = _convert_transformation_to_printable_function(cast(AnyKindOfTransformation, col_or_children))
+            col = _convert_transformation_to_printable_function(
+                cast(AnyKindOfTransformation, col_or_children), parent_structs + [key]
+            )
         col = fp.compose(higher_order.alias(key), col)
         return col
 
-    root_transformations = list(recurse_node_with_multiple_items(root))
+    root_transformations = list(recurse_node_with_multiple_items(root, parent_structs=[]))
     merged_root_transformation = _merge_functions(root_transformations)
     return merged_root_transformation
 
@@ -215,8 +247,20 @@ def _build_transformation_from_tree(root: OrderedTree, sort: bool = False) -> Pr
 def resolve_nested_fields(columns: Mapping[str, AnyKindOfTransformation], sort: bool = False) -> List[Column]:
     """Builds a list of column expressions to manipulate structs and repeated records
 
+    The syntax for column names works as follows:
+    - "." is the separator for struct elements
+    - "!" must be appended at the end of fields that are repeated
+
+    The following types of transformation are allowed:
+    - String and column expressions can be used on any non-repeated field, even nested ones.
+    - When working on repeated fields, transformations must be expressed as higher order functions
+      (e.g. lambda expressions)
+    - `None` can also be used to represent the identity transformation, this is useful to select a field without
+       changing and without having to repeat its name.
+
+
     Args:
-        columns: A mapping (column_name -> function to apply to this column)
+        columns: A mapping (column_name -> transformation to apply to this column)
         sort: If set to true, all arrays will be automatically sorted.
 
     Returns:

@@ -19,11 +19,12 @@ def unnest_field(df: DataFrame, field_name: str, keep_columns: Optional[List[str
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> from pyspark.sql import functions as f
+        >>> from spark_frame import nested
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> df = spark.sql('''SELECT
-        ...     1 as id,
-        ...     ARRAY(ARRAY(1, 2), ARRAY(3, 4)) as arr
+        >>> df = spark.sql('''
+        ...     SELECT
+        ...         1 as id,
+        ...         ARRAY(ARRAY(1, 2), ARRAY(3, 4)) as arr
         ... ''')
         >>> df.show(truncate=False)
         +---+----------------+
@@ -32,10 +33,9 @@ def unnest_field(df: DataFrame, field_name: str, keep_columns: Optional[List[str
         |1  |[[1, 2], [3, 4]]|
         +---+----------------+
         <BLANKLINE>
-        >>> from spark_frame import nested
         >>> nested.fields(df)
         ['id', 'arr!!']
-        >>> unnest_field(df, 'arr!').show(truncate=False)
+        >>> nested.unnest_field(df, 'arr!').show(truncate=False)
         +------+
         |arr!  |
         +------+
@@ -43,7 +43,7 @@ def unnest_field(df: DataFrame, field_name: str, keep_columns: Optional[List[str
         |[3, 4]|
         +------+
         <BLANKLINE>
-        >>> unnest_field(df, 'arr!!').show(truncate=False)
+        >>> nested.unnest_field(df, 'arr!!').show(truncate=False)
         +-----+
         |arr!!|
         +-----+
@@ -53,7 +53,7 @@ def unnest_field(df: DataFrame, field_name: str, keep_columns: Optional[List[str
         |4    |
         +-----+
         <BLANKLINE>
-        >>> unnest_field(df, 'arr!!', keep_columns=["id"]).show(truncate=False)
+        >>> nested.unnest_field(df, 'arr!!', keep_columns=["id"]).show(truncate=False)
         +---+-----+
         |id |arr!!|
         +---+-----+
@@ -64,12 +64,13 @@ def unnest_field(df: DataFrame, field_name: str, keep_columns: Optional[List[str
         +---+-----+
         <BLANKLINE>
 
-        >>> df = spark.sql('''SELECT
-        ...     1 as id,
-        ...     ARRAY(
-        ...         STRUCT(ARRAY(STRUCT("a1" as a, "b1" as b), STRUCT("a2" as a, "b1" as b)) as s2),
-        ...         STRUCT(ARRAY(STRUCT("a3" as a, "b3" as b)) as s2)
-        ...     ) as s1
+        >>> df = spark.sql('''
+        ...     SELECT
+        ...         1 as id,
+        ...         ARRAY(
+        ...             STRUCT(ARRAY(STRUCT("a1" as a, "b1" as b), STRUCT("a2" as a, "b1" as b)) as s2),
+        ...             STRUCT(ARRAY(STRUCT("a3" as a, "b3" as b)) as s2)
+        ...         ) as s1
         ... ''')
         >>> df.show(truncate=False)
         +---+--------------------------------------+
@@ -80,7 +81,7 @@ def unnest_field(df: DataFrame, field_name: str, keep_columns: Optional[List[str
         <BLANKLINE>
         >>> nested.fields(df)
         ['id', 's1!.s2!.a', 's1!.s2!.b']
-        >>> unnest_field(df, 's1!.s2!').show(truncate=False)
+        >>> nested.unnest_field(df, 's1!.s2!').show(truncate=False)
         +--------+
         |s1!.s2! |
         +--------+

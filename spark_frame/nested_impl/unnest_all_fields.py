@@ -35,13 +35,14 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> from pyspark.sql import functions as f
+        >>> from spark_frame import nested
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> df = spark.sql('''SELECT
-        ...     1 as id,
-        ...     STRUCT(2 as a) as s1,
-        ...     ARRAY(STRUCT(3 as b, 4 as c, ARRAY(STRUCT(5 as d), STRUCT(6 as d)) as s3)) as s2,
-        ...     ARRAY(STRUCT(7 as e, 8 as f), STRUCT(9 as e, 10 as f)) as s4
+        >>> df = spark.sql('''
+        ...     SELECT
+        ...         1 as id,
+        ...         STRUCT(2 as a) as s1,
+        ...         ARRAY(STRUCT(3 as b, 4 as c, ARRAY(STRUCT(5 as d), STRUCT(6 as d)) as s3)) as s2,
+        ...         ARRAY(STRUCT(7 as e, 8 as f), STRUCT(9 as e, 10 as f)) as s4
         ... ''')
         >>> df.show(truncate=False)
         +---+---+--------------------+-----------------+
@@ -50,10 +51,9 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
         |1  |{2}|[{3, 4, [{5}, {6}]}]|[{7, 8}, {9, 10}]|
         +---+---+--------------------+-----------------+
         <BLANKLINE>
-        >>> from spark_frame import nested
         >>> nested.fields(df)
         ['id', 's1.a', 's2!.b', 's2!.c', 's2!.s3!.d', 's4!.e', 's4!.f']
-        >>> result_df_list = unnest_all_fields(df, keep_columns=["id"])
+        >>> result_df_list = nested.unnest_all_fields(df, keep_columns=["id"])
         >>> for result_df in result_df_list: result_df.show()
         +---+----+
         | id|s1.a|

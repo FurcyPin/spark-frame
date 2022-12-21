@@ -3,8 +3,9 @@ from typing import Callable, cast
 from spark_frame.fp.printable_function import PrintableFunction
 
 
-def compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction:
+def __compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction:
     """Composes together two PrintableFunctions.
+
     For instance, if `h = compose(g, f)`, then for every `x`, `h(x) = g(f(x))`.
 
     Args:
@@ -17,19 +18,18 @@ def compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction:
     Examples:
         >>> f = PrintableFunction(lambda x: x+1, lambda s: f'{s} + 1')
         >>> g = PrintableFunction(lambda x: x.cast("Double"), lambda s: f'({s}).cast("Double")')
-        >>> compose(g, f)
+        >>> __compose(g, f)
         lambda x: (x + 1).cast("Double")
-        >>> compose(f, g)
+        >>> __compose(f, g)
         lambda x: (x).cast("Double") + 1
 
         >>> h = PrintableFunction(lambda x: x*2, "h")
-        >>> compose(h, f)
+        >>> __compose(h, f)
         lambda x: h(x + 1)
-        >>> compose(f, h)
+        >>> __compose(f, h)
         h + 1
-        >>> compose(h, h)
+        >>> __compose(h, h)
         h(h)
-
     """
     if callable(f1.alias) and callable(f2.alias):
         c1 = cast(Callable, f1.alias)
@@ -47,3 +47,28 @@ def compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction:
         a1 = str(f1.alias)
         a2 = str(f2.alias)
         return PrintableFunction(lambda s: f1.func(f2.func(s)), f"{a1}({a2})")
+
+
+def compose(f1: PrintableFunction, f2: PrintableFunction, *f3: PrintableFunction) -> PrintableFunction:
+    """Composes together two or more PrintableFunctions.
+    For instance, if `h = compose(g, f)`, then for every `x`, `h(x) = g(f(x))`.
+
+    Args:
+        f1: A PrintableFunction
+        f2: A PrintableFunction
+
+    Returns:
+        The composition of f1 with f2.
+
+    Examples:
+        >>> f = PrintableFunction(lambda x: x+1, lambda s: f'{s} + 1')
+        >>> g = PrintableFunction(lambda x: x.cast("Double"), lambda s: f'({s}).cast("Double")')
+        >>> h = PrintableFunction(lambda x: x*2, lambda x: f"{x}*2")
+        >>> compose(f, g, h)
+        lambda x: (x*2).cast("Double") + 1
+
+    """
+    res = __compose(f1, f2)
+    for f in f3:
+        res = __compose(res, f)
+    return res
