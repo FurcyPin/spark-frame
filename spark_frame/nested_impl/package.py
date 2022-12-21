@@ -244,7 +244,11 @@ def _build_transformation_from_tree(root: OrderedTree, sort: bool = False) -> Pr
     return merged_root_transformation
 
 
-def resolve_nested_fields(columns: Mapping[str, AnyKindOfTransformation], sort: bool = False) -> List[Column]:
+def resolve_nested_fields(
+    columns: Mapping[str, AnyKindOfTransformation],
+    sort: bool = False,
+    starting_level: Union[Column, DataFrame, None] = None,
+) -> List[Column]:
     """Builds a list of column expressions to manipulate structs and repeated records
 
     The syntax for column names works as follows:
@@ -258,8 +262,8 @@ def resolve_nested_fields(columns: Mapping[str, AnyKindOfTransformation], sort: 
     - `None` can also be used to represent the identity transformation, this is useful to select a field without
        changing and without having to repeat its name.
 
-
     Args:
+        df: A Spark DataFrame
         columns: A mapping (column_name -> transformation to apply to this column)
         sort: If set to true, all arrays will be automatically sorted.
 
@@ -290,9 +294,7 @@ def resolve_nested_fields(columns: Mapping[str, AnyKindOfTransformation], sort: 
         |[[1], [2, 3]]|
         +-------------+
         <BLANKLINE>
-        >>> res_df = df.select(*resolve_nested_fields({
-        ...     "e!!": lambda e: e.cast("DOUBLE"),
-        ... }, sort=True))
+        >>> res_df = df.select(*resolve_nested_fields({"e!!": lambda e: e.cast("DOUBLE")}, sort=True))
         >>> res_df.printSchema()
         root
          |-- e: array (nullable = false)
@@ -309,7 +311,7 @@ def resolve_nested_fields(columns: Mapping[str, AnyKindOfTransformation], sort: 
     """
     tree = _build_nested_struct_tree(columns)
     root_transformation = _build_transformation_from_tree(tree, sort)
-    return root_transformation(None)
+    return root_transformation(starting_level)
 
 
 def unnest_fields(

@@ -6,7 +6,11 @@ from spark_frame import fp
 from spark_frame.data_type_utils import flatten_schema, get_common_columns
 from spark_frame.fp import higher_order
 from spark_frame.fp.printable_function import PrintableFunction
-from spark_frame.nested_impl.package import _deepest_granularity, resolve_nested_fields
+from spark_frame.nested_impl.package import (
+    _build_nested_struct_tree,
+    _build_transformation_from_tree,
+    _deepest_granularity,
+)
 
 
 def harmonize_dataframes(
@@ -65,5 +69,6 @@ def harmonize_dataframes(
         return fp.compose(f1, f2)
 
     common_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in common_columns}
-    resolved_columns = resolve_nested_fields(common_columns_dict)
-    return left_df.select(*resolved_columns), right_df.select(*resolved_columns)
+    tree = _build_nested_struct_tree(common_columns_dict)
+    root_transformation = _build_transformation_from_tree(tree)
+    return left_df.select(*root_transformation(left_df)), right_df.select(*root_transformation(right_df))

@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Iterable, List, Optional, Tuple, TypeVar, Union, cast
+from typing import Dict, Iterable, List, Tuple, TypeVar, Union, cast
 
 from pyspark.sql import Column, DataFrame, SparkSession
 from pyspark.sql import functions as f
@@ -400,15 +400,6 @@ def schema_string(df: DataFrame) -> str:
         <BLANKLINE>
     """
     return df._jdf.schema().treeString()
-
-
-def safe_struct_get(s: Optional[Column], field: str) -> Column:
-    """Get a column's subfield, unless the column is None, in which case it returns
-    a Column expression for the field itself."""
-    if s is None:
-        return f.col(field)
-    else:
-        return s[field]
 
 
 def assert_true(assertion: bool, error: Union[str, BaseException] = None) -> None:
