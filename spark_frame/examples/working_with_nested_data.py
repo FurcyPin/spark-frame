@@ -8,7 +8,7 @@ def transform_nested_fields():
         >>> df = _get_sample_employee_data()
         >>> df.printSchema()
         root
-         |-- id: integer (nullable = true)
+         |-- employee_id: integer (nullable = true)
          |-- name: string (nullable = true)
          |-- age: long (nullable = true)
          |-- skills: array (nullable = true)
@@ -27,12 +27,12 @@ def transform_nested_fields():
          |    |    |    |    |-- estimate: long (nullable = true)
         <BLANKLINE>
         >>> df.show(truncate=False)  # noqa: E501
-        +---+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-        |id |name      |age|skills                                       |projects                                                                                                                                                                                                                          |
-        +---+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-        |1  |John Smith|30 |[{Java, expert}, {Python, intermediate}]     |[{Project A, Acme Inc, [{Task 1, Implement feature X, completed, 8}, {Task 2, Fix bug Y, in progress, 5}]}, {Project B, Beta Corp, [{Task 3, Implement feature Z, pending, 13}, {Task 4, Improve performance, in progress, 3}]}]  |
-        |2  |Jane Doe  |25 |[{JavaScript, advanced}, {PHP, intermediate}]|[{Project C, Gamma Inc, [{Task 5, Implement feature W, completed, 20}, {Task 6, Fix bug V, in progress, 13}]}, {Project D, Delta Ltd, [{Task 7, Implement feature U, pending, 8}, {Task 8, Improve performance, in progress, 5}]}]|
-        +---+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        +-----------+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        |employee_id|name      |age|skills                                       |projects                                                                                                                                                                                                                          |
+        +-----------+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        |1          |John Smith|30 |[{Java, expert}, {Python, intermediate}]     |[{Project A, Acme Inc, [{Task 1, Implement feature X, completed, 8}, {Task 2, Fix bug Y, in progress, 5}]}, {Project B, Beta Corp, [{Task 3, Implement feature Z, pending, 13}, {Task 4, Improve performance, in progress, 3}]}]  |
+        |2          |Jane Doe  |25 |[{JavaScript, advanced}, {PHP, intermediate}]|[{Project C, Gamma Inc, [{Task 5, Implement feature W, completed, 20}, {Task 6, Fix bug V, in progress, 13}]}, {Project D, Delta Ltd, [{Task 7, Implement feature U, pending, 8}, {Task 8, Improve performance, in progress, 5}]}]|
+        +-----------+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
         <BLANKLINE>
 
         As we can see, the schema has two top-level columns of type ARRAY (`skills` and `projects`),
@@ -46,7 +46,7 @@ def transform_nested_fields():
         - Change the `skills.level` to uppercase
         - Cast the `projects.tasks.estimate` to double
 
-        ### Without spark-frame
+        ### Without spark_frame.nested
         Prior to Spark 3.0, we would have had only two choices:
 
         1. Flatten `skills` and `projects.tasks` into two separate DataFrames, perform the transformation then join the
@@ -82,7 +82,7 @@ def transform_nested_fields():
         ... )
         >>> new_df.printSchema()
         root
-         |-- id: integer (nullable = true)
+         |-- employee_id: integer (nullable = true)
          |-- name: string (nullable = true)
          |-- age: long (nullable = true)
          |-- skills: array (nullable = true)
@@ -100,13 +100,13 @@ def transform_nested_fields():
          |    |    |    |    |-- status: string (nullable = true)
          |    |    |    |    |-- estimate: double (nullable = true)
         <BLANKLINE>
-        >>> new_df.select("id", "name", "age", "skills").show(truncate=False)
-        +---+----------+---+---------------------------------------------+
-        |id |name      |age|skills                                       |
-        +---+----------+---+---------------------------------------------+
-        |1  |John Smith|30 |[{Java, EXPERT}, {Python, INTERMEDIATE}]     |
-        |2  |Jane Doe  |25 |[{JavaScript, ADVANCED}, {PHP, INTERMEDIATE}]|
-        +---+----------+---+---------------------------------------------+
+        >>> new_df.select("employee_id", "name", "age", "skills").show(truncate=False)
+        +-----------+----------+---+---------------------------------------------+
+        |employee_id|name      |age|skills                                       |
+        +-----------+----------+---+---------------------------------------------+
+        |1          |John Smith|30 |[{Java, EXPERT}, {Python, INTERMEDIATE}]     |
+        |2          |Jane Doe  |25 |[{JavaScript, ADVANCED}, {PHP, INTERMEDIATE}]|
+        +-----------+----------+---+---------------------------------------------+
         <BLANKLINE>
 
         As we can see, the transformation worked: the schema is the same except `projects.tasks.estimate` which is now
@@ -114,15 +114,17 @@ def transform_nested_fields():
         looks quite complex, and that it's complexity would grow even more if we tried to perform more transformations
         at the same time.
 
-        ### With spark-frame.nested
+        ### With spark_frame.nested
 
-        The module [spark-frame.nested]() proposes several methods to help us deal with nested data structure more easily.
-        First, let's use [spark-frame.nested.print_schema]() to get a flat version of the DataFrame's schema:
+        The module [spark_frame.nested](/reference/#spark_framenested) proposes several methods to help us deal
+        with nested data structure more easily.
+        First, let's use [spark_frame.nested.print_schema][spark_frame.nested_impl.print_schema.print_schema] to get
+        a flat version of the DataFrame's schema:
 
         >>> from spark_frame import nested
         >>> nested.print_schema(df)
         root
-         |-- id: integer (nullable = true)
+         |-- employee_id: integer (nullable = true)
          |-- name: string (nullable = true)
          |-- age: long (nullable = true)
          |-- skills!.name: string (nullable = true)
@@ -147,14 +149,14 @@ def transform_nested_fields():
         - Change the `skills.level` to uppercase
         - Cast the `projects.tasks.estimate` to double
 
-        Using the [spark-frame.nested.with_fields]() method, this can be done like this:
+        Using the [spark_frame.nested.with_fields]() method, this can be done like this:
         >>> new_df = df.transform(nested.with_fields, {
         ...     "skills!.level": lambda skill: f.upper(skill["level"]),
         ...     "projects!.tasks!.estimate": lambda task: task["estimate"].cast("DOUBLE")
         ... })
         >>> nested.print_schema(new_df)
         root
-         |-- id: integer (nullable = true)
+         |-- employee_id: integer (nullable = true)
          |-- name: string (nullable = true)
          |-- age: long (nullable = true)
          |-- skills!.name: string (nullable = true)
@@ -166,19 +168,20 @@ def transform_nested_fields():
          |-- projects!.tasks!.status: string (nullable = true)
          |-- projects!.tasks!.estimate: double (nullable = true)
         <BLANKLINE>
-        >>> new_df.select("id", "name", "age", "skills").show(truncate=False)
-        +---+----------+---+---------------------------------------------+
-        |id |name      |age|skills                                       |
-        +---+----------+---+---------------------------------------------+
-        |1  |John Smith|30 |[{Java, EXPERT}, {Python, INTERMEDIATE}]     |
-        |2  |Jane Doe  |25 |[{JavaScript, ADVANCED}, {PHP, INTERMEDIATE}]|
-        +---+----------+---+---------------------------------------------+
+        >>> new_df.select("employee_id", "name", "age", "skills").show(truncate=False)
+        +-----------+----------+---+---------------------------------------------+
+        |employee_id|name      |age|skills                                       |
+        +-----------+----------+---+---------------------------------------------+
+        |1          |John Smith|30 |[{Java, EXPERT}, {Python, INTERMEDIATE}]     |
+        |2          |Jane Doe  |25 |[{JavaScript, ADVANCED}, {PHP, INTERMEDIATE}]|
+        +-----------+----------+---+---------------------------------------------+
         <BLANKLINE>
 
         As we can see, we obtained the same result with a much simpler and cleaner code.
         Now let's explain what this code did:
 
-        The [spark-frame.nested.with_fields]() is similar to the [pyspark.sql.DataFrame.withColumns][] method, except
+        The [spark_frame.nested.with_fields][spark_frame.nested_impl.with_fields.with_fields] is similar to
+        the [pyspark.sql.DataFrame.withColumns][] method, except
         that it works on nested fields inside structs and arrays. We pass it a `Dict(field_name, transformation)`
         indicating the expression we want to apply for each field. The transformation must be a higher order function:
         a lambda expression or named function that takes a Column as argument and returns a Column. The column passed
@@ -188,6 +191,111 @@ def transform_nested_fields():
 
         !!! Info
             _The data for this example was generated by ChatGPT :-)_
+    """
+    # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
+
+
+def select_nested_fields():
+    """
+
+    Examples: In this example, we will see how to select and rename specific elements in a nested data structure
+
+        >>> from spark_frame.examples.working_with_nested_data import _get_sample_employee_data
+        >>> from pyspark.sql import functions as f
+        >>> from spark_frame import nested
+        >>> df = _get_sample_employee_data()
+        >>> nested.print_schema(df)
+        root
+         |-- employee_id: integer (nullable = true)
+         |-- name: string (nullable = true)
+         |-- age: long (nullable = true)
+         |-- skills!.name: string (nullable = true)
+         |-- skills!.level: string (nullable = true)
+         |-- projects!.name: string (nullable = true)
+         |-- projects!.client: string (nullable = true)
+         |-- projects!.tasks!.name: string (nullable = true)
+         |-- projects!.tasks!.description: string (nullable = true)
+         |-- projects!.tasks!.status: string (nullable = true)
+         |-- projects!.tasks!.estimate: long (nullable = true)
+        <BLANKLINE>
+        >>> df.show(truncate=False)  # noqa: E501
+        +-----------+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        |employee_id|name      |age|skills                                       |projects                                                                                                                                                                                                                          |
+        +-----------+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        |1          |John Smith|30 |[{Java, expert}, {Python, intermediate}]     |[{Project A, Acme Inc, [{Task 1, Implement feature X, completed, 8}, {Task 2, Fix bug Y, in progress, 5}]}, {Project B, Beta Corp, [{Task 3, Implement feature Z, pending, 13}, {Task 4, Improve performance, in progress, 3}]}]  |
+        |2          |Jane Doe  |25 |[{JavaScript, advanced}, {PHP, intermediate}]|[{Project C, Gamma Inc, [{Task 5, Implement feature W, completed, 20}, {Task 6, Fix bug V, in progress, 13}]}, {Project D, Delta Ltd, [{Task 7, Implement feature U, pending, 8}, {Task 8, Improve performance, in progress, 5}]}]|
+        +-----------+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        <BLANKLINE>
+
+        ### The task
+        Let's say we want to select only the following fields, while keeping the same overall structure:
+        - employee_id
+        - projects.name
+        - projects.tasks.name
+
+        ### Without spark_frame.nested
+        This forces us to do something quite complicated, using [pyspark.sql.functions.transform][]
+        >>> new_df = df.select(
+        ...     "employee_id",
+        ...     f.transform("projects", lambda project:
+        ...         f.struct(project["name"].alias("name"), f.transform(project["tasks"], lambda task:
+        ...             f.struct(task["name"].alias("name"))
+        ...         ).alias("tasks"))
+        ...     ).alias("projects")
+        ... )
+        >>> nested.print_schema(new_df)
+        root
+         |-- employee_id: integer (nullable = true)
+         |-- projects!.name: string (nullable = true)
+         |-- projects!.tasks!.name: string (nullable = true)
+        <BLANKLINE>
+        >>> new_df.show(truncate=False)
+        +-----------+----------------------------------------------------------------------+
+        |employee_id|projects                                                              |
+        +-----------+----------------------------------------------------------------------+
+        |1          |[{Project A, [{Task 1}, {Task 2}]}, {Project B, [{Task 3}, {Task 4}]}]|
+        |2          |[{Project C, [{Task 5}, {Task 6}]}, {Project D, [{Task 7}, {Task 8}]}]|
+        +-----------+----------------------------------------------------------------------+
+        <BLANKLINE>
+
+        ### With spark_frame.nested
+        Using [spark_frame.nested.select][spark_frame.nested_impl.select_impl.select], we can easily obtain the exact
+        same result.
+        >>> new_df = df.transform(nested.select, {
+        ...     "employee_id": None,
+        ...     "projects!.name": None,
+        ...     "projects!.tasks!.name": None
+        ... })
+        >>> nested.print_schema(new_df)
+        root
+         |-- employee_id: integer (nullable = true)
+         |-- projects!.name: string (nullable = true)
+         |-- projects!.tasks!.name: string (nullable = true)
+        <BLANKLINE>
+        >>> new_df.show(truncate=False)
+        +-----------+----------------------------------------------------------------------+
+        |employee_id|projects                                                              |
+        +-----------+----------------------------------------------------------------------+
+        |1          |[{Project A, [{Task 1}, {Task 2}]}, {Project B, [{Task 3}, {Task 4}]}]|
+        |2          |[{Project C, [{Task 5}, {Task 6}]}, {Project D, [{Task 7}, {Task 8}]}]|
+        +-----------+----------------------------------------------------------------------+
+        <BLANKLINE>
+
+        Here, `None` is used to indicate that we don't want to perform any transformation on the column, be we could
+        also replace them with functions to perform transformations at the same time. For instance, we could pass
+        all the names to uppercase like this:
+        >>> df.transform(nested.select, {
+        ...     "employee_id": None,
+        ...     "projects!.name": lambda project: f.upper(project["name"]),
+        ...     "projects!.tasks!.name": lambda task: f.upper(task["name"])
+        ... }).show(truncate=False)
+        +-----------+----------------------------------------------------------------------+
+        |employee_id|projects                                                              |
+        +-----------+----------------------------------------------------------------------+
+        |1          |[{PROJECT A, [{TASK 1}, {TASK 2}]}, {PROJECT B, [{TASK 3}, {TASK 4}]}]|
+        |2          |[{PROJECT C, [{TASK 5}, {TASK 6}]}, {PROJECT D, [{TASK 7}, {TASK 8}]}]|
+        +-----------+----------------------------------------------------------------------+
+        <BLANKLINE>
     """
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 
@@ -203,7 +311,7 @@ def _get_sample_employee_data():
     {
       "employees": [
         {
-          "id": 1,
+          "employee_id": 1,
           "name": "John Smith",
           "age": 30,
           "skills": [
@@ -256,7 +364,7 @@ def _get_sample_employee_data():
           ]
         },
         {
-          "id": 2,
+          "employee_id": 2,
           "name": "Jane Doe",
           "age": 25,
           "skills": [
@@ -324,7 +432,7 @@ def _get_sample_employee_data():
               "type": "struct",
               "fields": [
                 {
-                  "name": "id",
+                  "name": "employee_id",
                   "type": "integer",
                   "nullable": true,
                   "metadata": {}
