@@ -312,7 +312,7 @@ def _get_sample_employee_data():
     }
     """
     raw_df = spark.createDataFrame([(json_str,)], "value STRING").repartition(1)
-    json_schema_bis = """
+    json_schema = """
     {
       "fields": [
         {
@@ -440,7 +440,7 @@ def _get_sample_employee_data():
       ]
     }
     """
-    schema = schema_from_json(json_schema_bis)
+    schema = schema_from_json(json_schema)
     df = raw_df.withColumn("value", f.from_json(f.col("value"), schema)).select("value.*")
     employee_df = df.select(f.explode("employees").alias("value")).select("value.*")
     return employee_df
