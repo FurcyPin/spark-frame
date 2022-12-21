@@ -1,26 +1,3 @@
-from pyspark.sql import SparkSession
-
-
-def _get_sample_data():
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
-    df = spark.createDataFrame(
-        [
-            (
-                1,
-                '{"model_name": "bot_detector", "model_version": 3, "model_args": "some data"}',
-                '{"model_score": 0.94654, "model_parameters": "some data"}',
-            ),
-            (
-                2,
-                '{"model_name": "cat_finder", "model_version": 3, "model_args": "some data"}',
-                '{"model_score": 0.4234, "model_parameters": "some data"}',
-            ),
-        ],
-        "call_id INT, raw_input STRING, raw_output STRING",
-    ).repartition(1)
-    return df
-
-
 def extracting_json_values():
     """Sometimes, a column in a data source contains raw json strings, and you want to extract this value before
     starting to understand it.
@@ -134,3 +111,25 @@ def extracting_json_values():
         sort the json field by names.
     """
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
+
+
+def _get_sample_data():
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    df = spark.createDataFrame(
+        [
+            (
+                1,
+                '{"model_name": "bot_detector", "model_version": 3, "model_args": "some data"}',
+                '{"model_score": 0.94654, "model_parameters": "some data"}',
+            ),
+            (
+                2,
+                '{"model_name": "cat_finder", "model_version": 3, "model_args": "some data"}',
+                '{"model_score": 0.4234, "model_parameters": "some data"}',
+            ),
+        ],
+        "call_id INT, raw_input STRING, raw_output STRING",
+    ).repartition(1)
+    return df
