@@ -1,5 +1,5 @@
-
 ## Transforming nested fields
+
 ::: spark_frame.examples.working_with_nested_data.transform_nested_fields
     options:
         show_root_toc_entry: false
@@ -8,15 +8,21 @@
 
 **Methods used in this example**
 
-??? abstract "flatten"
-    ::: spark_frame.transformations_impl.flatten.flatten
+??? abstract "nested.print_schema"
+    ::: spark_frame.nested_impl.print_schema.print_schema
         options:
             show_root_heading: false
             show_root_toc_entry: false
 
-??? abstract "unflatten"
-    ::: spark_frame.transformations_impl.unflatten.unflatten
+??? abstract "nested.with_field"
+    ::: spark_frame.nested_impl.with_fields.with_fields
         options:
             show_root_heading: false
             show_root_toc_entry: false
+
+
+## Aggregating nested fields
+
+
+## Advanced transformations with nested fields
 

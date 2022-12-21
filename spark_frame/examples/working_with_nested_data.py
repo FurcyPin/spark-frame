@@ -1,143 +1,446 @@
-from pyspark.sql import SparkSession
-
-from spark_frame.transformations import parse_json_columns
-
-
-def _get_sample_pokemon_data():
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
-    json_str = """
-        {
-            "id": 1,
-            "name": {
-              "english": "Bulbasaur",
-              "french": "Bulbizarre"
-            },
-            "types": [
-              "Grass",
-              "Poison"
-            ],
-            "base_stats": {
-              "HP": 45,
-              "Attack": 49,
-              "Defense": 49,
-              "Sp Attack": 65,
-              "Sp Defense": 65,
-              "Speed": 45
-            }
-          }
-    """.replace(
-        "\n", ""
-    )
-    df = spark.createDataFrame([(json_str,)], "value STRING").repartition(1)
-    df = parse_json_columns(df, "value").select("value.*")
-    return df
-
-
 def transform_nested_fields():
     """
-    This example demonstrates how the [flatten](/reference/#spark_frame.transformations_impl.flatten.flatten) and
-    unflatten [unflatten](/reference/#spark_frame.transformations_impl.unflatten.unflatten) methods can be used to
-    make data cleaning pipeline easier with PySpark.
 
-    Examples: Let's take a sample DataFrame with our favorite example: Pokemons!
+    Examples: Let's take a sample DataFrame with a deeply nested schema
 
-        >>> from spark_frame.examples.working_with_nested_data import _get_sample_pokemon_data
-        >>> df = _get_sample_pokemon_data()
+        >>> from spark_frame.examples.working_with_nested_data import _get_sample_employee_data
+        >>> from pyspark.sql import functions as f
+        >>> df = _get_sample_employee_data()
         >>> df.printSchema()
         root
-         |-- base_stats: struct (nullable = true)
-         |    |-- Attack: long (nullable = true)
-         |    |-- Defense: long (nullable = true)
-         |    |-- HP: long (nullable = true)
-         |    |-- Sp Attack: long (nullable = true)
-         |    |-- Sp Defense: long (nullable = true)
-         |    |-- Speed: long (nullable = true)
-         |-- id: long (nullable = true)
-         |-- name: struct (nullable = true)
-         |    |-- english: string (nullable = true)
-         |    |-- french: string (nullable = true)
-         |-- types: array (nullable = true)
-         |    |-- element: string (containsNull = true)
+         |-- id: integer (nullable = true)
+         |-- name: string (nullable = true)
+         |-- age: long (nullable = true)
+         |-- skills: array (nullable = true)
+         |    |-- element: struct (containsNull = true)
+         |    |    |-- name: string (nullable = true)
+         |    |    |-- level: string (nullable = true)
+         |-- projects: array (nullable = true)
+         |    |-- element: struct (containsNull = true)
+         |    |    |-- name: string (nullable = true)
+         |    |    |-- client: string (nullable = true)
+         |    |    |-- tasks: array (nullable = true)
+         |    |    |    |-- element: struct (containsNull = true)
+         |    |    |    |    |-- name: string (nullable = true)
+         |    |    |    |    |-- description: string (nullable = true)
+         |    |    |    |    |-- status: string (nullable = true)
+         |    |    |    |    |-- estimate: long (nullable = true)
         <BLANKLINE>
-        >>> df.show(vertical=True, truncate=False)  # doctest: +NORMALIZE_WHITESPACE
-        -RECORD 0------------------------------
-         base_stats | {49, 49, 45, 65, 65, 45}
-         id         | 1
-         name       | {Bulbasaur, Bulbizarre}
-         types      | [Grass, Poison]
+        >>> df.show(truncate=False)  # noqa: E501
+        +---+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        |id |name      |age|skills                                       |projects                                                                                                                                                                                                                          |
+        +---+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        |1  |John Smith|30 |[{Java, expert}, {Python, intermediate}]     |[{Project A, Acme Inc, [{Task 1, Implement feature X, completed, 8}, {Task 2, Fix bug Y, in progress, 5}]}, {Project B, Beta Corp, [{Task 3, Implement feature Z, pending, 13}, {Task 4, Improve performance, in progress, 3}]}]  |
+        |2  |Jane Doe  |25 |[{JavaScript, advanced}, {PHP, intermediate}]|[{Project C, Gamma Inc, [{Task 5, Implement feature W, completed, 20}, {Task 6, Fix bug V, in progress, 13}]}, {Project D, Delta Ltd, [{Task 7, Implement feature U, pending, 8}, {Task 8, Improve performance, in progress, 5}]}]|
+        +---+----------+---+---------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
         <BLANKLINE>
 
-        Let's say we want to add a new enrich the "base_stats" struct with a new field named "Total".
+        As we can see, the schema has two top-level columns of type ARRAY (`skills` and `projects`),
+        and the `projects` array contains a second level of repetition `projects.tasks`.
+
+        Manipulating this DataFrame with Spark can quickly become really painful, and it is still quite simple
+        compare to what engineers may encounter while working with entreprise-grade datasets.
+
+        ### The task
+        Let's say we want to enrich this DataFrame by performing the following changes:
+        - Change the `skills.level` to uppercase
+        - Cast the `projects.tasks.estimate` to double
 
         ### Without spark-frame
-        Of course, we could write something in DataFrame or SQL like this:
+        Prior to Spark 3.0, we would have had only two choices:
 
-        >>> df.createOrReplaceTempView("df")
-        >>> new_df = df.sparkSession.sql('''
-        ... SELECT
-        ...   STRUCT(
-        ...     base_stats.*,
-        ...     base_stats.Attack + base_stats.Defense + base_stats.HP +
-        ...     base_stats.`Sp Attack` + base_stats.`Sp Defense` + base_stats.Speed as Total
-        ...   ) as base_stats,
-        ...   id,
-        ...   name,
-        ...   types
-        ... FROM df
-        ... ''').show(vertical=True, truncate=False)  # doctest: +NORMALIZE_WHITESPACE
-        -RECORD 0-----------------------------------
-         base_stats | {49, 49, 45, 65, 65, 45, 318}
-         id         | 1
-         name       | {Bulbasaur, Bulbizarre}
-         types      | [Grass, Poison]
-        <BLANKLINE>
+        1. Flatten `skills` and `projects.tasks` into two separate DataFrames, perform the transformation then join the
+           two DataFrames back together.
+        2. Write a custom Python UDF to perform the changes.
 
-        It works, but it is a little cumbersome. Imagine how ugly the query would look like with a much bigger table,
-        with hundreds of columns with three levels of nesting or more...
+        Option 1. is not a good solution, as it would be quite costly, and require several shuffle operations.
 
-        ### With spark-frame
-        Instead, we can use the [flatten](/reference/#spark_frame.transformations_impl.flatten.flatten) and
-        unflatten [unflatten](/reference/#spark_frame.transformations_impl.unflatten.unflatten) method to reduce
-        boilerplate significantly.
+        Option 2. is not great either, as the Python UDF would be slow and not very reusable. Had we been using Java
+        or Scala, this might have been a better option already, as we would not incure the performance costs associated
+        with Python UDFs, but this would still have required a lot of work to code the whole Employee data structure
+        in Java/Scala before being able to manipulate it.
 
-        >>> from spark_frame.transformations import flatten, unflatten
-        >>> from pyspark.sql import functions as f
-        >>> flat_df = flatten(df)
-        >>> flat_df = flat_df.withColumn("base_stats.Total",
-        ...     f.col("`base_stats.Attack`") + f.col("`base_stats.Defense`") + f.col("`base_stats.HP`") +
-        ...     f.col("`base_stats.Sp Attack`") + f.col("`base_stats.Sp Defense`") + f.col("`base_stats.Speed`")
+        Since Spark 3.1.0, a third option is available, which consists in using [pyspark.sql.functions.transform][]
+        and [pyspark.sql.Column.withField][] to achieve our goal.
+
+        However, the code that we need to write is quite complex:
+
+        >>> new_df = df.withColumn(
+        ...     "skills",
+        ...     f.transform(f.col("skills"), lambda skill: skill.withField("level", f.upper(skill["level"])))
+        ... ).withColumn(
+        ...     "projects",
+        ...     f.transform(
+        ...         f.col("projects"),
+        ...         lambda project: project.withField(
+        ...             "tasks",
+        ...             f.transform(
+        ...                 project["tasks"],
+        ...                 lambda task: task.withField("estimate", task["estimate"].cast("DOUBLE"))),
+        ...         ),
+        ...     ),
         ... )
-        >>> new_df = unflatten(flat_df)
-        >>> new_df.show(vertical=True, truncate=False)  # doctest: +NORMALIZE_WHITESPACE
-        -RECORD 0-----------------------------------
-         base_stats | {49, 49, 45, 65, 65, 45, 318}
-         id         | 1
-         name       | {Bulbasaur, Bulbizarre}
-         types      | [Grass, Poison]
+        >>> new_df.printSchema()
+        root
+         |-- id: integer (nullable = true)
+         |-- name: string (nullable = true)
+         |-- age: long (nullable = true)
+         |-- skills: array (nullable = true)
+         |    |-- element: struct (containsNull = true)
+         |    |    |-- name: string (nullable = true)
+         |    |    |-- level: string (nullable = true)
+         |-- projects: array (nullable = true)
+         |    |-- element: struct (containsNull = true)
+         |    |    |-- name: string (nullable = true)
+         |    |    |-- client: string (nullable = true)
+         |    |    |-- tasks: array (nullable = true)
+         |    |    |    |-- element: struct (containsNull = true)
+         |    |    |    |    |-- name: string (nullable = true)
+         |    |    |    |    |-- description: string (nullable = true)
+         |    |    |    |    |-- status: string (nullable = true)
+         |    |    |    |    |-- estimate: double (nullable = true)
+        <BLANKLINE>
+        >>> new_df.select("id", "name", "age", "skills").show(truncate=False)
+        +---+----------+---+---------------------------------------------+
+        |id |name      |age|skills                                       |
+        +---+----------+---+---------------------------------------------+
+        |1  |John Smith|30 |[{Java, EXPERT}, {Python, INTERMEDIATE}]     |
+        |2  |Jane Doe  |25 |[{JavaScript, ADVANCED}, {PHP, INTERMEDIATE}]|
+        +---+----------+---+---------------------------------------------+
         <BLANKLINE>
 
-        This yield the same result, and we did not have to mention the names of the columns we did not care about.
-        This makes pipelines much easier to maintain. If a new column is added to your source table, you don't need
-        to update this data enrichment code to propagate it automatically. On the other hand, with the first SQL
-        solution, you would have had to specifically add this new field to the query to propagate it.
+        As we can see, the transformation worked: the schema is the same except `projects.tasks.estimate` which is now
+        a `double`, and `skills.name` is now in uppercase. But hopefully we can agree that the code to achieve this
+        looks quite complex, and that it's complexity would grow even more if we tried to perform more transformations
+        at the same time.
 
-        We can even use [DataFrame.transform][pyspark.sql.DataFrame.transform] to inline everything!
+        ### With spark-frame.nested
 
-        >>> df.transform(flatten).withColumn(
-        ...     "base_stats.Total",
-        ...     f.col("`base_stats.Attack`") + f.col("`base_stats.Defense`") + f.col("`base_stats.HP`") +
-        ...     f.col("`base_stats.Sp Attack`") + f.col("`base_stats.Sp Defense`") + f.col("`base_stats.Speed`")
-        ...   ).transform(unflatten).show(vertical=True, truncate=False)  # doctest: +NORMALIZE_WHITESPACE
-        -RECORD 0-----------------------------------
-         base_stats | {49, 49, 45, 65, 65, 45, 318}
-         id         | 1
-         name       | {Bulbasaur, Bulbizarre}
-         types      | [Grass, Poison]
+        The module [spark-frame.nested]() proposes several methods to help us deal with nested data structure more easily.
+        First, let's use [spark-frame.nested.print_schema]() to get a flat version of the DataFrame's schema:
+
+        >>> from spark_frame import nested
+        >>> nested.print_schema(df)
+        root
+         |-- id: integer (nullable = true)
+         |-- name: string (nullable = true)
+         |-- age: long (nullable = true)
+         |-- skills!.name: string (nullable = true)
+         |-- skills!.level: string (nullable = true)
+         |-- projects!.name: string (nullable = true)
+         |-- projects!.client: string (nullable = true)
+         |-- projects!.tasks!.name: string (nullable = true)
+         |-- projects!.tasks!.description: string (nullable = true)
+         |-- projects!.tasks!.status: string (nullable = true)
+         |-- projects!.tasks!.estimate: long (nullable = true)
         <BLANKLINE>
+
+        As we can see, this is the same schema as before, but instead of being displayed as a tree, it is displayed
+        as a flat list where each field is represented with its full name. We can also see that fields of type ARRAY
+        can be easily identified thanks to the exclamation marks (`!`) added after their names.
+        Once you get used to it, this flat representation is more compact and easier to read than the
+        tree representation, while conveying the same amount of information.
+
+        This notation will also help us performing the target transformations more easily.
+        As a reminder, we want to:
+
+        - Change the `skills.level` to uppercase
+        - Cast the `projects.tasks.estimate` to double
+
+        Using the [spark-frame.nested.with_fields]() method, this can be done like this:
+        >>> new_df = df.transform(nested.with_fields, {
+        ...     "skills!.level": lambda skill: f.upper(skill["level"]),
+        ...     "projects!.tasks!.estimate": lambda task: task["estimate"].cast("DOUBLE")
+        ... })
+        >>> nested.print_schema(new_df)
+        root
+         |-- id: integer (nullable = true)
+         |-- name: string (nullable = true)
+         |-- age: long (nullable = true)
+         |-- skills!.name: string (nullable = true)
+         |-- skills!.level: string (nullable = true)
+         |-- projects!.name: string (nullable = true)
+         |-- projects!.client: string (nullable = true)
+         |-- projects!.tasks!.name: string (nullable = true)
+         |-- projects!.tasks!.description: string (nullable = true)
+         |-- projects!.tasks!.status: string (nullable = true)
+         |-- projects!.tasks!.estimate: double (nullable = true)
+        <BLANKLINE>
+        >>> new_df.select("id", "name", "age", "skills").show(truncate=False)
+        +---+----------+---+---------------------------------------------+
+        |id |name      |age|skills                                       |
+        +---+----------+---+---------------------------------------------+
+        |1  |John Smith|30 |[{Java, EXPERT}, {Python, INTERMEDIATE}]     |
+        |2  |Jane Doe  |25 |[{JavaScript, ADVANCED}, {PHP, INTERMEDIATE}]|
+        +---+----------+---+---------------------------------------------+
+        <BLANKLINE>
+
+        As we can see, we obtained the same result with a much simpler and cleaner code.
+        Now let's explain what this code did:
+
+        The [spark-frame.nested.with_fields]() is similar to the [pyspark.sql.DataFrame.withColumns][] method, except
+        that it works on nested fields inside structs and arrays. We pass it a `Dict(field_name, transformation)`
+        indicating the expression we want to apply for each field. The transformation must be a higher order function:
+        a lambda expression or named function that takes a Column as argument and returns a Column. The column passed
+        to that function will represent the struct parent of the target field. For instance, when we write
+        `"skills!.level": lambda skill: f.upper(skill["level"])`, the lambda function will be applied to each struct
+        element of the array `skills`.
 
         !!! Info
-            _This example uses data taken from
-            [https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json](
-            https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json).
+            _The data for this example was generated by ChatGPT :-)_
     """
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
+
+
+def _get_sample_employee_data():
+    from pyspark.sql import SparkSession
+    from pyspark.sql import functions as f
+
+    from spark_frame.schema_utils import schema_from_json
+
+    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    json_str = """
+    {
+      "employees": [
+        {
+          "id": 1,
+          "name": "John Smith",
+          "age": 30,
+          "skills": [
+            {
+              "name": "Java",
+              "level": "expert"
+            },
+            {
+              "name": "Python",
+              "level": "intermediate"
+            }
+          ],
+          "projects": [
+            {
+              "name": "Project A",
+              "client": "Acme Inc",
+              "tasks": [
+                {
+                  "name": "Task 1",
+                  "description": "Implement feature X",
+                  "status": "completed",
+                  "estimate": 8
+                },
+                {
+                  "name": "Task 2",
+                  "description": "Fix bug Y",
+                  "status": "in progress",
+                  "estimate": 5
+                }
+              ]
+            },
+            {
+              "name": "Project B",
+              "client": "Beta Corp",
+              "tasks": [
+                {
+                  "name": "Task 3",
+                  "description": "Implement feature Z",
+                  "status": "pending",
+                  "estimate": 13
+                },
+                {
+                  "name": "Task 4",
+                  "description": "Improve performance",
+                  "status": "in progress",
+                  "estimate": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Jane Doe",
+          "age": 25,
+          "skills": [
+            {
+              "name": "JavaScript",
+              "level": "advanced"
+            },
+            {
+              "name": "PHP",
+              "level": "intermediate"
+            }
+          ],
+          "projects": [
+            {
+              "name": "Project C",
+              "client": "Gamma Inc",
+              "tasks": [
+                {
+                  "name": "Task 5",
+                  "description": "Implement feature W",
+                  "status": "completed",
+                  "estimate": 20
+                },
+                {
+                  "name": "Task 6",
+                  "description": "Fix bug V",
+                  "status": "in progress",
+                  "estimate": 13
+                }
+              ]
+            },
+            {
+              "name": "Project D",
+              "client": "Delta Ltd",
+              "tasks": [
+                {
+                  "name": "Task 7",
+                  "description": "Implement feature U",
+                  "status": "pending",
+                  "estimate": 8
+                },
+                {
+                  "name": "Task 8",
+                  "description": "Improve performance",
+                  "status": "in progress",
+                  "estimate": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    """
+    raw_df = spark.createDataFrame([(json_str,)], "value STRING").repartition(1)
+    json_schema_bis = """
+    {
+      "fields": [
+        {
+          "name": "employees",
+          "type": {
+            "type": "array",
+            "containsNull": false,
+            "elementType": {
+              "type": "struct",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "nullable": true,
+                  "metadata": {}
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "nullable": true,
+                  "metadata": {}
+                },
+                {
+                  "name": "age",
+                  "type": "long",
+                  "nullable": true,
+                  "metadata": {}
+                },
+                {
+                  "name": "skills",
+                  "type": {
+                    "type": "array",
+                    "containsNull": false,
+                    "elementType": {
+                      "type": "struct",
+                      "fields": [
+                        {
+                          "name": "name",
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {}
+                        },
+                        {
+                          "name": "level",
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {}
+                        }
+                      ]
+                    }
+                  },
+                  "nullable": true,
+                  "metadata": {}
+                },
+                {
+                  "name": "projects",
+                  "type": {
+                    "type": "array",
+                    "containsNull": false,
+                    "elementType": {
+                      "type": "struct",
+                      "fields": [
+                        {
+                          "name": "name",
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {}
+                        },
+                        {
+                          "name": "client",
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {}
+                        },
+                        {
+                          "name": "tasks",
+                          "type": {
+                            "type": "array",
+                            "containsNull": false,
+                            "elementType": {
+                              "type": "struct",
+                              "fields": [
+                                {
+                                  "name": "name",
+                                  "type": "string",
+                                  "nullable": true,
+                                  "metadata": {}
+                                },
+                                {
+                                  "name": "description",
+                                  "type": "string",
+                                  "nullable": true,
+                                  "metadata": {}
+                                },
+                                {
+                                  "name": "status",
+                                  "type": "string",
+                                  "nullable": true,
+                                  "metadata": {}
+                                },
+                                {
+                                  "name": "estimate",
+                                  "type": "long",
+                                  "nullable": true,
+                                  "metadata": {}
+                                }
+                              ]
+                            }
+                          },
+                          "nullable": true,
+                          "metadata": {}
+                        }
+                      ]
+                    }
+                  },
+                  "nullable": true,
+                  "metadata": {}
+                }
+              ]
+            }
+          },
+          "nullable": true,
+          "metadata": {}
+        }
+      ]
+    }
+    """
+    schema = schema_from_json(json_schema_bis)
+    df = raw_df.withColumn("value", f.from_json(f.col("value"), schema)).select("value.*")
+    employee_df = df.select(f.explode("employees").alias("value")).select("value.*")
+    return employee_df
