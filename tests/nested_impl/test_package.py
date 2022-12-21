@@ -345,6 +345,36 @@ class TestResolveNestedFields:
         assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
         assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
 
+    def test_value_with_get_expr(self, spark: SparkSession):
+        """
+        GIVEN a DataFrame with a simple value
+        WHEN we use resolve_nested_columns on it with a lambda function that accesses the root level
+        THEN the transformation should work
+        """
+        df = spark.sql("SELECT 1 as a")
+        assert show_string(df) == strip_margin(
+            """
+            |+---+
+            ||  a|
+            |+---+
+            ||  1|
+            |+---+
+            |"""
+        )
+        named_transformations = {"a": PrintableFunction(lambda r: r["a"], lambda r: f'{r}["a"]')}
+        transformations = replace_named_functions_with_functions(named_transformations)
+        expected = strip_margin(
+            """
+            |+---+
+            ||  a|
+            |+---+
+            ||  1|
+            |+---+
+            |"""
+        )
+        assert show_string(df.select(*resolve_nested_fields(named_transformations, starting_level=df))) == expected
+        assert show_string(df.select(*resolve_nested_fields(transformations, starting_level=df))) == expected
+
     def test_struct(self, spark: SparkSession):
         """
         GIVEN a DataFrame with a struct

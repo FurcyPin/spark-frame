@@ -78,12 +78,13 @@ def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
         return fp.compose(f1, f2)
 
     do_continue = True
+    res_df = df
     while do_continue:
         schema_flat = flatten_schema(
-            df.schema, explode=True, struct_separator=STRUCT_SEPARATOR, repetition_marker=REPETITION_MARKER
+            res_df.schema, explode=True, struct_separator=STRUCT_SEPARATOR, repetition_marker=REPETITION_MARKER
         )
         schema_contains_map = any([isinstance(field.dataType, MapType) for field in schema_flat])
         do_continue = schema_contains_map
-        columns = {field.name: build_col(field) for field in schema_flat}
-        df = df.select(*resolve_nested_fields(columns))
-    return df
+        fields = {field.name: build_col(field) for field in schema_flat}
+        res_df = res_df.select(*resolve_nested_fields(fields, starting_level=res_df))
+    return res_df

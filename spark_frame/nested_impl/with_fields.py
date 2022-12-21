@@ -146,4 +146,4 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
     """
     default_columns = {field: None for field in nested.fields(df)}
     fields = {**default_columns, **fields}
-    return df.select(*resolve_nested_fields(fields))
+    return df.select(*resolve_nested_fields(fields, starting_level=df))

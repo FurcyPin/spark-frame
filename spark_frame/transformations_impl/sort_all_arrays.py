@@ -119,4 +119,4 @@ def sort_all_arrays(df: DataFrame) -> DataFrame:
         return higher_order.recursive_struct_get(parent_structs)
 
     columns = {field.name: build_col(field.name) for field in schema_flat}
-    return df.select(*resolve_nested_fields(columns, sort=True))
+    return df.select(resolve_nested_fields(columns, sort=True, starting_level=df))
