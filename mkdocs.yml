@@ -43,5 +43,6 @@ nav:
     - Intro: "use_cases/intro.md"
     - Working with nested data: "use_cases/working_with_nested_data.md"
     - Working with json: "use_cases/working_with_json.md"
+    - Using flatten/unflatten: "use_cases/flatten_unflatten.md"
   - Reference: reference.md
 
