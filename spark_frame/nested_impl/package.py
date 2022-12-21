@@ -251,11 +251,13 @@ def resolve_nested_fields(
 ) -> List[Column]:
     """Builds a list of column expressions to manipulate structs and repeated records
 
-    The syntax for column names works as follows:
+    The syntax for field names works as follows:
+
     - "." is the separator for struct elements
     - "!" must be appended at the end of fields that are repeated
 
     The following types of transformation are allowed:
+
     - String and column expressions can be used on any non-repeated field, even nested ones.
     - When working on repeated fields, transformations must be expressed as higher order functions
       (e.g. lambda expressions)
