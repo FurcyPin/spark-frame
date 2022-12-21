@@ -457,6 +457,50 @@ class TestResolveNestedFields:
         assert schema_string(actual) == expected_schema
         assert show_string(actual) == expected
 
+    def test_array_with_none(self, spark: SparkSession):
+        """
+        GIVEN a DataFrame with an array
+        WHEN we use resolve_nested_columns on it
+        THEN the transformation should work
+        """
+        df = spark.sql("SELECT ARRAY(2, 3) as e")
+        assert schema_string(df) == strip_margin(
+            """
+            |root
+            | |-- e: array (nullable = false)
+            | |    |-- element: integer (containsNull = false)
+            |"""
+        )
+        assert show_string(df) == strip_margin(
+            """
+            |+------+
+            ||     e|
+            |+------+
+            ||[2, 3]|
+            |+------+
+            |"""
+        )
+        named_transformations = {"e!": None}
+        expected_schema = strip_margin(
+            """
+            |root
+            | |-- e: array (nullable = false)
+            | |    |-- element: integer (containsNull = false)
+            |"""
+        )
+        expected = strip_margin(
+            """
+            |+------+
+            ||     e|
+            |+------+
+            ||[2, 3]|
+            |+------+
+            |"""
+        )
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        assert schema_string(actual_named) == expected_schema
+        assert show_string(actual_named) == expected
+
     def test_array_struct(self, spark: SparkSession):
         """
         GIVEN a DataFrame with an array<struct>
