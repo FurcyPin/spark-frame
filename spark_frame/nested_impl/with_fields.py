@@ -15,11 +15,13 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
     This method is similar to the [DataFrame.withColumn][pyspark.sql.DataFrame.withColumn] method, with the extra
     capability of working on nested and repeated fields (structs and arrays).
 
-    The syntax for column names works as follows:
+    The syntax for field names works as follows:
+
     - "." is the separator for struct elements
     - "!" must be appended at the end of fields that are repeated
 
     The following types of transformation are allowed:
+
     - String and column expressions can be used on any non-repeated field, even nested ones.
     - When working on repeated fields, transformations must be expressed as higher order functions
       (e.g. lambda expressions)
@@ -61,7 +63,7 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
         or a Column expression.
         >>> new_df = nested.with_fields(df, {
         ...     "s.id": "id",                                 # column name (string)
-        ...     "s.c": f.col("s.a") + f.col("s.b"),           # Column expression
+        ...     "s.c": f.col("s.a") + f.col("s.b")            # Column expression
         ... })
         >>> new_df.printSchema()
         root
@@ -100,7 +102,8 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
         +---+--------------------+
         <BLANKLINE>
 
-        Transformations on repeated fields may be expressed as a higher-order function (lambda expression or function).
+        Transformations on repeated fields must be expressed as
+        higher-order functions (lambda expressions or named functions).
         The value passed to this function will correspond to the last repeated element.
         >>> new_df = df.transform(nested.with_fields, {
         ...     "s!.b.d": lambda s: s["a"] + s["b"]["c"]}
