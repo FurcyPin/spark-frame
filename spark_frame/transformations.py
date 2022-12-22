@@ -1,4 +1,4 @@
-from spark_frame.transformations_impl import convert_all_maps_to_arrays
+from spark_frame.transformations_impl.convert_all_maps_to_arrays import convert_all_maps_to_arrays
 from spark_frame.transformations_impl.flatten import flatten
 from spark_frame.transformations_impl.harmonize_dataframes import harmonize_dataframes
 from spark_frame.transformations_impl.parse_json_columns import parse_json_columns
