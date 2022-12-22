@@ -63,6 +63,9 @@ that _cannot_ be implemented with one single SQL query.
 ### ::: spark_frame.transformations_impl.sort_all_arrays.sort_all_arrays
 ---
 
+### ::: spark_frame.transformations_impl.transform_all_fields.transform_all_fields
+---
+
 ### ::: spark_frame.transformations_impl.unflatten.unflatten
 ---
 
