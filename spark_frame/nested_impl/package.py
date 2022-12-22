@@ -1,15 +1,5 @@
 from collections import OrderedDict
-from typing import (
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Callable, Dict, Generator, List, Mapping, Optional, Tuple, Union, cast
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
@@ -18,13 +8,7 @@ from pyspark.sql.types import ArrayType, DataType, MapType, StructType
 from spark_frame import fp
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.fp import PrintableFunction, higher_order
-from spark_frame.utils import (
-    assert_true,
-    group_by_key,
-    quote,
-    quote_columns,
-    str_to_col,
-)
+from spark_frame.utils import assert_true, group_by_key, quote, quote_columns, str_to_col
 
 ColumnTransformation = Callable[[Optional[Column]], Column]
 AnyKindOfTransformation = Union[str, Column, ColumnTransformation, "PrintableFunction", None]
