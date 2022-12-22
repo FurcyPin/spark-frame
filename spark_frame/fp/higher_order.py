@@ -1,10 +1,11 @@
 from typing import Callable, List, Optional, Union
 
-from pyspark.sql import Column
+from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 
 from spark_frame import fp
 from spark_frame.fp.printable_function import PrintableFunction
+from spark_frame.utils import quote
 
 
 def __get_func(function: Union[Callable, PrintableFunction]) -> Callable:
@@ -43,7 +44,10 @@ def struct_get(key: str) -> PrintableFunction:
         if s is None:
             return f.col(field)
         else:
-            return s[field]
+            if ("." in field or "!" in field) and isinstance(s, DataFrame):
+                return s[quote(field)]
+            else:
+                return s[field]
 
     def _safe_struct_get_alias(s: Optional[str], field: str) -> str:
         if s is None:
@@ -72,10 +76,32 @@ def recursive_struct_get(keys: List[str]) -> PrintableFunction:
 
 
 def transform(transformation: Union[Callable, PrintableFunction]) -> PrintableFunction:
-    """Return a PrintableFunction version of the `pyspark.sql.functions.transform` method, which applies the given
-    transformation to any array column.
+    """Return a PrintableFunction version of the `pyspark.sql.functions.transform` method,
+    which applies the given transformation to any array column.
     """
     return PrintableFunction(
         lambda x: f.transform(x, __get_func(transformation)),
         lambda x: f"f.transform({x}, {transformation})",
+    )
+
+
+def transform_keys(transformation: Union[Callable, PrintableFunction]) -> PrintableFunction:
+    """Return a PrintableFunction version of the `pyspark.sql.functions.transform_keys` method,
+    which applies the given transformation to any array column.
+    """
+    func = __get_func(transformation)
+    return PrintableFunction(
+        lambda x: f.transform_keys(x, lambda k, v: func(k)),
+        lambda x: f"f.transform_keys({x}, {transformation})",
+    )
+
+
+def transform_values(transformation: Union[Callable, PrintableFunction]) -> PrintableFunction:
+    """Return a PrintableFunction version of the `pyspark.sql.functions.transform_values` method,
+    which applies the given transformation to any array column.
+    """
+    func = __get_func(transformation)
+    return PrintableFunction(
+        lambda x: f.transform_values(x, lambda k, v: func(v)),
+        lambda x: f"f.transform_values({x}, {transformation})",
     )

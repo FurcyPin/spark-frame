@@ -233,22 +233,6 @@ class TestBuildTransformationFromTree:
             """x: f.struct([x["a"].cast("DOUBLE").alias('a')])).alias('s2')])).alias('s1')]"""
         )
 
-    def test_array_struct_in_array_struct_with_sort(self, spark: SparkSession):
-        """
-        GIVEN a transformation on an array<struct> inside an array<struct>
-        WHEN we print the PrintableFunction generated in resolve_nested_columns using sort = True
-        THEN the result should be human-readable
-        """
-        named_transformations = {
-            "s1!.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
-        }
-        named_actual = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations), sort=True)
-        assert str(named_actual) == (
-            "lambda x: [f.sort_array(f.transform(x['s1'], lambda x: "
-            "f.struct([f.sort_array(f.transform(x['s2'], lambda x: "
-            """f.struct([x["a"].cast("DOUBLE").alias('a')]))).alias('s2')]))).alias('s1')]"""
-        )
-
 
 class TestResolveNestedFields:
     def test_value_with_string_expr(self, spark: SparkSession):
@@ -1014,69 +998,6 @@ class TestResolveNestedFields:
         assert show_string(actual_named) == expected
         assert schema_string(actual) == expected_schema
         assert show_string(actual) == expected
-
-    def test_array_struct_in_array_struct_with_sort(self, spark: SparkSession):
-        """
-        GIVEN a DataFrame with an array<struct> inside another array<struct>
-        WHEN we use resolve_nested_columns on it with the sort option activated
-        THEN the transformation should work
-        """
-        df = spark.sql(
-            """
-                SELECT ARRAY(
-                    STRUCT(ARRAY(STRUCT(4 as a), STRUCT(3 as a)) as s2),
-                    STRUCT(ARRAY(STRUCT(5 as a), STRUCT(2 as a)) as s2)
-                ) as s1
-            """
-        )
-        assert schema_string(df) == strip_margin(
-            """
-            |root
-            | |-- s1: array (nullable = false)
-            | |    |-- element: struct (containsNull = false)
-            | |    |    |-- s2: array (nullable = false)
-            | |    |    |    |-- element: struct (containsNull = false)
-            | |    |    |    |    |-- a: integer (nullable = false)
-            |"""
-        )
-        assert show_string(df, truncate=False) == strip_margin(
-            """
-            |+----------------------------+
-            ||s1                          |
-            |+----------------------------+
-            ||[{[{4}, {3}]}, {[{5}, {2}]}]|
-            |+----------------------------+
-            |"""
-        )
-        named_transformations = {
-            "s1!.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
-        }
-        transformations = replace_named_functions_with_functions(named_transformations)
-        expected_schema = strip_margin(
-            """
-            |root
-            | |-- s1: array (nullable = false)
-            | |    |-- element: struct (containsNull = false)
-            | |    |    |-- s2: array (nullable = false)
-            | |    |    |    |-- element: struct (containsNull = false)
-            | |    |    |    |    |-- a: double (nullable = false)
-            |"""
-        )
-        expected = strip_margin(
-            """
-            |+------------------------------------+
-            ||s1                                  |
-            |+------------------------------------+
-            ||[{[{2.0}, {5.0}]}, {[{3.0}, {4.0}]}]|
-            |+------------------------------------+
-            |"""
-        )
-        actual_named = df.select(*resolve_nested_fields(named_transformations, sort=True))
-        actual = df.select(*resolve_nested_fields(transformations, sort=True))
-        assert schema_string(actual_named) == expected_schema
-        assert show_string(actual_named, truncate=False) == expected
-        assert schema_string(actual) == expected_schema
-        assert show_string(actual, truncate=False) == expected
 
     def test_struct_in_array_struct_in_array_struct(self, spark: SparkSession):
         """
