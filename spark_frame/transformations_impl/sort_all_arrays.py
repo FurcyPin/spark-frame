@@ -1,20 +1,17 @@
-from pyspark.sql import DataFrame
+from pyspark.sql import Column, DataFrame
+from pyspark.sql import functions as f
+from pyspark.sql.types import ArrayType, DataType
 
-from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
-from spark_frame.data_type_utils import flatten_schema
-from spark_frame.fp import higher_order
-from spark_frame.fp.printable_function import PrintableFunction
-from spark_frame.nested_impl.package import _deepest_granularity, resolve_nested_fields
+from spark_frame.transformations_impl.transform_all_fields import transform_all_fields
 
 
 def sort_all_arrays(df: DataFrame) -> DataFrame:
     """Given a DataFrame, sort all fields of type `ARRAY` in a canonical order, making them comparable.
     This also applies to nested fields, even those inside other arrays.
 
-    !!! warning "Limitations"
+    !!! warning "Limitation"
         - Arrays containing sub-fields of type Map cannot be sorted, as the Map type is not comparable.
-        - Fields located inside Maps will not be affected.
-        - A possible workaround to these limitations is to use the transformation [`convert_all_maps_to_arrays`](
+        - A possible workaround to this limitation is to use the transformation [`convert_all_maps_to_arrays`](
         /reference/#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays)
 
     Args:
@@ -107,16 +104,10 @@ def sort_all_arrays(df: DataFrame) -> DataFrame:
         |[[[1, 2], [2, 2]], [[1, 4], [2, 3]]]|
         +------------------------------------+
         <BLANKLINE>
-
-
     """
-    schema_flat = flatten_schema(
-        df.schema, explode=True, struct_separator=STRUCT_SEPARATOR, repetition_marker=REPETITION_MARKER
-    )
 
-    def build_col(col_name: str) -> PrintableFunction:
-        parent_structs = _deepest_granularity(col_name)
-        return higher_order.recursive_struct_get(parent_structs)
+    def sort_array(col: Column, data_type: DataType):
+        if isinstance(data_type, ArrayType):
+            return f.sort_array(col)
 
-    columns = {field.name: build_col(field.name) for field in schema_flat}
-    return df.select(resolve_nested_fields(columns, sort=True, starting_level=df))
+    return transform_all_fields(df, sort_array)
