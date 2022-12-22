@@ -34,6 +34,7 @@ pip install spark-frame
 
 # v0.0.4
 
+- New transformation: `spark_frame.transformations.transform_all_field_names`.
 - New transformation: `spark_frame.transformations.transform_all_fields`.
 
 
