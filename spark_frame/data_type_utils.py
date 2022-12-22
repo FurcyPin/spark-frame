@@ -1,8 +1,8 @@
-from typing import Dict, List, Optional, Tuple, cast
+from typing import Dict, Generator, List, Optional, Tuple, cast
 
-from pyspark.sql.types import ArrayType, DataType, StructField, StructType
+from pyspark.sql.types import ArrayType, DataType, MapType, StructField, StructType
 
-from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
+from spark_frame.conf import MAP_KEY, MAP_VALUE, REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.utils import assert_true, get_instantiated_spark_session
 
 
@@ -141,16 +141,24 @@ def flatten_schema(
     explode: bool,
     struct_separator: str = STRUCT_SEPARATOR,
     repetition_marker: str = REPETITION_MARKER,
+    map_key: str = MAP_KEY,
+    map_value: str = MAP_VALUE,
 ) -> StructType:
     """Transform a schema into a new schema where all structs have been flattened.
     The field names are kept, with a '.' separator for struct fields.
-    If `explode` option is set, arrays are exploded with a '!' separator.
+    If `explode` option is set, arrays and maps are exploded as well.
+
+    - Array names are appended with a '!' repetition marker
+    - Map names are appended with '%key' for their keys and '%value' for their values
+
 
     Args:
         schema: A Spark [DataFrame][pyspark.sql.DataFrame]'s schema
-        explode: If set, arrays are exploded and a '!' separator is appended to their name.
-        struct_separator: Separator used to delimit structs
-        repetition_marker: Separator used to delimit arrays
+        explode: If set, arrays and maps are exploded.
+        struct_separator: String used to separate structs from their field
+        repetition_marker: String used to mark repeated fields
+        map_key: String used to represent map keys
+        map_value: String used to represent map values
 
     Returns:
         A flattened schema
@@ -158,39 +166,48 @@ def flatten_schema(
     Examples:
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> df = spark.createDataFrame(
-        ...     [
-        ...         (1, {"a": 1, "b": [{"c": 2, "d": 3}], "e": [4, 5]}),
-        ...         (2, None),
-        ...     ],
-        ...     "id INT, s STRUCT<a:INT, b:ARRAY<STRUCT<c:INT, d:INT, e:ARRAY<INT>>>>"
-        ... )
+        >>> df = spark.sql('SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d, ARRAY(5) as e)) as b) as s')
         >>> df.schema.simpleString()
         'struct<id:int,s:struct<a:int,b:array<struct<c:int,d:int,e:array<int>>>>>'
         >>> flatten_schema(df.schema, explode=True).simpleString()
         'struct<id:int,s.a:int,s.b!.c:int,s.b!.d:int,s.b!.e!:int>'
         >>> flatten_schema(df.schema, explode=False).simpleString()
         'struct<id:int,s.a:int,s.b:array<struct<c:int,d:int,e:array<int>>>>'
+
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> df = spark.sql('SELECT 1 as id, MAP(STRUCT(2 as a), STRUCT(3 as b)) as m')
+        >>> df.schema.simpleString()
+        'struct<id:int,m:map<struct<a:int>,struct<b:int>>>'
+        >>> flatten_schema(df.schema, explode=True).simpleString()
+        'struct<id:int,m%key.a:int,m%value.b:int>'
+        >>> flatten_schema(df.schema, explode=False).simpleString()
+        'struct<id:int,m:map<struct<a:int>,struct<b:int>>>'
     """
 
     def flatten_data_type(
         data_type: DataType, is_nullable: bool, metadata: Dict[str, str], prefix: str
-    ) -> List[StructField]:
+    ) -> Generator[StructField, None, None]:
         if isinstance(data_type, StructType):
-            return flatten_struct_type(data_type, is_nullable, prefix + struct_separator)
+            yield from flatten_struct_type(data_type, is_nullable, prefix + struct_separator)
         elif isinstance(data_type, ArrayType) and explode:
-            return flatten_data_type(
+            yield from flatten_data_type(
                 data_type.elementType, is_nullable or data_type.containsNull, metadata, prefix + repetition_marker
             )
+        elif isinstance(data_type, MapType) and explode:
+            yield from flatten_data_type(data_type.keyType, is_nullable, metadata, prefix + map_key)
+            yield from flatten_data_type(
+                data_type.valueType, is_nullable or data_type.valueContainsNull, metadata, prefix + map_value
+            )
         else:
-            return [StructField(prefix, data_type, is_nullable, metadata)]
+            yield StructField(prefix, data_type, is_nullable, metadata)
 
-    def flatten_struct_type(schema: StructType, previous_nullable: bool = False, prefix: str = "") -> List[StructField]:
-        res = []
+    def flatten_struct_type(
+        schema: StructType, previous_nullable: bool = False, prefix: str = ""
+    ) -> Generator[StructField, None, None]:
         for field in schema:
-            res += flatten_data_type(
+            yield from flatten_data_type(
                 field.dataType, previous_nullable or is_nullable(field), field.metadata, prefix + field.name
             )
-        return res
 
-    return StructType(flatten_struct_type(schema))
+    return StructType(list(flatten_struct_type(schema)))

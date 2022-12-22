@@ -151,5 +151,45 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         |[{[1, 2, 3]}]|[{[4.0, 5.0, 6.0]}]|
         +-------------+-------------------+
         <BLANKLINE>
+
+        *Example 4: Dataframe with maps*
+        >>> df = spark.sql('''
+        ...     SELECT
+        ...         1 as id,
+        ...         MAP("a", STRUCT(2 as a, 3 as b)) as m1
+        ... ''')
+        >>> nested.print_schema(df)
+        root
+         |-- id: integer (nullable = false)
+         |-- m1%key: string (nullable = false)
+         |-- m1%value.a: integer (nullable = false)
+         |-- m1%value.b: integer (nullable = false)
+        <BLANKLINE>
+        >>> df.show()
+        +---+-------------+
+        | id|           m1|
+        +---+-------------+
+        |  1|{a -> {2, 3}}|
+        +---+-------------+
+        <BLANKLINE>
+
+        >>> new_df = df.transform(nested.select, {
+        ...  "id": None,
+        ...  "m1%key": lambda key : f.upper(key),
+        ...  "m1%value.a": lambda value : value["a"].cast("DOUBLE")
+        ... })
+        >>> nested.print_schema(new_df)
+        root
+         |-- id: integer (nullable = false)
+         |-- m1%key: string (nullable = false)
+         |-- m1%value.a: double (nullable = false)
+        <BLANKLINE>
+        >>> new_df.show()
+        +---+------------+
+        | id|          m1|
+        +---+------------+
+        |  1|{A -> {2.0}}|
+        +---+------------+
+        <BLANKLINE>
     """
     return df.select(*resolve_nested_fields(fields, starting_level=df))

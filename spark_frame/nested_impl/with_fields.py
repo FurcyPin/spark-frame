@@ -143,6 +143,46 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
         |  1|[{[1.0, 2.0, 3.0]}]|
         +---+-------------------+
         <BLANKLINE>
+
+        *Example 4: Dataframe with maps*
+        >>> df = spark.sql('''
+        ...     SELECT
+        ...         1 as id,
+        ...         MAP("a", STRUCT(2 as a, 3 as b)) as m1
+        ... ''')
+        >>> nested.print_schema(df)
+        root
+         |-- id: integer (nullable = false)
+         |-- m1%key: string (nullable = false)
+         |-- m1%value.a: integer (nullable = false)
+         |-- m1%value.b: integer (nullable = false)
+        <BLANKLINE>
+        >>> df.show()
+        +---+-------------+
+        | id|           m1|
+        +---+-------------+
+        |  1|{a -> {2, 3}}|
+        +---+-------------+
+        <BLANKLINE>
+
+        >>> new_df = df.transform(nested.with_fields, {
+        ...  "m1%key": lambda key : f.upper(key),
+        ...  "m1%value.a": lambda value : value["a"].cast("DOUBLE")
+        ... })
+        >>> nested.print_schema(new_df)
+        root
+         |-- id: integer (nullable = false)
+         |-- m1%key: string (nullable = false)
+         |-- m1%value.a: double (nullable = false)
+         |-- m1%value.b: integer (nullable = false)
+        <BLANKLINE>
+        >>> new_df.show()
+        +---+---------------+
+        | id|             m1|
+        +---+---------------+
+        |  1|{A -> {2.0, 3}}|
+        +---+---------------+
+        <BLANKLINE>
     """
     default_columns = {field: None for field in nested.fields(df)}
     fields = {**default_columns, **fields}
