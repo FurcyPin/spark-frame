@@ -6,7 +6,7 @@ from pyspark.sql import functions as f
 from pyspark.sql.types import ArrayType, DataType, MapType, StructType
 
 from spark_frame import fp
-from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
+from spark_frame.conf import MAP_KEY, MAP_MARKER, MAP_VALUE, REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.fp import PrintableFunction, higher_order
 from spark_frame.utils import assert_true, group_by_key, quote, quote_columns, str_to_col
 
@@ -175,17 +175,28 @@ def _build_nested_struct_tree(column_transformations: Mapping[str, Optional[AnyK
         ...   "e!!": PrintableFunction(lambda e: e.cast("DOUBLE"), 'trans_e')
         ... })
         OrderedDict([('e', OrderedDict([('!', OrderedDict([('!', trans_e)]))]))])
+
+        >>> _build_nested_struct_tree({
+        ...   "m1%key": PrintableFunction(lambda key : f.upper(key), 'trans_key'),
+        ...   "m1%value.a": PrintableFunction(lambda value : value["a"].cast("DOUBLE"), 'trans_value')
+        ... })  # noqa: E501
+        OrderedDict([('m1', OrderedDict([('%', OrderedDict([('%key', trans_key), ('%value', OrderedDict([('.', OrderedDict([('a', trans_value)]))]))]))]))])
     """
 
-    def rec_insert(node: OrderedTree, alias: str, column: Optional[AnyKindOfTransformation]) -> None:
-        node_col, child_col = _split_string_and_keep_separator(alias, STRUCT_SEPARATOR, REPETITION_MARKER)
+    def rec_insert(
+        node: OrderedTree, alias: str, column: Optional[AnyKindOfTransformation], is_map: bool = False
+    ) -> None:
+        node_col, child_col = _split_string_and_keep_separator(alias, STRUCT_SEPARATOR, REPETITION_MARKER, MAP_MARKER)
         if child_col is not None and node_col == "":
             node_col = child_col[0]
             child_col = child_col[1:]
+        if is_map:
+            node_col = MAP_MARKER + node_col
+            alias = MAP_MARKER + alias
         if child_col is not None and child_col != "":
             if node_col not in node:
                 node[node_col] = OrderedDict()
-            rec_insert(node[node_col], child_col, column)
+            rec_insert(node[node_col], child_col, column, is_map=node_col == MAP_MARKER)
         else:
             node[alias] = column
 
@@ -264,6 +275,7 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
     ) -> PrintableFunction:
         is_struct = key == STRUCT_SEPARATOR
         is_repeated = key == REPETITION_MARKER
+        is_map = key == MAP_MARKER
         has_children = isinstance(col_or_children, Dict)
         if is_struct:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type struct with siblings")
@@ -283,6 +295,24 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
             res = higher_order.transform(cast(Callable, repeated_col))
             res = fp.compose(res, higher_order.recursive_struct_get(parent_structs))
             return res
+        if is_map:
+            [key_transformation, value_transformation] = recurse_node_with_multiple_items(
+                col_or_children, parent_structs=[]
+            )
+            f1 = higher_order.transform_keys(cast(Callable, key_transformation))
+            f2 = higher_order.transform_values(cast(Callable, value_transformation))
+            f3 = higher_order.recursive_struct_get(parent_structs)
+            res = fp.compose(f1, f2, f3)
+            return res
+        if key in [MAP_KEY, MAP_VALUE]:
+            if has_children:
+                child_transformation = recurse_node_with_one_item(col_or_children, parent_structs)
+                col = child_transformation
+            else:
+                col = _convert_transformation_to_printable_function(
+                    cast(AnyKindOfTransformation, col_or_children), parent_structs + [key]
+                )
+            return col
         if has_children:
             child_transformation = recurse_node_with_one_item(col_or_children, parent_structs + [key])
             col = child_transformation
@@ -307,7 +337,8 @@ def resolve_nested_fields(
     The syntax for field names works as follows:
 
     - "." is the separator for struct elements
-    - "!" must be appended at the end of fields that are repeated
+    - "!" must be appended at the end of fields of type ARRAY
+    - "%key" and "%value" must be appended at the end of fields of type MAP
 
     The following types of transformation are allowed:
 

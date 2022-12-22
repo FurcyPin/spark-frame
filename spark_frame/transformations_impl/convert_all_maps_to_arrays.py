@@ -11,7 +11,7 @@ def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
 
     !!! info
         This method is compatible with any schema. It recursively applies on structs, arrays and maps
-        and accepts field names containing dots (`.`), exclamation marks (`!`) or percentage (`%`).
+        and is compatible with field names containing special characters.
 
     Args:
         df: A Spark DataFrame

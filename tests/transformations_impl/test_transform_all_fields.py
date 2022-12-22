@@ -3,7 +3,7 @@ from pyspark.sql.types import DataType, IntegerType
 
 from spark_frame import nested
 from spark_frame.transformations import transform_all_fields
-from spark_frame.utils import schema_string, show_string, strip_margin
+from spark_frame.utils import show_string, strip_margin
 
 WEIRD_CHARS = "_!:;,?./§*ù%µ$£&é" "(-è_çà)=#{[|^@]}"
 
@@ -93,18 +93,14 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
         MAP(STRUCT(1 as `a{WEIRD_CHARS}`), STRUCT(2 as `b{WEIRD_CHARS}`)) as `m2{WEIRD_CHARS}`
     """
     )
-    assert schema_string(df) == strip_margin(
+    assert nested.schema_string(df) == strip_margin(
         f"""
         |root
         | |-- name{WEIRD_CHARS}: string (nullable = false)
-        | |-- m1{WEIRD_CHARS}: map (nullable = false)
-        | |    |-- key: integer
-        | |    |-- value: integer (valueContainsNull = false)
-        | |-- m2{WEIRD_CHARS}: map (nullable = false)
-        | |    |-- key: struct
-        | |    |    |-- a{WEIRD_CHARS}: integer (nullable = false)
-        | |    |-- value: struct (valueContainsNull = false)
-        | |    |    |-- b{WEIRD_CHARS}: integer (nullable = false)
+        | |-- m1{WEIRD_CHARS}%key: integer (nullable = false)
+        | |-- m1{WEIRD_CHARS}%value: integer (nullable = false)
+        | |-- m2{WEIRD_CHARS}%key.a{WEIRD_CHARS}: integer (nullable = false)
+        | |-- m2{WEIRD_CHARS}%value.b{WEIRD_CHARS}: integer (nullable = false)
         |"""
     )
     renamed_df = (
@@ -132,19 +128,14 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
         .withColumnRenamed(f"m1{WEIRD_CHARS}", "m1")
         .withColumnRenamed(f"m2{WEIRD_CHARS}", "m2")
     )
-    renamed_actual.show(truncate=False)
-    assert schema_string(actual) == strip_margin(
+    assert nested.schema_string(actual) == strip_margin(
         f"""
         |root
         | |-- name{WEIRD_CHARS}: string (nullable = false)
-        | |-- m1{WEIRD_CHARS}: map (nullable = false)
-        | |    |-- key: double
-        | |    |-- value: double (valueContainsNull = false)
-        | |-- m2{WEIRD_CHARS}: map (nullable = false)
-        | |    |-- key: struct
-        | |    |    |-- a{WEIRD_CHARS}: double (nullable = false)
-        | |    |-- value: struct (valueContainsNull = false)
-        | |    |    |-- b{WEIRD_CHARS}: double (nullable = false)
+        | |-- m1{WEIRD_CHARS}%key: double (nullable = false)
+        | |-- m1{WEIRD_CHARS}%value: double (nullable = false)
+        | |-- m2{WEIRD_CHARS}%key.a{WEIRD_CHARS}: double (nullable = false)
+        | |-- m2{WEIRD_CHARS}%value.b{WEIRD_CHARS}: double (nullable = false)
         |"""
     )
     assert show_string(renamed_actual, truncate=False) == strip_margin(
