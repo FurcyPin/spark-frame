@@ -174,13 +174,13 @@ def flatten_schema(
     """
 
     def flatten_data_type(
-        prefix: str, data_type: DataType, is_nullable: bool, metadata: Dict[str, str]
+        data_type: DataType, is_nullable: bool, metadata: Dict[str, str], prefix: str
     ) -> List[StructField]:
         if isinstance(data_type, StructType):
             return flatten_struct_type(data_type, is_nullable, prefix + struct_separator)
         elif isinstance(data_type, ArrayType) and explode:
             return flatten_data_type(
-                prefix + repetition_marker, data_type.elementType, is_nullable or data_type.containsNull, metadata
+                data_type.elementType, is_nullable or data_type.containsNull, metadata, prefix + repetition_marker
             )
         else:
             return [StructField(prefix, data_type, is_nullable, metadata)]
@@ -188,14 +188,9 @@ def flatten_schema(
     def flatten_struct_type(schema: StructType, previous_nullable: bool = False, prefix: str = "") -> List[StructField]:
         res = []
         for field in schema:
-            if isinstance(field.dataType, StructType):
-                res += flatten_struct_type(
-                    field.dataType, previous_nullable or is_nullable(field), prefix + field.name + struct_separator
-                )
-            else:
-                res += flatten_data_type(
-                    prefix + field.name, field.dataType, previous_nullable or is_nullable(field), field.metadata
-                )
+            res += flatten_data_type(
+                field.dataType, previous_nullable or is_nullable(field), field.metadata, prefix + field.name
+            )
         return res
 
     return StructType(flatten_struct_type(schema))
