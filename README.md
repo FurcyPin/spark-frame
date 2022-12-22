@@ -32,6 +32,11 @@ pip install spark-frame
 
 # Release notes
 
+# v0.0.4
+
+- New transformation: `spark_frame.transformations.transform_all_fields`.
+
+
 # v0.0.3
 
 - New transformation: `spark_frame.transformations.convert_all_maps_to_arrays`.
