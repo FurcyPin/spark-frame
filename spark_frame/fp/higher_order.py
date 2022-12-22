@@ -22,7 +22,6 @@ def alias(name: str) -> PrintableFunction:
 
 
 identity = PrintableFunction(lambda s: s, lambda s: str(s))
-sort_array = PrintableFunction(lambda x: f.sort_array(x), lambda x: f"f.sort_array({x})")
 struct = PrintableFunction(lambda x: f.struct(x), lambda x: f"f.struct({x})")
 
 
