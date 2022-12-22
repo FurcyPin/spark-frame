@@ -227,10 +227,7 @@ def _convert_transformation_to_printable_function(
         return PrintableFunction(lambda x: f.col(str_trans), lambda x: f"f.col('{str_trans}')")
     else:
         assert_true(transformation is None, f"Error, unsupported transformation type: {type(transformation)}")
-        if parent_structs[-1] == REPETITION_MARKER:
-            return higher_order.identity
-        else:
-            return higher_order.recursive_struct_get(parent_structs)
+        return higher_order.recursive_struct_get(parent_structs)
 
 
 def _merge_functions(functions: List[PrintableFunction]) -> PrintableFunction:
@@ -262,10 +259,19 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
     def recurse_node_with_multiple_items(node: OrderedTree, parent_structs: List[str]) -> List[PrintableFunction]:
         return [recurse_item(node, key, col_or_children, parent_structs) for key, col_or_children in node.items()]
 
-    def recurse_node_with_one_item(node: OrderedTree, parent_structs: List[str]) -> PrintableFunction:
-        assert_true(len(node) == 1, "Error, this should not happen: non-struct node with more than one child")
-        key, col_or_children = next(iter(node.items()))
-        return recurse_item(node, key, col_or_children, parent_structs)
+    def recurse_node_with_one_item(
+        col_or_children: Union[AnyKindOfTransformation, OrderedTree], parent_structs: List[str]
+    ) -> PrintableFunction:
+        has_children = isinstance(col_or_children, Dict)
+        if has_children:
+            node = cast(Dict, col_or_children)
+            assert_true(len(node) == 1, "Error, this should not happen: non-struct node with more than one child")
+            key, col_or_children = next(iter(node.items()))
+            return recurse_item(node, key, col_or_children, parent_structs)
+        else:
+            return _convert_transformation_to_printable_function(
+                cast(AnyKindOfTransformation, col_or_children), parent_structs
+            )
 
     def recurse_item(
         node: OrderedTree,
@@ -273,29 +279,21 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
         col_or_children: Union[AnyKindOfTransformation, OrderedTree],
         parent_structs: List[str],
     ) -> PrintableFunction:
-        is_struct = key == STRUCT_SEPARATOR
-        is_repeated = key == REPETITION_MARKER
-        is_map = key == MAP_MARKER
-        has_children = isinstance(col_or_children, Dict)
-        if is_struct:
+        if key == STRUCT_SEPARATOR:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type struct with siblings")
+            has_children = isinstance(col_or_children, Dict)
             assert_true(has_children, "Error, this should not happen: struct without children")
-            children_transformations = recurse_node_with_multiple_items(col_or_children, parent_structs)
-            merged_transformation = _merge_functions(children_transformations)
+            child_transformations = recurse_node_with_multiple_items(col_or_children, parent_structs)
+            merged_transformation = _merge_functions(child_transformations)
             res = fp.compose(higher_order.struct, merged_transformation)
             return res
-        if is_repeated:
+        elif key == REPETITION_MARKER:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type array with siblings")
-            if has_children:
-                repeated_col = recurse_node_with_one_item(col_or_children, parent_structs=[])
-            else:
-                repeated_col = _convert_transformation_to_printable_function(
-                    cast(AnyKindOfTransformation, col_or_children), [key]
-                )
+            repeated_col = recurse_node_with_one_item(col_or_children, parent_structs=[])
             res = higher_order.transform(cast(Callable, repeated_col))
             res = fp.compose(res, higher_order.recursive_struct_get(parent_structs))
             return res
-        if is_map:
+        elif key == MAP_MARKER:
             [key_transformation, value_transformation] = recurse_node_with_multiple_items(
                 col_or_children, parent_structs=[]
             )
@@ -304,24 +302,13 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
             f3 = higher_order.recursive_struct_get(parent_structs)
             res = fp.compose(f1, f2, f3)
             return res
-        if key in [MAP_KEY, MAP_VALUE]:
-            if has_children:
-                child_transformation = recurse_node_with_one_item(col_or_children, parent_structs)
-                col = child_transformation
-            else:
-                col = _convert_transformation_to_printable_function(
-                    cast(AnyKindOfTransformation, col_or_children), parent_structs + [key]
-                )
-            return col
-        if has_children:
-            child_transformation = recurse_node_with_one_item(col_or_children, parent_structs + [key])
-            col = child_transformation
+        elif key in [MAP_KEY, MAP_VALUE]:
+            child_transformation = recurse_node_with_one_item(col_or_children, parent_structs=[])
+            return child_transformation
         else:
-            col = _convert_transformation_to_printable_function(
-                cast(AnyKindOfTransformation, col_or_children), parent_structs + [key]
-            )
-        col = fp.compose(higher_order.alias(key), col)
-        return col
+            child_transformation = recurse_node_with_one_item(col_or_children, parent_structs + [key])
+            col = fp.compose(higher_order.alias(key), child_transformation)
+            return col
 
     root_transformations = list(recurse_node_with_multiple_items(root, parent_structs=[]))
     merged_root_transformation = _merge_functions(root_transformations)
