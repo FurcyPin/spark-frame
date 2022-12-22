@@ -3,10 +3,7 @@ from typing import Mapping
 from pyspark.sql import DataFrame
 
 from spark_frame import nested
-from spark_frame.nested_impl.package import (
-    AnyKindOfTransformation,
-    resolve_nested_fields,
-)
+from spark_frame.nested_impl.package import AnyKindOfTransformation, resolve_nested_fields
 
 
 def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) -> DataFrame:

@@ -5,9 +5,7 @@ from spark_frame.transformations_impl.parse_json_columns import parse_json_colum
 from spark_frame.transformations_impl.sort_all_arrays import sort_all_arrays
 from spark_frame.transformations_impl.unflatten import unflatten
 from spark_frame.transformations_impl.unpivot import unpivot
-from spark_frame.transformations_impl.with_generic_typed_struct import (
-    with_generic_typed_struct,
-)
+from spark_frame.transformations_impl.with_generic_typed_struct import with_generic_typed_struct
 
 convert_all_maps_to_arrays = convert_all_maps_to_arrays
 flatten = flatten
