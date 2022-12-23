@@ -72,6 +72,9 @@ that _cannot_ be implemented with one single SQL query.
 ### ::: spark_frame.transformations_impl.unflatten.unflatten
 ---
 
+### ::: spark_frame.transformations_impl.union_dataframes.union_dataframes
+---
+
 ### ::: spark_frame.transformations_impl.unpivot.unpivot
 ---
 

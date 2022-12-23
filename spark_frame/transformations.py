@@ -6,6 +6,7 @@ from spark_frame.transformations_impl.sort_all_arrays import sort_all_arrays
 from spark_frame.transformations_impl.transform_all_field_names import transform_all_field_names
 from spark_frame.transformations_impl.transform_all_fields import transform_all_fields
 from spark_frame.transformations_impl.unflatten import unflatten
+from spark_frame.transformations_impl.union_dataframes import union_dataframes
 from spark_frame.transformations_impl.unpivot import unpivot
 from spark_frame.transformations_impl.with_generic_typed_struct import with_generic_typed_struct
 
@@ -17,5 +18,6 @@ sort_all_arrays = sort_all_arrays
 transform_all_fields = transform_all_fields
 transform_all_field_names = transform_all_field_names
 unflatten = unflatten
+union_dataframes = union_dataframes
 unpivot = unpivot
 with_generic_typed_struct = with_generic_typed_struct

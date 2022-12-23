@@ -33,9 +33,10 @@ pip install spark-frame
 # Release notes
 
 # v0.0.4
-
+- 
 - New transformation: `spark_frame.transformations.transform_all_field_names`.
 - New transformation: `spark_frame.transformations.transform_all_fields`.
+- New transformation: `spark_frame.transformations.union_dataframes`.
 
 
 # v0.0.3
