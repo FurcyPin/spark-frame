@@ -43,6 +43,7 @@ def transform_nested_fields():
 
         ### The task
         Let's say we want to enrich this DataFrame by performing the following changes:
+
         - Change the `skills.level` to uppercase
         - Cast the `projects.tasks.estimate` to double
 
