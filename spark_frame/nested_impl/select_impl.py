@@ -17,6 +17,8 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
 
     - "." is the separator for struct elements
     - "!" must be appended at the end of fields that are repeated (arrays)
+    - Map keys are appended with `%key`
+    - Map values are appended with `%value`
 
     The following types of transformation are allowed:
 
@@ -25,6 +27,13 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
       (e.g. lambda expressions)
     - `None` can also be used to represent the identity transformation, this is useful to select a field without
        changing and without having to repeat its name.
+
+    !!! warning "Limitation: Dots, percents, and exclamation marks are not supported in field names"
+        Given the syntax used, every method defined in the `spark_frame.nested` module assumes that all field
+        names in DataFrames do not contain any dot `.`, percent `%` or exclamation mark `!`.
+        This can be worked around using the transformation
+        [`spark_frame.transformations.transform_all_field_names`]
+        [spark_frame.transformations_impl.transform_all_field_names.transform_all_field_names].
 
     Args:
         df: A Spark DataFrame

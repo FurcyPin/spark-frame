@@ -7,7 +7,7 @@ def union_dataframes(*dfs: DataFrame) -> DataFrame:
     """Returns the union between multiple DataFrames
 
     Args:
-        dfs: One ore more Spark DataFrames
+        dfs: One or more Spark DataFrames
 
     Returns:
         A new DataFrame containing the union of all input DataFrames

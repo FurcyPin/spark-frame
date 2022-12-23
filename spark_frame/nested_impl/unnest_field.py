@@ -9,6 +9,12 @@ def unnest_field(df: DataFrame, field_name: str, keep_columns: Optional[List[str
     """Given a DataFrame, return a new DataFrame where the specified column has been recursively
     unnested (a.k.a. exploded).
 
+    !!! warning "Limitation: Maps are not unnested"
+        - Fields of type Maps are not unnested by this method.
+        - A possible workaround is to first use the transformation
+        [`spark_frame.transformations.convert_all_maps_to_arrays`]
+        [spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays]
+
     Args:
         df: A Spark DataFrame
         field_name: The name of a nested column to unnest

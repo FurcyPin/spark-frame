@@ -28,18 +28,15 @@ def schema_string(df: DataFrame) -> str:
     """Write the DataFrame's flattened schema to a string.
 
     - Structs are flattened with a `.` after their name.
-    - Arrays are unnested with a `!` character after their name.
+    - Arrays are flattened with a `!` character after their name.
+    - Maps are flattened with a `%key` and '%value' after their name.
 
-    !!! warning "Limitation: Dots and exclamation marks are not supported in field names"
+    !!! warning "Limitation: Dots, percents, and exclamation marks are not supported in field names"
         Given the syntax used, every method defined in the `spark_frame.nested` module assumes that all field
-        names in DataFrames do not contain any dot `.` or exclamation mark `!`. We will work on addressing this
-        limitation in further developments.
-
-    !!! warning "Limitation: Maps are not supported"
-        Fields of type `Map<K,V>` are not currently supported.
-        We recommended to use [spark_frame.transformations.convert_all_maps_to_arrays](
-        /reference/#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays)
-        to automatically cast all the maps of a DataFrame into `ARRAY<STRUCT<key, value>>`.
+        names in DataFrames do not contain any dot `.`, percent `%` or exclamation mark `!`.
+        This can be worked around using the transformation
+        [`spark_frame.transformations.transform_all_field_names`]
+        [spark_frame.transformations_impl.transform_all_field_names.transform_all_field_names].
 
     Args:
         df: A Spark DataFrame

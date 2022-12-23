@@ -117,9 +117,9 @@ def transform_nested_fields():
 
         ### With spark_frame.nested
 
-        The module [spark_frame.nested](/reference/#spark_framenested) proposes several methods to help us deal
+        The module [`spark_frame.nested`](/reference/nested) proposes several methods to help us deal
         with nested data structure more easily.
-        First, let's use [spark_frame.nested.print_schema][spark_frame.nested_impl.print_schema.print_schema] to get
+        First, let's use [`spark_frame.nested.print_schema`][spark_frame.nested_impl.print_schema.print_schema] to get
         a flat version of the DataFrame's schema:
 
         >>> from spark_frame import nested
@@ -150,7 +150,8 @@ def transform_nested_fields():
         - Change the `skills.level` to uppercase
         - Cast the `projects.tasks.estimate` to double
 
-        Using the [spark_frame.nested.with_fields]() method, this can be done like this:
+        Using the [`spark_frame.nested.with_fields`]
+        [spark_frame.nested_impl.with_fields.with_fields] method, this can be done like this:
         >>> new_df = df.transform(nested.with_fields, {
         ...     "skills!.level": lambda skill: f.upper(skill["level"]),
         ...     "projects!.tasks!.estimate": lambda task: task["estimate"].cast("DOUBLE")
@@ -181,9 +182,10 @@ def transform_nested_fields():
         As we can see, we obtained the same result with a much simpler and cleaner code.
         Now let's explain what this code did:
 
-        The [spark_frame.nested.with_fields][spark_frame.nested_impl.with_fields.with_fields] is similar to
-        the [pyspark.sql.DataFrame.withColumns][] method, except
-        that it works on nested fields inside structs and arrays. We pass it a `Dict(field_name, transformation)`
+        The [`spark_frame.nested.with_fields`]
+        [spark_frame.nested_impl.with_fields.with_fields] method is similar to
+        the [`pyspark.sql.DataFrame.withColumns`][] method, except that it works on nested fields inside
+        structs and arrays. We pass it a `Dict(field_name, transformation)`
         indicating the expression we want to apply for each field. The transformation must be a higher order function:
         a lambda expression or named function that takes a Column as argument and returns a Column. The column passed
         to that function will represent the struct parent of the target field. For instance, when we write
@@ -198,7 +200,6 @@ def transform_nested_fields():
 
 def select_nested_fields():
     """
-
     Examples: In this example, we will see how to select and rename specific elements in a nested data structure
 
         >>> from spark_frame.examples.working_with_nested_data import _get_sample_employee_data
@@ -260,7 +261,7 @@ def select_nested_fields():
         <BLANKLINE>
 
         ### With spark_frame.nested
-        Using [spark_frame.nested.select][spark_frame.nested_impl.select_impl.select], we can easily obtain the exact
+        Using [`spark_frame.nested.select`][spark_frame.nested_impl.select_impl.select], we can easily obtain the exact
         same result.
         >>> new_df = df.transform(nested.select, {
         ...     "employee_id": None,

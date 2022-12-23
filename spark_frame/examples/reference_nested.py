@@ -44,7 +44,7 @@ def fields():
         ```
 
         This can be seen by using the method
-        [spark_frame.nested.print_schema](/reference/#spark_framenested.print_schema)
+        [`spark_frame.nested.print_schema`][spark_frame.nested_impl.print_schema.print_schema]
 
         >>> from spark_frame import nested
         >>> nested.print_schema(df)
@@ -55,17 +55,17 @@ def fields():
          |-- types!: string (nullable = false)
         <BLANKLINE>
 
-        As we can see, some field names contain dots (`.`) or exclamation marks (`!`), they convey the following
+        As we can see, some field names contain dots `.` or exclamation marks `!`, they convey the following
         meaning:
 
-        - A dot (`.`) represents a struct.
-        - An exclamation mark (`!`) represents an array.
+        - A dot `.` represents a struct.
+        - An exclamation mark `!` represents an array.
 
-        While the "dot" syntax for "structs" should feel familiar to users, the exclamation mark (`!`) should feel new.
+        While the *dot* syntax for *structs* should feel familiar to users, the exclamation mark `!` should feel new.
         It is used as a *repetition marker* indicating that this field is repeated.
 
         !!! tip "Tip"
-            It is important to not forget to use exclamation marks (`!`) when mentionning a field.
+            It is important to not forget to use exclamation marks `!` when mentionning a field.
             For instance:
 
             - `types` designates the root-level field which is of type `ARRAY<STRING>`
@@ -74,16 +74,12 @@ def fields():
             In particular, if a field `"my_field"` is of type `ARRAY<ARRAY<STRING>>`, the innermost elements of the
             arrays will be designated as `"my_field!!"` with two exclamation marks.
 
-        !!! warning "Limitation: Do not use dots or exclamation marks in field names"
+        !!! warning "Limitation: Do not use dots, exclamation marks or percents in field names"
             Given the syntax used, every method defined in the `spark_frame.nested` module assumes that all field
-            names in DataFrames do not contain any dot `.` or exclamation mark `!`. We will work on addressing this
-            limitation in further developments.
-
-        !!! warning "Limitation: Do not use Maps"
-            Fields of type `Map<K,V>` are not currently supported and flattened.
-            We recommended to use [spark_frame.transformations.convert_all_maps_to_arrays](
-            /reference/#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays)
-            to automatically cast all the maps of a DataFrame into `ARRAY<STRUCT<key, value>>`.
+            names in DataFrames do not contain any dot `.`, exclamation mark `!` or percents `%`.
+            This can be worked around using the transformation
+            [`spark_frame.transformations.transform_all_field_names`]
+            [spark_frame.transformations_impl.transform_all_field_names.transform_all_field_names].
     """
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 

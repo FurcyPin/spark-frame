@@ -392,6 +392,12 @@ def unnest_fields(
     """Given a DataFrame, return a list of DataFrames where all the specified columns have been recursively
     unnested (a.k.a. exploded). This produce one DataFrame for each possible granularity.
 
+    !!! warning "Limitation: Maps are not unnested"
+        - Fields of type Maps are not unnested by this method.
+        - A possible workaround is to first use the transformation
+        [`spark_frame.transformations.convert_all_maps_to_arrays`]
+        [spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays]
+
     Args:
         df: A Spark DataFrame
         fields: One or several nested field names.
