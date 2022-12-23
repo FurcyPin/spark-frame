@@ -7,18 +7,15 @@ def print_schema(df: DataFrame) -> None:
     """Print the DataFrame's flattened schema to the standard output.
 
     - Structs are flattened with a `.` after their name.
-    - Arrays are unnested with a `!` character after their name.
+    - Arrays are flattened with a `!` character after their name.
+    - Maps are flattened with a `%key` and '%value' after their name.
 
-    !!! warning "Limitation: Dots and exclamation marks are not supported in field names"
+    !!! warning "Limitation: Dots, percents, and exclamation marks are not supported in field names"
         Given the syntax used, every method defined in the `spark_frame.nested` module assumes that all field
-        names in DataFrames do not contain any dot `.` or exclamation mark `!`. We will work on addressing this
-        limitation in further developments.
-
-    !!! warning "Limitation: Maps are not supported"
-        Fields of type `Map<K,V>` are not currently supported.
-        We recommended to use [spark_frame.transformations.convert_all_maps_to_arrays](
-        /reference/#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays)
-        to automatically cast all the maps of a DataFrame into `ARRAY<STRUCT<key, value>>`.
+        names in DataFrames do not contain any dot `.`, percent `%` or exclamation mark `!`.
+        This can be worked around using the transformation
+        [`spark_frame.transformations.transform_all_field_names`]
+        [spark_frame.transformations_impl.transform_all_field_names.transform_all_field_names].
 
     Args:
         df: A Spark DataFrame
@@ -32,7 +29,8 @@ def print_schema(df: DataFrame) -> None:
         ...     ARRAY(STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d)) as b, ARRAY(5, 6) as e)) as s1,
         ...     STRUCT(7 as f) as s2,
         ...     ARRAY(ARRAY(1, 2), ARRAY(3, 4)) as s3,
-        ...     ARRAY(ARRAY(STRUCT(1 as e, 2 as f)), ARRAY(STRUCT(3 as e, 4 as f))) as s4
+        ...     ARRAY(ARRAY(STRUCT(1 as e, 2 as f)), ARRAY(STRUCT(3 as e, 4 as f))) as s4,
+        ...     MAP(STRUCT(1 as a), STRUCT(2 as b)) as m1
         ... ''')
         >>> df.printSchema()
         root
@@ -56,6 +54,11 @@ def print_schema(df: DataFrame) -> None:
          |    |    |-- element: struct (containsNull = false)
          |    |    |    |-- e: integer (nullable = false)
          |    |    |    |-- f: integer (nullable = false)
+         |-- m1: map (nullable = false)
+         |    |-- key: struct
+         |    |    |-- a: integer (nullable = false)
+         |    |-- value: struct (valueContainsNull = false)
+         |    |    |-- b: integer (nullable = false)
         <BLANKLINE>
         >>> nested.print_schema(df)
         root
@@ -68,6 +71,8 @@ def print_schema(df: DataFrame) -> None:
          |-- s3!!: integer (nullable = false)
          |-- s4!!.e: integer (nullable = false)
          |-- s4!!.f: integer (nullable = false)
+         |-- m1%key.a: integer (nullable = false)
+         |-- m1%value.b: integer (nullable = false)
         <BLANKLINE>
     """
     print(schema_string(df))

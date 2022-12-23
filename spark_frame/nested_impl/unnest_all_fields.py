@@ -26,6 +26,12 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
         - s2!.s3!.d
         - s4!.e, s4!.f
 
+    !!! warning "Limitation: Maps are not unnested"
+        - Fields of type Maps are not unnested by this method.
+        - A possible workaround is to first use the transformation
+        [`spark_frame.transformations.convert_all_maps_to_arrays`]
+        [spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays]
+
     Args:
         df: A Spark DataFrame
         keep_columns: Names of columns that should be kept while unnesting

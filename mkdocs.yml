@@ -38,7 +38,7 @@ watch:
   - spark_frame
 
 #site_url: docs/home.md
-edit_uri: docs/
+edit_uri: https://github.com/FurcyPin/spark-frame/tree/main/docs
 
 nav:
   - What is spark-frame ?: "README.md"
@@ -47,5 +47,9 @@ nav:
     - Working with nested data: "use_cases/working_with_nested_data.md"
     - Working with json: "use_cases/working_with_json.md"
     - Using flatten/unflatten: "use_cases/flatten_unflatten.md"
-  - Reference: reference.md
-
+  - Reference:
+    - spark_frame.functions: "reference/functions.md"
+    - spark_frame.graph: "reference/graph.md"
+    - spark_frame.nested: "reference/nested.md"
+    - spark_frame.schema_utils: "reference/schema_utils.md"
+    - spark_frame.transformations: "reference/transformations.md"

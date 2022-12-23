@@ -9,10 +9,15 @@ def fields(df: DataFrame) -> List[str]:
     """Return the name of all the fields (including nested sub-fields) in the given DataFrame.
 
     - Structs are flattened with a `.` after their name.
-    - Arrays are unnested with a `!` character after their name.
+    - Arrays are flattened with a `!` character after their name.
+    - Maps are flattened with a `%key` and '%value' after their name.
 
-    !!! warning "Limitations"
-        Fields of type Map<K,V> are not flattened
+    !!! warning "Limitation: Dots, percents, and exclamation marks are not supported in field names"
+        Given the syntax used, every method defined in the `spark_frame.nested` module assumes that all field
+        names in DataFrames do not contain any dot `.`, percent `%` or exclamation mark `!`.
+        This can be worked around using the transformation
+        [`spark_frame.transformations.transform_all_field_names`]
+        [spark_frame.transformations_impl.transform_all_field_names.transform_all_field_names].
 
     Args:
         df: A Spark DataFrame

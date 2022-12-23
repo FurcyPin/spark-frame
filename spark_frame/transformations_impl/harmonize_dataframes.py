@@ -18,6 +18,7 @@ def harmonize_dataframes(
 ) -> Tuple[DataFrame, DataFrame]:
     """Given two DataFrames, returns two new corresponding DataFrames with the same schemas by applying the following
     changes:
+
     - Only common columns are kept
     - Columns of type MAP<key, value> are cast into ARRAY<STRUCT<key, value>>
     - Columns are re-order to have the same ordering in both DataFrames

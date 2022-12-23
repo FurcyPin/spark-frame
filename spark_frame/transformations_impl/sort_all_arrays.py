@@ -11,8 +11,9 @@ def sort_all_arrays(df: DataFrame) -> DataFrame:
 
     !!! warning "Limitation"
         - Arrays containing sub-fields of type Map cannot be sorted, as the Map type is not comparable.
-        - A possible workaround to this limitation is to use the transformation [`convert_all_maps_to_arrays`](
-        /reference/#spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays)
+        - A possible workaround is to first use the transformation
+        [`spark_frame.transformations.convert_all_maps_to_arrays`]
+        [spark_frame.transformations_impl.convert_all_maps_to_arrays.convert_all_maps_to_arrays]
 
     Args:
         df: A Spark DataFrame

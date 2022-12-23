@@ -8,13 +8,13 @@
 
 **Methods used in this example**
 
-??? abstract "schema_from_simple_string"
+??? abstract "schema_utils.schema_from_simple_string"
     ::: spark_frame.schema_utils.schema_from_simple_string
         options:
             show_root_heading: false
             show_root_toc_entry: false
 
-??? abstract "parse_json_columns"
+??? abstract "schema_utils.parse_json_columns"
     ::: spark_frame.transformations_impl.parse_json_columns.parse_json_columns
         options:
             show_root_heading: false

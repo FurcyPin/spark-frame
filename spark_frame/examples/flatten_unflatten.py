@@ -1,7 +1,9 @@
 def transform_nested_fields():
     """
-    This example demonstrates how the [flatten](/reference/#spark_frame.transformations_impl.flatten.flatten) and
-    unflatten [unflatten](/reference/#spark_frame.transformations_impl.unflatten.unflatten) methods can be used to
+    This example demonstrates how the [`spark_frame.transformations.flatten`]
+    [spark_frame.transformations_impl.flatten.flatten]
+    and unflatten [`spark_frame.transformations.unflatten`]
+    [spark_frame.transformations_impl.unflatten.unflatten] methods can be used to
     make data cleaning pipeline easier with PySpark.
 
     Examples: Let's take a sample DataFrame with our favorite example: Pokemons!
@@ -61,8 +63,10 @@ def transform_nested_fields():
         with hundreds of columns with three levels of nesting or more...
 
         ### With spark-frame
-        Instead, we can use the [flatten](/reference/#spark_frame.transformations_impl.flatten.flatten) and
-        unflatten [unflatten](/reference/#spark_frame.transformations_impl.unflatten.unflatten) method to reduce
+        Instead, we can use the [`spark_frame.transformations.flatten`]
+        [spark_frame.transformations_impl.flatten.flatten]
+        and unflatten [`spark_frame.transformations.unflatten`]
+        [spark_frame.transformations_impl.unflatten.unflatten] methods to reduce
         boilerplate significantly.
 
         >>> from spark_frame.transformations import flatten, unflatten
@@ -128,13 +132,10 @@ def transform_nested_fields():
          types      | [Grass, Poison]
         <BLANKLINE>
 
-        # ...     f.col("base_stats")["Attack"] + f.col("base_stats")["Defense"] + f.col("base_stats")["HP"] +
-        # ...     f.col("base_stats")["Sp Attack"] + f.col("base_stats")["Sp Defense"] + f.col("base_stats")["Speed"]
-
         !!! Info
             _This example uses data taken from
             [https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json](
-            https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json).
+            https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json)._
     """
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 

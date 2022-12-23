@@ -60,8 +60,7 @@ def extracting_json_values():
         https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.SparkSession.createDataFrame.html)
         method.
         The first thing we can do to make things simpler is by using the method
-        [`spark_frame.schema_utils.schema_from_simple_string`](
-        /reference/#spark_frame.schema_utils.schema_from_simple_string) like this :
+        [`spark_frame.schema_utils.schema_from_simple_string`][] like this :
 
         >>> from spark_frame.schema_utils import schema_from_simple_string
         >>> raw_input_schema = schema_from_simple_string("model_name: STRING, model_version: INT, model_args: STRING")
@@ -81,8 +80,8 @@ def extracting_json_values():
 
         But if we don't know the schema or if we know that the schema may evolve and we want to add
         (or at least, detect) the new fields automatically, we can leverage Spark's automatic json schema inference
-        by using the method [spark_frame.transformations.parse_json_columns](
-        /reference/#spark_frame.transformations_impl.parse_json_columns.parse_json_columns) to infer automatically
+        by using the method [`spark_frame.transformations.parse_json_columns`]
+        [`spark_frame.transformations_impl.parse_json_columns.parse_json_columns`] to infer automatically
         the schema of these json columns.
 
         >>> from spark_frame.transformations import parse_json_columns
