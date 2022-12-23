@@ -61,6 +61,9 @@ jobs:
         # We run safety but ignore the warning as some require to drop support for Python 3.7.
         continue-on-error: true
 
+      - name: Build docs
+        run: poetry run mkdocs build
+
       - name: Run Unit Tests
         env:
           GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
