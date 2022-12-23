@@ -65,13 +65,13 @@ def build_transformation_from_schema(
             res = fp.compose(higher_order.struct, res)
         elif isinstance(data_type, ArrayType):
             element_transformation = recurse_data_type(data_type.elementType, parent_structs=[])
-            res = higher_order.transform(cast(Callable, element_transformation))
+            res = higher_order.transform(element_transformation)
             res = fp.compose(res, higher_order.recursive_struct_get(parent_structs))
         elif isinstance(data_type, MapType):
             key_transformation = recurse_data_type(data_type.keyType, parent_structs=[])
             value_transformation = recurse_data_type(data_type.valueType, parent_structs=[])
-            f1 = higher_order.transform_keys(cast(Callable, key_transformation))
-            f2 = higher_order.transform_values(cast(Callable, value_transformation))
+            f1 = higher_order.transform_keys(key_transformation)
+            f2 = higher_order.transform_values(value_transformation)
             f3 = higher_order.recursive_struct_get(parent_structs)
             res = fp.compose(f1, f2, f3)
         else:
@@ -290,15 +290,15 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
         elif key == REPETITION_MARKER:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type array with siblings")
             repeated_col = recurse_node_with_one_item(col_or_children, parent_structs=[])
-            res = higher_order.transform(cast(Callable, repeated_col))
+            res = higher_order.transform(repeated_col)
             res = fp.compose(res, higher_order.recursive_struct_get(parent_structs))
             return res
         elif key == MAP_MARKER:
             [key_transformation, value_transformation] = recurse_node_with_multiple_items(
                 col_or_children, parent_structs=[]
             )
-            f1 = higher_order.transform_keys(cast(Callable, key_transformation))
-            f2 = higher_order.transform_values(cast(Callable, value_transformation))
+            f1 = higher_order.transform_keys(key_transformation)
+            f2 = higher_order.transform_values(value_transformation)
             f3 = higher_order.recursive_struct_get(parent_structs)
             res = fp.compose(f1, f2, f3)
             return res
