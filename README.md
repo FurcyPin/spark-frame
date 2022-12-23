@@ -11,15 +11,22 @@
 
 ## What is it ?
 
-Spark-frame is a library that brings several utility methods and transformation functions for PySpark DataFrames.
+[Spark-frame](https://furcypin.github.io/spark-frame/) is a library that brings several utility methods and 
+transformation functions for PySpark DataFrames.
 These methods were initially part of the [karadoc](https://github.com/FurcyPin/karadoc) project 
-used at [Younited](https://medium.com/younited-tech-blog), but they don't rely on karadoc, so it makes more sense 
-to keep them as standalone library.
+used at [Younited](https://medium.com/younited-tech-blog), but they don't rely on karadoc, 
+so it makes more sense to keep them as standalone library.
 
 Several of these methods were my initial inspiration to make the cousin project 
 [bigquery-frame](https://github.com/FurcyPin/bigquery-frame), which is why you will find similar 
 methods in `transformations` and `data_diff` for both `spark_frame` and `bigquery_frame`, except
 the former runs on PySpark while the latter runs on BigQuery (obviously).
+
+## Getting Started
+
+Visit the official Spark-frame website [documentation](https://furcypin.github.io/spark-frame/) 
+for [use cases examples](https://furcypin.github.io/spark-frame/use_cases/intro/) 
+and [reference](https://furcypin.github.io/spark-frame/reference/functions/).
 
 ## Installation
 
