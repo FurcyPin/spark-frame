@@ -5,6 +5,8 @@ theme:
   name: "material"
 
 plugins:
+  - search:
+      lang: en
   - include-markdown:
   - mkdocstrings:
       enable_inventory: true
