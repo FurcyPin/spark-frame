@@ -37,15 +37,24 @@ and [reference](https://furcypin.github.io/spark-frame/reference/functions/).
 pip install spark-frame
 ```
 
+## Compatibilities and requirements
+
+This library does not depend on any other library.
+Pyspark must be installed separately to use it.
+It is compatible with the following versions:
+
+- Python: requires 3.8.1 or higher (tested against Python 3.9, 3.10 and 3.11)
+- pyspark: requires 3.3.0 or higher
+
+This library is tested against Mac and Linux.
 
 # Release notes
 
 # v0.0.4
-- 
+ 
 - New transformation: `spark_frame.transformations.transform_all_field_names`.
 - New transformation: `spark_frame.transformations.transform_all_fields`.
 - New transformation: `spark_frame.transformations.union_dataframes`.
-
 
 # v0.0.3
 
