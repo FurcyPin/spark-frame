@@ -1,8 +1,10 @@
 from typing import Callable, Dict
 
+import pytest
 from pyspark.sql import Column, SparkSession
 from pyspark.sql import functions as f
 
+import spark_frame.utils
 from spark_frame import nested
 from spark_frame.fp.printable_function import PrintableFunction
 from spark_frame.nested_impl.package import (
@@ -235,6 +237,17 @@ class TestBuildTransformationFromTree:
 
 
 class TestResolveNestedFields:
+    def test_with_error(self, spark: SparkSession):
+        """
+        GIVEN a DataFrame with a simple value
+        WHEN we use resolve_nested_columns on it with an incorrect expression
+        THEN an AnalysisException should be raised
+        """
+        transformation = {"a!b": None}
+        with pytest.raises(spark_frame.utils.AnalysisException) as e:
+            resolve_nested_fields(transformation)
+        assert "Invalid field name 'a!b'" in str(e.value)
+
     def test_value_with_string_expr(self, spark: SparkSession):
         """
         GIVEN a DataFrame with a simple value
@@ -474,7 +487,7 @@ class TestResolveNestedFields:
     def test_array_with_none(self, spark: SparkSession):
         """
         GIVEN a DataFrame with an array
-        WHEN we use resolve_nested_columns on it
+        WHEN we use resolve_nested_columns on it with a transformation being None
         THEN the transformation should work
         """
         df = spark.sql("SELECT ARRAY(2, 3) as e")
@@ -508,6 +521,98 @@ class TestResolveNestedFields:
             ||     e|
             |+------+
             ||[2, 3]|
+            |+------+
+            |"""
+        )
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        assert schema_string(actual_named) == expected_schema
+        assert show_string(actual_named) == expected
+
+    def test_array_with_str_expr(self, spark: SparkSession):
+        """
+        GIVEN a DataFrame with an array
+        WHEN we use resolve_nested_columns on it with a transformation being a string expression
+        THEN the transformation should work
+        """
+        df = spark.sql("SELECT 1 as id, ARRAY(2, 3) as e")
+        df.printSchema()
+        df.show()
+        assert schema_string(df) == strip_margin(
+            """
+            |root
+            | |-- id: integer (nullable = false)
+            | |-- e: array (nullable = false)
+            | |    |-- element: integer (containsNull = false)
+            |"""
+        )
+        assert show_string(df) == strip_margin(
+            """
+            |+---+------+
+            || id|     e|
+            |+---+------+
+            ||  1|[2, 3]|
+            |+---+------+
+            |"""
+        )
+        named_transformations = {"id": None, "e!": "id"}
+        expected_schema = strip_margin(
+            """
+            |root
+            | |-- id: integer (nullable = false)
+            | |-- e: array (nullable = false)
+            | |    |-- element: integer (containsNull = false)
+            |"""
+        )
+        expected = strip_margin(
+            """
+            |+---+------+
+            || id|     e|
+            |+---+------+
+            ||  1|[1, 1]|
+            |+---+------+
+            |"""
+        )
+        actual_named = df.select(*resolve_nested_fields(named_transformations))
+        assert schema_string(actual_named) == expected_schema
+        assert show_string(actual_named) == expected
+
+    def test_array_with_col_expr(self, spark: SparkSession):
+        """
+        GIVEN a DataFrame with an array
+        WHEN we use resolve_nested_columns on it with a transformation being a Column expression
+        THEN the transformation should work
+        """
+        df = spark.sql("SELECT ARRAY(2, 3) as e")
+        assert schema_string(df) == strip_margin(
+            """
+            |root
+            | |-- e: array (nullable = false)
+            | |    |-- element: integer (containsNull = false)
+            |"""
+        )
+        assert show_string(df) == strip_margin(
+            """
+            |+------+
+            ||     e|
+            |+------+
+            ||[2, 3]|
+            |+------+
+            |"""
+        )
+        named_transformations = {"e!": f.lit(1)}
+        expected_schema = strip_margin(
+            """
+            |root
+            | |-- e: array (nullable = false)
+            | |    |-- element: integer (containsNull = false)
+            |"""
+        )
+        expected = strip_margin(
+            """
+            |+------+
+            ||     e|
+            |+------+
+            ||[1, 1]|
             |+------+
             |"""
         )

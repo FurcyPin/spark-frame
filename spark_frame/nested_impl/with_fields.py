@@ -23,7 +23,8 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
 
     - String and column expressions can be used on any non-repeated field, even nested ones.
     - When working on repeated fields, transformations must be expressed as higher order functions
-      (e.g. lambda expressions)
+      (e.g. lambda expressions). String and column expressions can be used on repeated fields as well,
+      but their value will be repeated multiple times.
     - `None` can also be used to represent the identity transformation, this is useful to select a field without
        changing and without having to repeat its name.
 
@@ -127,6 +128,20 @@ def with_fields(df: DataFrame, fields: Mapping[str, AnyKindOfTransformation]) ->
         +---+--------------------------+
         |1  |[{1, {2, 3}}, {3, {4, 7}}]|
         +---+--------------------------+
+        <BLANKLINE>
+
+        String and column expressions can be used on repeated fields as well,
+        but their value will be repeated multiple times.
+        >>> df.transform(nested.with_fields, {
+        ...     "id": None,
+        ...     "s!.a": "id",
+        ...     "s!.b.c": f.lit(2)
+        ... }).show(truncate=False)
+        +---+--------------------+
+        |id |s                   |
+        +---+--------------------+
+        |1  |[{1, {2}}, {1, {2}}]|
+        +---+--------------------+
         <BLANKLINE>
 
         *Example 3: field repeated twice*

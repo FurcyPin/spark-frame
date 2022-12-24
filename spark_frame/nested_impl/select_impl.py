@@ -24,7 +24,8 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
 
     - String and column expressions can be used on any non-repeated field, even nested ones.
     - When working on repeated fields, transformations must be expressed as higher order functions
-      (e.g. lambda expressions)
+      (e.g. lambda expressions). String and column expressions can be used on repeated fields as well,
+      but their value will be repeated multiple times.
     - `None` can also be used to represent the identity transformation, this is useful to select a field without
        changing and without having to repeat its name.
 
@@ -68,7 +69,7 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         <BLANKLINE>
 
         Transformations on non-repeated fields may be expressed as a string representing a column name,
-        a Column expressio or None.
+        a Column expression or None.
         (In this example the column "id" will be dropped because it was not selected)
         >>> new_df = nested.select(df, {
         ...     "s.a": "s.a",                        # Column name (string)
@@ -107,8 +108,8 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         +---+----------------+
         <BLANKLINE>
 
-        Transformations on repeated fields must be expressed
-        as higher-order functions (lambda expressions or named functions).
+        Transformations on repeated fields must be expressed as higher-order
+        functions (lambda expressions or named functions).
         The value passed to this function will correspond to the last repeated element.
         >>> df.transform(nested.select, {
         ...     "s!.a": lambda s: s["a"],
@@ -120,6 +121,20 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         +----------------------+
         |[{1, 2, 3}, {3, 4, 7}]|
         +----------------------+
+        <BLANKLINE>
+
+        String and column expressions can be used on repeated fields as well,
+        but their value will be repeated multiple times.
+        >>> df.transform(nested.select, {
+        ...     "id": None,
+        ...     "s!.a": "id",
+        ...     "s!.b": f.lit(2)
+        ... }).show(truncate=False)
+        +---+----------------+
+        |id |s               |
+        +---+----------------+
+        |1  |[{1, 2}, {1, 2}]|
+        +---+----------------+
         <BLANKLINE>
 
         *Example 3: field repeated twice*
