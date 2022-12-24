@@ -8,7 +8,7 @@ from pyspark.sql.types import ArrayType, DataType, MapType, StructType
 from spark_frame import fp
 from spark_frame.conf import MAP_KEY, MAP_MARKER, MAP_VALUE, REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.fp import PrintableFunction, higher_order
-from spark_frame.utils import assert_true, group_by_key, quote, quote_columns, str_to_col
+from spark_frame.utils import AnalysisException, assert_true, group_by_key, quote, quote_columns, str_to_col
 
 ColumnTransformation = Callable[[Optional[Column]], Column]
 AnyKindOfTransformation = Union[str, Column, ColumnTransformation, "PrintableFunction", None]
@@ -315,8 +315,109 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
     return merged_root_transformation
 
 
+def validate_field_marker_followed_by_non_struct_character(field_name: str) -> Generator[str, None, None]:
+    """Check for the following error:
+
+    - Repeated field marker `!` followed by something else than a struct `.` separator
+
+    Examples:
+        >>> list(validate_field_marker_followed_by_non_struct_character("a!.b"))
+        []
+        >>> list(validate_field_marker_followed_by_non_struct_character("a!"))
+        []
+        >>> list(validate_field_marker_followed_by_non_struct_character("a!b"))
+        ["Invalid field name 'a!b': '!' not followed by a '.'"]
+    """
+    for field_part in field_name.split(REPETITION_MARKER)[1:]:
+        if len(field_part) > 0 and field_part[0] != STRUCT_SEPARATOR:
+            yield f"Invalid field name '{field_name}': '{REPETITION_MARKER}' not followed by a '{STRUCT_SEPARATOR}'"
+            return
+
+
+def validate_map_marker_followed_by_non_key_value(field_name: str) -> Generator[str, None, None]:
+    """Check for the following error:
+
+    - Repeated field marker `!` followed by something else than a struct `.` separator
+
+    Examples:
+        >>> list(validate_map_marker_followed_by_non_key_value("a!.m%key"))
+        []
+        >>> list(validate_map_marker_followed_by_non_key_value("a!.m%value"))
+        []
+        >>> list(validate_map_marker_followed_by_non_key_value("a!.m%"))
+        ["Invalid field name 'a!.m%': '%' not followed by a 'key' or 'value'"]
+        >>> list(validate_map_marker_followed_by_non_key_value("a!.m%bad_key"))
+        ["Invalid field name 'a!.m%bad_key': '%' not followed by a 'key' or 'value'"]
+        >>> list(validate_map_marker_followed_by_non_key_value("a!.m%key_bad"))
+        ["Invalid field name 'a!.m%key_bad': '%' not followed by a 'key' or 'value'"]
+    """
+
+    def build_message() -> str:
+        return f"Invalid field name '{field_name}': '{MAP_MARKER}' not followed by a '{MAP_KEY}' or '{MAP_VALUE}'"
+
+    for field_part in field_name.split(MAP_MARKER)[1:]:
+        if len(field_part) == 0 or field_part.split(STRUCT_SEPARATOR)[0] not in [MAP_KEY, MAP_VALUE]:
+            yield build_message()
+            return
+
+
+def validate_no_map(field_name: str) -> Generator[str, None, None]:
+    """Check for the following error:
+
+    - Map field marker `%` used when maps are not allowed
+
+    Examples:
+        >>> list(validate_no_map("a!.b"))
+        []
+        >>> list(validate_no_map("a!.m%key"))
+        ["Invalid field name 'a!.m%key': maps are not supported for this type of transformation."]
+        >>> list(validate_no_map("a!.m%value"))
+        ["Invalid field name 'a!.m%value': maps are not supported for this type of transformation."]
+    """
+
+    def build_message() -> str:
+        return f"Invalid field name '{field_name}': maps are not supported for this type of transformation."
+
+    if MAP_MARKER in field_name:
+        yield build_message()
+
+
+def validate_nested_field_names(*field_names: str, allow_maps=True) -> None:
+    """Perform various checks on the given nested field names and raise an `spark_frame.utils.AnalysisException`
+    if any is found.
+
+    Possible errors:
+    - Repeated field marker `!` followed by something else than a struct `.` separator
+    - Map marker `%` followed by something else than `%key` or `%value`
+
+    Args:
+        field_names: A list of nested field names
+        allow_maps: Set to true if the transformation calling this method supports maps
+
+    Raises:
+        spark_frame.utils.AnalysisException: if any error is found
+    """
+
+    def fail_if_errors(errors):
+        if len(errors) > 0:
+            newline_str = "\n  - "
+            raise AnalysisException(
+                f"Invalid transformation, found the following errors:{newline_str}" + newline_str.join(errors)
+            )
+
+    def iterate() -> Generator[str, None, None]:
+        for field_name in field_names:
+            yield from validate_field_marker_followed_by_non_struct_character(field_name)
+            if allow_maps:
+                yield from validate_map_marker_followed_by_non_key_value(field_name)
+            else:
+                yield from validate_no_map(field_name)
+
+    fail_if_errors(list(iterate()))
+
+
 def resolve_nested_fields(
-    columns: Mapping[str, AnyKindOfTransformation],
+    fields: Mapping[str, AnyKindOfTransformation],
     starting_level: Union[Column, DataFrame, None] = None,
 ) -> List[Column]:
     """Builds a list of column expressions to manipulate structs and repeated records
@@ -336,7 +437,7 @@ def resolve_nested_fields(
        changing and without having to repeat its name.
 
     Args:
-        columns: A mapping (column_name -> transformation to apply to this column)
+        fields: A mapping (field_name -> transformation to apply to this field)
         starting_level: Nesting level from which the resolution should be started.
 
     Returns:
@@ -381,7 +482,8 @@ def resolve_nested_fields(
         +-------------------+
         <BLANKLINE>
     """
-    tree = _build_nested_struct_tree(columns)
+    validate_nested_field_names(*fields.keys())
+    tree = _build_nested_struct_tree(fields)
     root_transformation = _build_transformation_from_tree(tree)
     return root_transformation(starting_level)
 

@@ -9,6 +9,10 @@ K = TypeVar("K")
 V = TypeVar("V")
 
 
+class AnalysisException(Exception):
+    pass
+
+
 def is_sub_field(sub_field: str, field: str):
     """Return True if `sub_field` is a sub-field of `field`
 
