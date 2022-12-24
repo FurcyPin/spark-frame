@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Callable, Dict, Generator, List, Mapping, Optional, Tuple, Union, cast
+from typing import Callable, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union, cast
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
@@ -382,28 +382,152 @@ def validate_no_map(field_name: str) -> Generator[str, None, None]:
         yield build_message()
 
 
-def validate_nested_field_names(*field_names: str, allow_maps=True) -> None:
+def _get_prefixes_of_repeated_field(repeated_field: str, separator: str) -> Generator[str, None, None]:
+    """
+    >>> list(_get_prefixes_of_repeated_field("a!.b!.c", separator="!"))
+    ['a!', 'a!.b!']
+    >>> list(_get_prefixes_of_repeated_field("a.b.c", separator="!"))
+    []
+    """
+    prefix = ""
+    for part in repeated_field.split(separator)[:-1]:
+        prefix += part + separator
+        yield prefix
+
+
+def _get_repeated_fields(fields: List[str]) -> Set[str]:
+    """
+    >>> sorted(list(_get_repeated_fields(["s1!.a!", "s1!.b", "s2!.c", "s3!!!", "s4.a.b"])))
+    ['s1!', 's1!.a!', 's2!', 's3!', 's3!!', 's3!!!']
+    """
+    return {
+        prefix for field in fields for prefix in _get_prefixes_of_repeated_field(field, separator=REPETITION_MARKER)
+    }
+
+
+def _get_map_fields(fields: List[str]) -> Set[str]:
+    """
+    >>> sorted(list(_get_map_fields(["m1%key.a", "m1%key.b%key", "m1%key.b%value", "m1%value"])))
+    ['m1%', 'm1%key.b%']
+    """
+    return {prefix for field in fields for prefix in _get_prefixes_of_repeated_field(field, separator=MAP_MARKER)}
+
+
+def _find_fields_starting_with_prefix(prefix: str, fields: Iterable[str], separator: str):
+    """Given a prefix, find in the list all field names that start with this prefix and contain exactly one more
+    exclamation mark.
+
+    Args:
+        prefix: The prefix to search for in the field names
+        fields: The list of field names to search through
+
+    Returns:
+        A list of field names that start with the given prefix and contain exactly one more exclamation mark
+
+    Examples:
+        >>> _find_fields_starting_with_prefix(
+        ...     "a!.b!",
+        ...     ["a!.b!.c!", "x!.b!.c!", "a!.b!.d!", "a!.b!.d!.e!"],
+        ...     separator="!"
+        ... )
+        ['a!.b!.c!', 'a!.b!.d!']
+
+        >>> _find_fields_starting_with_prefix("a%key", {"a%", "a%key.b%", "a%value.c%"}, separator="%")
+        ['a%key.b%']
+    """
+
+    def aux():
+        for field in fields:
+            if field.startswith(prefix) and field.count(separator) == prefix.count(separator) + 1:
+                yield field
+
+    return list(aux())
+
+
+def validate_is_repeated_field_known(field_name: str, known_repeated_fields: Set[str]):
+    """Check for the following error:
+
+    - Repeated field name not matching any known field
+
+    Examples:
+        >>> list(validate_is_repeated_field_known("a!.c", {"a!", "a!.b!"}))
+        []
+        >>> list(validate_is_repeated_field_known("a!.c!", {"a!", "a!.b!"}))
+        ["Repeated field 'a!.c!' does not exist: Did you mean one of the following? [a!.b!];"]
+        >>> list(validate_is_repeated_field_known("a!.c", {"b!", "b!.c!"}))
+        ["Repeated field 'a!' does not exist: Did you mean one of the following? [b!];"]
+    """
+
+    def build_message(prefix: str, last_valid_prefix: str) -> str:
+        candidates = _find_fields_starting_with_prefix(last_valid_prefix, known_repeated_fields, REPETITION_MARKER)
+        return (
+            f"Repeated field '{prefix}' does not exist: Did you mean one of the following? [{', '.join(candidates)}];"
+        )
+
+    prefix = ""
+    for part in field_name.split(REPETITION_MARKER)[:-1]:
+        last_valid_prefix = prefix
+        prefix += part + REPETITION_MARKER
+        if prefix not in known_repeated_fields:
+            yield build_message(prefix, last_valid_prefix)
+            return
+
+
+def validate_is_map_field_known(field_name: str, known_map_fields: Set[str]):
+    """Check for the following error:
+
+    - Map field name not matching any known field
+
+    Examples:
+        >>> list(validate_is_map_field_known("a%key.c", {"a%", "a%key.b%"}))
+        []
+        >>> list(validate_is_map_field_known("a%value.b%", {"a%", "a%value.b%"}))
+        []
+        >>> list(validate_is_map_field_known("a%key.c%value", {"a%", "a%key.b%", "a%value.b%"}))
+        ["Map field 'a%key.c%' does not exist: Did you mean one of the following? [a%key.b%];"]
+        >>> list(validate_is_map_field_known("a%key.c", {"b%", "b%key.c%"}))
+        ["Map field 'a%' does not exist: Did you mean one of the following? [b%];"]
+    """
+
+    def build_message(prefix: str, last_valid_prefix: str) -> str:
+        candidates = _find_fields_starting_with_prefix(last_valid_prefix, known_map_fields, MAP_MARKER)
+        return f"Map field '{prefix}' does not exist: Did you mean one of the following? [{', '.join(candidates)}];"
+
+    prefix = ""
+    for part in field_name.split(MAP_MARKER)[:-1]:
+        last_valid_prefix = prefix
+        if part.startswith(MAP_KEY):
+            last_valid_prefix += MAP_KEY
+        if part.startswith(MAP_VALUE):
+            last_valid_prefix += MAP_VALUE
+        prefix += part + MAP_MARKER
+        if prefix not in known_map_fields:
+            yield build_message(prefix, last_valid_prefix)
+            return
+
+
+def validate_nested_field_names(*field_names: str, allow_maps=True, known_fields: Optional[List[str]] = None) -> None:
     """Perform various checks on the given nested field names and raise an `spark_frame.utils.AnalysisException`
     if any is found.
 
     Possible errors:
     - Repeated field marker `!` followed by something else than a struct `.` separator
     - Map marker `%` followed by something else than `%key` or `%value`
+    - Map field marker `%` used when maps are not allowed
+    - Repeated field name not matching any known field
 
     Args:
         field_names: A list of nested field names
         allow_maps: Set to true if the transformation calling this method supports maps
+        known_fields: List of field names already known
 
     Raises:
         spark_frame.utils.AnalysisException: if any error is found
     """
 
-    def fail_if_errors(errors):
+    def fail_if_errors(errors: List[str]) -> None:
         if len(errors) > 0:
-            newline_str = "\n  - "
-            raise AnalysisException(
-                f"Invalid transformation, found the following errors:{newline_str}" + newline_str.join(errors)
-            )
+            raise AnalysisException(errors[0])
 
     def iterate() -> Generator[str, None, None]:
         for field_name in field_names:
@@ -412,6 +536,11 @@ def validate_nested_field_names(*field_names: str, allow_maps=True) -> None:
                 yield from validate_map_marker_followed_by_non_key_value(field_name)
             else:
                 yield from validate_no_map(field_name)
+            if known_fields is not None:
+                known_repeated_fields = _get_repeated_fields(known_fields)
+                yield from validate_is_repeated_field_known(field_name, known_repeated_fields)
+                known_map_fields = _get_map_fields(known_fields)
+                yield from validate_is_map_field_known(field_name, known_map_fields)
 
     fail_if_errors(list(iterate()))
 
@@ -482,7 +611,13 @@ def resolve_nested_fields(
         +-------------------+
         <BLANKLINE>
     """
-    validate_nested_field_names(*fields.keys())
+    if isinstance(starting_level, DataFrame):
+        from spark_frame import nested
+
+        known_fields = nested.fields(starting_level)
+    else:
+        known_fields = None
+    validate_nested_field_names(*fields.keys(), known_fields=known_fields)
     tree = _build_nested_struct_tree(fields)
     root_transformation = _build_transformation_from_tree(tree)
     return root_transformation(starting_level)
