@@ -150,23 +150,17 @@ def aggregate(
         is_struct = key == STRUCT_SEPARATOR
         is_repeated = key == REPETITION_MARKER
         has_children = len(parts) > 1
+        if has_children:
+            child_transformation = recurse_item(parts[1:], prefix + key)
+        else:
+            child_transformation = agg_start
         if is_struct:
             assert_true(has_children, "Error, this should not happen: struct without children")
-            child_transformation = recurse_item(parts[1:], prefix + key)
             return child_transformation
         elif is_repeated:
-            if has_children:
-                child_transformation = recurse_item(parts[1:], prefix + key)
-                return fp.compose(agg_merge, higher_order.transform(child_transformation))
-            else:
-                return fp.compose(agg_merge, higher_order.transform(agg_start))
-        elif has_children:
-            child_transformation = recurse_item(parts[1:], prefix + key)
-            return fp.compose(child_transformation, higher_order.struct_get(key))
+            return fp.compose(agg_merge, higher_order.transform(child_transformation))
         else:
-            col = higher_order.struct_get(key)
-            col = fp.compose(agg_start, col)
-            return col
+            return fp.compose(child_transformation, higher_order.struct_get(key))
 
     root_transformation = recurse_item(field_parts)
     root_transformation = fp.compose(agg_finish, root_transformation)
