@@ -2,7 +2,7 @@ from typing import Dict, Generator, List, Optional, Tuple, cast
 
 from pyspark.sql.types import ArrayType, DataType, MapType, StructField, StructType
 
-from spark_frame.conf import MAP_KEY, MAP_VALUE, REPETITION_MARKER, STRUCT_SEPARATOR
+from spark_frame.conf import MAP_KEY, MAP_MARKER, MAP_VALUE, REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.utils import assert_true, get_instantiated_spark_session
 
 
@@ -141,6 +141,7 @@ def flatten_schema(
     explode: bool,
     struct_separator: str = STRUCT_SEPARATOR,
     repetition_marker: str = REPETITION_MARKER,
+    map_marker: str = MAP_MARKER,
     map_key: str = MAP_KEY,
     map_value: str = MAP_VALUE,
 ) -> StructType:
@@ -157,6 +158,7 @@ def flatten_schema(
         explode: If set, arrays and maps are exploded.
         struct_separator: String used to separate structs from their field
         repetition_marker: String used to mark repeated fields
+        map_marker: String used to mark maps
         map_key: String used to represent map keys
         map_value: String used to represent map values
 
@@ -195,9 +197,12 @@ def flatten_schema(
                 data_type.elementType, is_nullable or data_type.containsNull, metadata, prefix + repetition_marker
             )
         elif isinstance(data_type, MapType) and explode:
-            yield from flatten_data_type(data_type.keyType, is_nullable, metadata, prefix + map_key)
+            yield from flatten_data_type(data_type.keyType, is_nullable, metadata, prefix + map_marker + map_key)
             yield from flatten_data_type(
-                data_type.valueType, is_nullable or data_type.valueContainsNull, metadata, prefix + map_value
+                data_type.valueType,
+                is_nullable or data_type.valueContainsNull,
+                metadata,
+                prefix + map_marker + map_value,
             )
         else:
             yield StructField(prefix, data_type, is_nullable, metadata)
