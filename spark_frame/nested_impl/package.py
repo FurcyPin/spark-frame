@@ -302,7 +302,7 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
             f3 = higher_order.recursive_struct_get(parent_structs)
             res = fp.compose(f1, f2, f3)
             return res
-        elif key in [MAP_KEY, MAP_VALUE]:
+        elif key in [MAP_MARKER + MAP_KEY, MAP_MARKER + MAP_VALUE]:
             child_transformation = recurse_node_with_one_item(col_or_children, parent_structs=[])
             return child_transformation
         else:
