@@ -789,6 +789,17 @@ def unnest_fields(
         for key, children in node.items():
             yield from recurse_item(node, key, children, current_df, prefix, quoted_prefix)
 
+    def recurse_node_with_one_item(
+        children: Optional[OrderedTree], current_df: DataFrame, prefix: str, quoted_prefix: str
+    ) -> Generator[Tuple[DataFrame, Column], None, None]:
+        has_children = children is not None
+        if has_children:
+            node = cast(OrderedTree, children)
+            assert_true(len(node) == 1, "Error, this should not happen: non-struct node with more than one child")
+            yield from recurse_node_with_multiple_items(node, current_df, prefix=prefix, quoted_prefix=quoted_prefix)
+        else:
+            yield current_df, f.col(quoted_prefix).alias(prefix)
+
     def recurse_item(
         node: OrderedTree,
         key: str,
@@ -797,32 +808,25 @@ def unnest_fields(
         prefix: str,
         quoted_prefix: str,
     ) -> Generator[Tuple[DataFrame, Column], None, None]:
-        is_struct = key == STRUCT_SEPARATOR
-        is_repeated = key == REPETITION_MARKER
-        has_children = children is not None
-        if is_struct:
+        if key == STRUCT_SEPARATOR:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type struct with siblings")
+            has_children = children is not None
             assert_true(has_children, "Error, this should not happen: struct without children")
             yield from recurse_node_with_multiple_items(
                 children, current_df, prefix=prefix + key, quoted_prefix=quoted_prefix + key
             )
-        elif is_repeated:
+        elif key == REPETITION_MARKER:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type array with siblings")
             exploded_col = f.explode(f.col(quoted_prefix)).alias(prefix + key)
             keep_cols = [f.col(keep_col).alias(keep_col) for keep_col in keep_columns_list]
             new_df = current_df.select(*keep_cols, exploded_col)
-            if has_children:
-                yield from recurse_node_with_multiple_items(
-                    children, new_df, prefix=prefix + key, quoted_prefix=quote(prefix + key)
-                )
-            else:
-                yield new_df, f.col(quote(prefix + key))
-        elif has_children:
-            yield from recurse_node_with_multiple_items(
-                children, current_df, prefix=prefix + key, quoted_prefix=quoted_prefix + quote(key)
+            yield from recurse_node_with_one_item(
+                children, new_df, prefix=prefix + key, quoted_prefix=quote(prefix + key)
             )
         else:
-            yield current_df, f.col(quoted_prefix + quote(key)).alias(prefix + key)
+            yield from recurse_node_with_one_item(
+                children, current_df, prefix=prefix + key, quoted_prefix=quoted_prefix + quote(key)
+            )
 
     col_dict = {col: None for col in fields}
     root_tree = _build_nested_struct_tree(col_dict)
