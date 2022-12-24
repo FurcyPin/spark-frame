@@ -51,5 +51,6 @@ nav:
     - spark_frame.functions: "reference/functions.md"
     - spark_frame.graph: "reference/graph.md"
     - spark_frame.nested: "reference/nested.md"
+    - spark_frame.nested_functions: "reference/nested_functions.md"
     - spark_frame.schema_utils: "reference/schema_utils.md"
     - spark_frame.transformations: "reference/transformations.md"
