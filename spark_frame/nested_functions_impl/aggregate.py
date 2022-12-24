@@ -50,11 +50,14 @@ def aggregate(
 
     Args:
         field_name: Name of the repeated field to sum. It may be repeated multiple times.
-        initial_value:
-        merge:
-        start:
-        finish:
-        starting_level: Nesting level from which the aggregation is started.
+        initial_value: Name of column or Column expression.
+        merge: A binary function `(acc: Column, x: Column[) -> Column` returning an expression
+            of the same type as `initial_value`.
+        start: An optional unary function `(x: Column) -> Column` that transforms the values to aggregate into the
+            same type as `initial_value`.
+        finish: An optional unary function `(x: Column) -> Column` used to convert accumulated value into the final
+            result.
+        starting_level: Nesting level from which the aggregation is started
 
     Returns:
         A Column expression
