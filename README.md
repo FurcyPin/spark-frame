@@ -50,11 +50,23 @@ This library is tested against Mac and Linux.
 
 # Release notes
 
-# v0.0.4
- 
-- New transformation: `spark_frame.transformations.transform_all_field_names`.
-- New transformation: `spark_frame.transformations.transform_all_fields`.
-- New transformation: `spark_frame.transformations.union_dataframes`.
+# v0.1.0
+
+- Added a new _amazing_ module called `spark_frame.nested`, 
+  which makes manipulation of nested data structure much easier!
+  Make sure to check out the [reference](https://furcypin.github.io/spark-frame/reference/nested/)
+  and the [use-cases](https://furcypin.github.io/spark-frame/use_cases/working_with_nested_data/).
+
+- Also added a new module called `spark_frame.nested_functions`,
+  which contains aggregation methods for nested data structures
+  ([See Reference](https://furcypin.github.io/spark-frame/reference/nested_functions/)).
+
+- New [transformations](https://furcypin.github.io/spark-frame/reference/transformations/):
+  - `spark_frame.transformations.transform_all_field_names`
+  - `spark_frame.transformations.transform_all_fields`
+  - `spark_frame.transformations.unnest_field`
+  - `spark_frame.transformations.unnest_all_fields`
+  - `spark_frame.transformations.union_dataframes`
 
 # v0.0.3
 
