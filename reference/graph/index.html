@@ -1,0 +1,1122 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://furcypin.github.io/spark-frame/reference/graph/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
+    
+    
+      
+        <title>spark_frame.graph - Spark-frame</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.975780f9.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+        
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../css/mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../css/custom_width.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#spark_frame.graph_impl.ascending_forest_traversal.ascending_forest_traversal" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Spark-frame" class="md-header__button md-logo" aria-label="Spark-frame" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Spark-frame
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              spark_frame.graph
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+            </label>
+          
+        
+          
+          
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/FurcyPin/spark-frame" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FurcyPin/spark-frame
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Spark-frame" class="md-nav__button md-logo" aria-label="Spark-frame" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Spark-frame
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/FurcyPin/spark-frame" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FurcyPin/spark-frame
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        What is spark-frame ?
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Use cases
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Use cases" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Use cases
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../use_cases/intro/" class="md-nav__link">
+        Intro
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../use_cases/working_with_nested_data/" class="md-nav__link">
+        Working with nested data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../use_cases/working_with_json/" class="md-nav__link">
+        Working with json
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../use_cases/flatten_unflatten/" class="md-nav__link">
+        Using flatten/unflatten
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/" class="md-nav__link">
+        spark_frame.functions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          spark_frame.graph
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        spark_frame.graph
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#spark_frame.graph_impl.ascending_forest_traversal.ascending_forest_traversal" class="md-nav__link">
+    ascending_forest_traversal()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nested/" class="md-nav__link">
+        spark_frame.nested
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nested_functions/" class="md-nav__link">
+        spark_frame.nested_functions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema_utils/" class="md-nav__link">
+        spark_frame.schema_utils
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformations/" class="md-nav__link">
+        spark_frame.transformations
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#spark_frame.graph_impl.ascending_forest_traversal.ascending_forest_traversal" class="md-nav__link">
+    ascending_forest_traversal()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <a href="https://github.com/FurcyPin/spark-frame/tree/main/docs/reference/graph.md" title="Edit this page" class="md-content__button md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+  <h1>spark_frame.graph</h1>
+
+<p>This module contains implementations of graph algorithms and related methods.</p>
+<hr />
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="spark_frame.graph_impl.ascending_forest_traversal.ascending_forest_traversal" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">ascending_forest_traversal</span><span class="p">(</span><span class="n">input_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">keep_labels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Given a DataFrame representing a labeled forest with columns <code>id</code>, <code>parent_id</code> and other label columns,
+performs a graph traversal that will return a DataFrame with the same schema that gives for each node
+the labels of it's furthest ancestor.</p>
+<p>In the input DataFrame, a node is considered to have no parent if its parent_id is null or equal to its node_id.
+In the output DataFrame, a node that has no parent will have its parent_id equal to its node_id.
+Cycle protection: If the graph contains any cycle, the nodes in that cycle will have a NULL parent_id.</p>
+<p>It has a security against dependency cycles, but no security preventing
+a combinatorial explosion if some nodes have more than one parent.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input_df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A Spark DataFrame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Name of the column that represent the node's ids</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>parent_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Name of the column that represent the parent node's ids</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>keep_labels</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>If set to true, add two structs column called "node" and "furthest_ancestor" containing
+the content of the row from the input DataFrame for the corresponding nodes and their furthest ancestor</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A DataFrame with two columns named according to <code>node_id</code> and <code>parent_id</code> that gives for each node</p></td>
+        </tr>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>the id of it's furthest ancestor (in the <code>parent_id</code> column).</p></td>
+        </tr>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>If the option <code>keep_labels</code> is used, two extra columns of type STRUCT are a added to the output DataFrame,</p></td>
+        </tr>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>they represent the content of the rows in the input DataFrame corresponding to the node and its furthest</p></td>
+        </tr>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>ancestor, respectively.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;doctest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+</code></pre></div>
+    <p>Given a DataFrame with pokemon attributes and evolution links</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">input_df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">... </span><span class="s1">    SELECT</span>
+<span class="gp">... </span><span class="s1">      col1 as `pokemon.id`,</span>
+<span class="gp">... </span><span class="s1">      col2 as `pokemon.evolve_to_id`,</span>
+<span class="gp">... </span><span class="s1">      col3 as `pokemon.name`,</span>
+<span class="gp">... </span><span class="s1">      col4 as `pokemon.types`</span>
+<span class="gp">... </span><span class="s1">    FROM VALUES</span>
+<span class="gp">... </span><span class="s1">      (4, 5, &#39;Charmander&#39;, ARRAY(&#39;Fire&#39;)),</span>
+<span class="gp">... </span><span class="s1">      (5, 6, &#39;Charmeleon&#39;, ARRAY(&#39;Fire&#39;)),</span>
+<span class="gp">... </span><span class="s1">      (6, NULL, &#39;Charizard&#39;, ARRAY(&#39;Fire&#39;, &#39;Flying&#39;))</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_df</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+----------+--------------------+------------+--------------+</span>
+<span class="go">|pokemon.id|pokemon.evolve_to_id|pokemon.name| pokemon.types|</span>
+<span class="go">+----------+--------------------+------------+--------------+</span>
+<span class="go">|         4|                   5|  Charmander|        [Fire]|</span>
+<span class="go">|         5|                   6|  Charmeleon|        [Fire]|</span>
+<span class="go">|         6|                null|   Charizard|[Fire, Flying]|</span>
+<span class="go">+----------+--------------------+------------+--------------+</span>
+</code></pre></div>
+    <p>We compute a DataFrame that for each pokemon.id gives the attributes of its highest level of evolution</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">ascending_forest_traversal</span><span class="p">(</span><span class="n">input_df</span><span class="p">,</span> <span class="s2">&quot;pokemon.id&quot;</span><span class="p">,</span> <span class="s2">&quot;pokemon.evolve_to_id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">&quot;`pokemon.id`&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+----------+--------------------+</span>
+<span class="go">|pokemon.id|pokemon.evolve_to_id|</span>
+<span class="go">+----------+--------------------+</span>
+<span class="go">|         4|                   6|</span>
+<span class="go">|         5|                   6|</span>
+<span class="go">|         6|                   6|</span>
+<span class="go">+----------+--------------------+</span>
+</code></pre></div>
+    <p>With the <code>keep_label</code> option extra joins are performed at the end of the algorithm to add two struct columns
+containing the corresponding row for the original node and the furthest ancestor.</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">ascending_forest_traversal</span><span class="p">(</span><span class="n">input_df</span><span class="p">,</span> <span class="s2">&quot;pokemon.id&quot;</span><span class="p">,</span> <span class="s2">&quot;pokemon.evolve_to_id&quot;</span><span class="p">,</span> <span class="n">keep_labels</span><span class="o">=</span><span class="kc">True</span>
+<span class="gp">... </span>    <span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">&quot;`pokemon.id`&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="go">+----------+--------------------+------------------------------------+------------------------------------+</span>
+<span class="go">|pokemon.id|pokemon.evolve_to_id|node                                |furthest_ancestor                   |</span>
+<span class="go">+----------+--------------------+------------------------------------+------------------------------------+</span>
+<span class="go">|4         |6                   |{4, 5, Charmander, [Fire]}          |{6, null, Charizard, [Fire, Flying]}|</span>
+<span class="go">|5         |6                   |{5, 6, Charmeleon, [Fire]}          |{6, null, Charizard, [Fire, Flying]}|</span>
+<span class="go">|6         |6                   |{6, null, Charizard, [Fire, Flying]}|{6, null, Charizard, [Fire, Flying]}|</span>
+<span class="go">+----------+--------------------+------------------------------------+------------------------------------+</span>
+</code></pre></div>
+    <p><em>Cycle Protection:</em> to prevent the algorithm from looping indefinitely, cycles are detected, and the nodes
+that are part of cycles will end up with a NULL value as their furthest ancestor</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">input_df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">... </span><span class="s1">    SELECT</span>
+<span class="gp">... </span><span class="s1">      col1 as `node_id`,</span>
+<span class="gp">... </span><span class="s1">      col2 as `parent_id`</span>
+<span class="gp">... </span><span class="s1">    FROM VALUES (1, 2), (2, 3), (3, 1)</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_df</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+-------+---------+</span>
+<span class="go">|node_id|parent_id|</span>
+<span class="go">+-------+---------+</span>
+<span class="go">|      1|        2|</span>
+<span class="go">|      2|        3|</span>
+<span class="go">|      3|        1|</span>
+<span class="go">+-------+---------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ascending_forest_traversal</span><span class="p">(</span><span class="n">input_df</span><span class="p">,</span> <span class="s2">&quot;node_id&quot;</span><span class="p">,</span> <span class="s2">&quot;parent_id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">&quot;node_id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">+-------+---------+</span>
+<span class="go">|node_id|parent_id|</span>
+<span class="go">+-------+---------+</span>
+<span class="go">|      1|     null|</span>
+<span class="go">|      2|     null|</span>
+<span class="go">|      3|     null|</span>
+<span class="go">+-------+---------+</span>
+</code></pre></div>
+
+      <details class="quote">
+        <summary>Source code in <code>spark_frame/graph_impl/ascending_forest_traversal.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">ascending_forest_traversal</span><span class="p">(</span>
+    <span class="n">input_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">keep_labels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Given a DataFrame representing a labeled forest with columns `id`, `parent_id` and other label columns,</span>
+<span class="sd">    performs a graph traversal that will return a DataFrame with the same schema that gives for each node</span>
+<span class="sd">    the labels of it&#39;s furthest ancestor.</span>
+
+<span class="sd">    In the input DataFrame, a node is considered to have no parent if its parent_id is null or equal to its node_id.</span>
+<span class="sd">    In the output DataFrame, a node that has no parent will have its parent_id equal to its node_id.</span>
+<span class="sd">    Cycle protection: If the graph contains any cycle, the nodes in that cycle will have a NULL parent_id.</span>
+
+<span class="sd">    It has a security against dependency cycles, but no security preventing</span>
+<span class="sd">    a combinatorial explosion if some nodes have more than one parent.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_df: A Spark DataFrame</span>
+<span class="sd">        node_id: Name of the column that represent the node&#39;s ids</span>
+<span class="sd">        parent_id: Name of the column that represent the parent node&#39;s ids</span>
+<span class="sd">        keep_labels: If set to true, add two structs column called &quot;node&quot; and &quot;furthest_ancestor&quot; containing</span>
+<span class="sd">            the content of the row from the input DataFrame for the corresponding nodes and their furthest ancestor</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A DataFrame with two columns named according to `node_id` and `parent_id` that gives for each node</span>
+<span class="sd">        the id of it&#39;s furthest ancestor (in the `parent_id` column).</span>
+<span class="sd">        If the option `keep_labels` is used, two extra columns of type STRUCT are a added to the output DataFrame,</span>
+<span class="sd">        they represent the content of the rows in the input DataFrame corresponding to the node and its furthest</span>
+<span class="sd">        ancestor, respectively.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from pyspark.sql import SparkSession</span>
+<span class="sd">        &gt;&gt;&gt; spark = SparkSession.builder.appName(&quot;doctest&quot;).getOrCreate()</span>
+
+<span class="sd">        Given a DataFrame with pokemon attributes and evolution links</span>
+
+<span class="sd">        &gt;&gt;&gt; input_df = spark.sql(&#39;&#39;&#39;</span>
+<span class="sd">        ...     SELECT</span>
+<span class="sd">        ...       col1 as `pokemon.id`,</span>
+<span class="sd">        ...       col2 as `pokemon.evolve_to_id`,</span>
+<span class="sd">        ...       col3 as `pokemon.name`,</span>
+<span class="sd">        ...       col4 as `pokemon.types`</span>
+<span class="sd">        ...     FROM VALUES</span>
+<span class="sd">        ...       (4, 5, &#39;Charmander&#39;, ARRAY(&#39;Fire&#39;)),</span>
+<span class="sd">        ...       (5, 6, &#39;Charmeleon&#39;, ARRAY(&#39;Fire&#39;)),</span>
+<span class="sd">        ...       (6, NULL, &#39;Charizard&#39;, ARRAY(&#39;Fire&#39;, &#39;Flying&#39;))</span>
+<span class="sd">        ... &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; input_df.show()</span>
+<span class="sd">        +----------+--------------------+------------+--------------+</span>
+<span class="sd">        |pokemon.id|pokemon.evolve_to_id|pokemon.name| pokemon.types|</span>
+<span class="sd">        +----------+--------------------+------------+--------------+</span>
+<span class="sd">        |         4|                   5|  Charmander|        [Fire]|</span>
+<span class="sd">        |         5|                   6|  Charmeleon|        [Fire]|</span>
+<span class="sd">        |         6|                null|   Charizard|[Fire, Flying]|</span>
+<span class="sd">        +----------+--------------------+------------+--------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        We compute a DataFrame that for each pokemon.id gives the attributes of its highest level of evolution</span>
+
+<span class="sd">        &gt;&gt;&gt; ascending_forest_traversal(input_df, &quot;pokemon.id&quot;, &quot;pokemon.evolve_to_id&quot;).orderBy(&quot;`pokemon.id`&quot;).show()</span>
+<span class="sd">        +----------+--------------------+</span>
+<span class="sd">        |pokemon.id|pokemon.evolve_to_id|</span>
+<span class="sd">        +----------+--------------------+</span>
+<span class="sd">        |         4|                   6|</span>
+<span class="sd">        |         5|                   6|</span>
+<span class="sd">        |         6|                   6|</span>
+<span class="sd">        +----------+--------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        With the `keep_label` option extra joins are performed at the end of the algorithm to add two struct columns</span>
+<span class="sd">        containing the corresponding row for the original node and the furthest ancestor.</span>
+
+<span class="sd">        &gt;&gt;&gt; ascending_forest_traversal(input_df, &quot;pokemon.id&quot;, &quot;pokemon.evolve_to_id&quot;, keep_labels=True</span>
+<span class="sd">        ...     ).orderBy(&quot;`pokemon.id`&quot;).show(10, False)</span>
+<span class="sd">        +----------+--------------------+------------------------------------+------------------------------------+</span>
+<span class="sd">        |pokemon.id|pokemon.evolve_to_id|node                                |furthest_ancestor                   |</span>
+<span class="sd">        +----------+--------------------+------------------------------------+------------------------------------+</span>
+<span class="sd">        |4         |6                   |{4, 5, Charmander, [Fire]}          |{6, null, Charizard, [Fire, Flying]}|</span>
+<span class="sd">        |5         |6                   |{5, 6, Charmeleon, [Fire]}          |{6, null, Charizard, [Fire, Flying]}|</span>
+<span class="sd">        |6         |6                   |{6, null, Charizard, [Fire, Flying]}|{6, null, Charizard, [Fire, Flying]}|</span>
+<span class="sd">        +----------+--------------------+------------------------------------+------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        *Cycle Protection:* to prevent the algorithm from looping indefinitely, cycles are detected, and the nodes</span>
+<span class="sd">        that are part of cycles will end up with a NULL value as their furthest ancestor</span>
+
+<span class="sd">        &gt;&gt;&gt; input_df = spark.sql(&#39;&#39;&#39;</span>
+<span class="sd">        ...     SELECT</span>
+<span class="sd">        ...       col1 as `node_id`,</span>
+<span class="sd">        ...       col2 as `parent_id`</span>
+<span class="sd">        ...     FROM VALUES (1, 2), (2, 3), (3, 1)</span>
+<span class="sd">        ... &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; input_df.show()</span>
+<span class="sd">        +-------+---------+</span>
+<span class="sd">        |node_id|parent_id|</span>
+<span class="sd">        +-------+---------+</span>
+<span class="sd">        |      1|        2|</span>
+<span class="sd">        |      2|        3|</span>
+<span class="sd">        |      3|        1|</span>
+<span class="sd">        +-------+---------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; ascending_forest_traversal(input_df, &quot;node_id&quot;, &quot;parent_id&quot;).orderBy(&quot;node_id&quot;).show()</span>
+<span class="sd">        +-------+---------+</span>
+<span class="sd">        |node_id|parent_id|</span>
+<span class="sd">        +-------+---------+</span>
+<span class="sd">        |      1|     null|</span>
+<span class="sd">        |      2|     null|</span>
+<span class="sd">        |      3|     null|</span>
+<span class="sd">        +-------+---------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">assert_true</span><span class="p">(</span>
+        <span class="n">node_id</span> <span class="ow">in</span> <span class="n">input_df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="s2">&quot;Could not find column </span><span class="si">%s</span><span class="s2"> in Dataframe&#39;s columns: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="n">input_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">assert_true</span><span class="p">(</span>
+        <span class="n">parent_id</span> <span class="ow">in</span> <span class="n">input_df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+        <span class="s2">&quot;Could not find column </span><span class="si">%s</span><span class="s2"> in Dataframe&#39;s columns: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parent_id</span><span class="p">,</span> <span class="n">input_df</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">node_id_col_name</span> <span class="o">=</span> <span class="s2">&quot;node_id&quot;</span>
+    <span class="n">parent_id_col_name</span> <span class="o">=</span> <span class="s2">&quot;parent_id&quot;</span>
+    <span class="n">status_col_name</span> <span class="o">=</span> <span class="s2">&quot;status&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">input_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">quote</span><span class="p">(</span><span class="n">node_id</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">node_id_col_name</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">quote</span><span class="p">(</span><span class="n">parent_id</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">parent_id_col_name</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">res_df</span> <span class="o">=</span> <span class="n">_ascending_forest_traversal</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">,</span> <span class="n">node_id_col_name</span><span class="o">=</span><span class="n">node_id_col_name</span><span class="p">,</span> <span class="n">parent_id_col_name</span><span class="o">=</span><span class="n">parent_id_col_name</span><span class="p">,</span> <span class="n">status_col_name</span><span class="o">=</span><span class="n">status_col_name</span>
+    <span class="p">)</span>
+    <span class="n">res_df</span> <span class="o">=</span> <span class="n">res_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">node_id_col_name</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">node_id</span><span class="p">),</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">parent_id_col_name</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">parent_id</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">keep_labels</span><span class="p">:</span>
+        <span class="n">res_df</span> <span class="o">=</span> <span class="n">res_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_df</span><span class="p">,</span> <span class="n">node_id</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="n">res_df</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">struct</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">input_df</span><span class="p">[</span><span class="n">quote</span><span class="p">(</span><span class="n">col</span><span class="p">)]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">input_df</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;node&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">res_df</span> <span class="o">=</span> <span class="n">res_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_df</span><span class="p">,</span> <span class="n">res_df</span><span class="p">[</span><span class="n">quote</span><span class="p">(</span><span class="n">parent_id</span><span class="p">)]</span> <span class="o">==</span> <span class="n">input_df</span><span class="p">[</span><span class="n">quote</span><span class="p">(</span><span class="n">node_id</span><span class="p">)])</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="n">res_df</span><span class="p">[</span><span class="n">quote</span><span class="p">(</span><span class="n">node_id</span><span class="p">)],</span>
+            <span class="n">res_df</span><span class="p">[</span><span class="n">quote</span><span class="p">(</span><span class="n">parent_id</span><span class="p">)],</span>
+            <span class="n">res_df</span><span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">],</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">struct</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">input_df</span><span class="p">[</span><span class="n">quote</span><span class="p">(</span><span class="n">col</span><span class="p">)]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">input_df</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;furthest_ancestor&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">res_df</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div><hr />
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="../functions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: spark_frame.functions" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              spark_frame.functions
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../nested/" class="md-footer__link md-footer__link--next" aria-label="Next: spark_frame.nested" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              spark_frame.nested
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.5a2dcb6a.min.js"></script>
+      
+    
+    
+  </body>
+</html>

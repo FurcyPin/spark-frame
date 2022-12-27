@@ -1,28 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>None</loc>
-         <lastmod>2022-12-16</lastmod>
+         <loc>https://furcypin.github.io/spark-frame/</loc>
+         <lastmod>2022-12-27</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-12-16</lastmod>
+         <loc>https://furcypin.github.io/spark-frame/reference/functions/</loc>
+         <lastmod>2022-12-27</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-12-16</lastmod>
+         <loc>https://furcypin.github.io/spark-frame/reference/graph/</loc>
+         <lastmod>2022-12-27</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-12-16</lastmod>
+         <loc>https://furcypin.github.io/spark-frame/reference/nested/</loc>
+         <lastmod>2022-12-27</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-12-16</lastmod>
+         <loc>https://furcypin.github.io/spark-frame/reference/nested_functions/</loc>
+         <lastmod>2022-12-27</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://furcypin.github.io/spark-frame/reference/schema_utils/</loc>
+         <lastmod>2022-12-27</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://furcypin.github.io/spark-frame/reference/transformations/</loc>
+         <lastmod>2022-12-27</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://furcypin.github.io/spark-frame/use_cases/flatten_unflatten/</loc>
+         <lastmod>2022-12-27</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://furcypin.github.io/spark-frame/use_cases/intro/</loc>
+         <lastmod>2022-12-27</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://furcypin.github.io/spark-frame/use_cases/working_with_json/</loc>
+         <lastmod>2022-12-27</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://furcypin.github.io/spark-frame/use_cases/working_with_nested_data/</loc>
+         <lastmod>2022-12-27</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
