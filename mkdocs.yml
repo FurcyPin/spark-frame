@@ -2,7 +2,20 @@
 site_name: Spark-frame
 
 theme:
-  name: "material"
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 
 plugins:
   - search:
@@ -37,8 +50,10 @@ watch:
   - README.md
   - spark_frame
 
-#site_url: docs/home.md
+site_url: https://furcypin.github.io/spark-frame
 edit_uri: https://github.com/FurcyPin/spark-frame/tree/main/docs
+repo_url: https://github.com/FurcyPin/spark-frame
+repo_name: FurcyPin/spark-frame
 
 nav:
   - What is spark-frame ?: "README.md"
