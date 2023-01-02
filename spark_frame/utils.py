@@ -34,7 +34,7 @@ def is_sub_field(sub_field: str, field: str):
 
 
 def is_sub_field_of_any(sub_field: str, fields: List[str]):
-    """Return True if `sub_field` is a sub-field of `field`
+    """Return True if `sub_field` is a sub-field of any field in `fields`
 
     >>> is_sub_field_of_any("a", ["a", "b"])
     True
