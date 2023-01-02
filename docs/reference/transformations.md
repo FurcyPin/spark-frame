@@ -24,6 +24,8 @@ that _cannot_ be implemented with one single SQL query.
 ---
 ### ::: spark_frame.transformations_impl.flatten.flatten
 ---
+### ::: spark_frame.transformations_impl.flatten_all_arrays.flatten_all_arrays
+---
 ### ::: spark_frame.transformations_impl.harmonize_dataframes.harmonize_dataframes
 ---
 ### ::: spark_frame.transformations_impl.parse_json_columns.parse_json_columns

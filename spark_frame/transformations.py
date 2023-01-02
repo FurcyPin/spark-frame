@@ -1,5 +1,6 @@
 from spark_frame.transformations_impl.convert_all_maps_to_arrays import convert_all_maps_to_arrays
 from spark_frame.transformations_impl.flatten import flatten
+from spark_frame.transformations_impl.flatten_all_arrays import flatten_all_arrays
 from spark_frame.transformations_impl.harmonize_dataframes import harmonize_dataframes
 from spark_frame.transformations_impl.parse_json_columns import parse_json_columns
 from spark_frame.transformations_impl.sort_all_arrays import sort_all_arrays
@@ -12,6 +13,7 @@ from spark_frame.transformations_impl.with_generic_typed_struct import with_gene
 
 convert_all_maps_to_arrays = convert_all_maps_to_arrays
 flatten = flatten
+flatten_all_arrays = flatten_all_arrays
 harmonize_dataframes = harmonize_dataframes
 parse_json_columns = parse_json_columns
 sort_all_arrays = sort_all_arrays

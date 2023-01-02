@@ -54,6 +54,10 @@ This library is tested against Mac and Linux.
 
 # Release notes
 
+# v0.1.1 (Upcoming)
+
+- Added a new transformation `spark_frame.transformations.flatten_all_arrays`.
+
 # v0.1.0
 
 - Added a new _amazing_ module called `spark_frame.nested`, 
