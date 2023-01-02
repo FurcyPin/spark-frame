@@ -1,3 +1,4 @@
+from spark_frame.transformations_impl.analyze import analyze
 from spark_frame.transformations_impl.convert_all_maps_to_arrays import convert_all_maps_to_arrays
 from spark_frame.transformations_impl.flatten import flatten
 from spark_frame.transformations_impl.flatten_all_arrays import flatten_all_arrays
@@ -11,6 +12,7 @@ from spark_frame.transformations_impl.union_dataframes import union_dataframes
 from spark_frame.transformations_impl.unpivot import unpivot
 from spark_frame.transformations_impl.with_generic_typed_struct import with_generic_typed_struct
 
+analyze = analyze
 convert_all_maps_to_arrays = convert_all_maps_to_arrays
 flatten = flatten
 flatten_all_arrays = flatten_all_arrays
