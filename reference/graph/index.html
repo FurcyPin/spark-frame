@@ -892,7 +892,7 @@ that are part of cycles will end up with a NULL value as their furthest ancestor
 <span class="normal">462</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">ascending_forest_traversal</span><span class="p">(</span>
     <span class="n">input_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">keep_labels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Given a DataFrame representing a labeled forest with columns `id`, `parent_id` and other label columns,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a DataFrame representing a labeled forest with columns `id`, `parent_id` and other label columns,</span>
 <span class="sd">    performs a graph traversal that will return a DataFrame with the same schema that gives for each node</span>
 <span class="sd">    the labels of it&#39;s furthest ancestor.</span>
 

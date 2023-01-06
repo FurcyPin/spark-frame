@@ -687,12 +687,12 @@
     <p><strong>Error cases:</strong></p>
     <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_json</span><span class="p">(</span><span class="s1">&#39;&quot;integer&quot;&#39;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="gr">TypeError</span>: <span class="n">string indices must be integers</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_json</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;{&quot;keyType&quot;:&quot;string&quot;,&quot;type&quot;:&quot;map&quot;,</span>
 <span class="gp">... </span><span class="s1">&quot;valueContainsNull&quot;:true,&quot;valueType&quot;:&quot;string&quot;}&#39;&#39;&#39;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="gr">KeyError</span>: <span class="n">&#39;fields&#39;</span>
 </code></pre></div>
 
@@ -742,7 +742,7 @@
 <span class="normal">50</span>
 <span class="normal">51</span>
 <span class="normal">52</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">schema_from_json</span><span class="p">(</span><span class="n">json_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StructType</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Parses the given json string representing a Spark :class:`StructType`.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parses the given json string representing a Spark :class:`StructType`.</span>
 
 <span class="sd">    Only schema representing StructTypes can be parsed, this means that</span>
 <span class="sd">    `schema_from_json(schema_to_json(data_type))` will crash if `data_type` is not a StructType.</span>
@@ -888,19 +888,19 @@ This method requires the SparkSession to have already been instantiated.</p>
     <p><strong>Error cases:</strong></p>
     <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;blabla&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="err">pyspark.sql.utils.ParseException:...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;a: int,&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="err">pyspark.sql.utils.ParseException:...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;array&lt;int&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="err">pyspark.sql.utils.ParseException:...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;map&lt;int, boolean&gt;&gt;&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="err">pyspark.sql.utils.ParseException:...</span>
 </code></pre></div>
 
@@ -960,7 +960,7 @@ This method requires the SparkSession to have already been instantiated.</p>
 <span class="normal">106</span>
 <span class="normal">107</span>
 <span class="normal">108</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">schema_from_simple_string</span><span class="p">(</span><span class="n">schema_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataType</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Parses the given data type string to a :class:`DataType`. The data type string format equals</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parses the given data type string to a :class:`DataType`. The data type string format equals</span>
 <span class="sd">    [pyspark.sql.types.DataType.simpleString][], except that the top level struct type can omit</span>
 <span class="sd">    the ``struct&lt;&gt;``.</span>
 <span class="sd">    This method requires the SparkSession to have already been instantiated.</span>
@@ -1116,7 +1116,7 @@ This method requires the SparkSession to have already been instantiated.</p>
 <span class="normal">132</span>
 <span class="normal">133</span>
 <span class="normal">134</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">schema_to_json</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="n">DataType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert the given datatype into a json string.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert the given datatype into a json string.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        schema: A DataFrame schema.</span>
@@ -1277,7 +1277,7 @@ This method requires the SparkSession to have already been instantiated.</p>
 <span class="normal">176</span>
 <span class="normal">177</span>
 <span class="normal">178</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">schema_to_pretty_json</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="n">DataType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert the given datatype into a pretty (indented) json string.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert the given datatype into a pretty (indented) json string.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        schema: A DataFrame schema.</span>
@@ -1434,7 +1434,7 @@ This method is equivalent to calling <a class="autorefs autorefs-external" href=
 <span class="normal">208</span>
 <span class="normal">209</span>
 <span class="normal">210</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">schema_to_simple_string</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="n">DataType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert the given datatype into a simple sql string.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert the given datatype into a simple sql string.</span>
 <span class="sd">    This method is equivalent to calling [`schema.simpleString()`][pyspark.sql.types.DataType.simpleString] directly.</span>
 
 <span class="sd">    Args:</span>

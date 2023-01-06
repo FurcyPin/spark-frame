@@ -905,7 +905,7 @@ result.</p></td>
     <span class="n">finish</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Column</span><span class="p">],</span> <span class="n">Column</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">starting_level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Column</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Recursively compute an aggregation of all elements in the given repeated field.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recursively compute an aggregation of all elements in the given repeated field.</span>
 
 <span class="sd">    !!! warning &quot;Limitation: Dots, percents, and exclamation marks are not supported in field names&quot;</span>
 <span class="sd">        Given the syntax used, every method defined in the `spark_frame.nested` module assumes that all field</span>
@@ -1381,7 +1381,7 @@ This can be worked around using the transformation
 <span class="normal">156</span>
 <span class="normal">157</span>
 <span class="normal">158</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">average</span><span class="p">(</span><span class="n">field_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">starting_level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Column</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Recursively compute the average of all elements in the given repeated field.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recursively compute the average of all elements in the given repeated field.</span>
 
 <span class="sd">    !!! warning &quot;Limitation: Dots, percents, and exclamation marks are not supported in field names&quot;</span>
 <span class="sd">        Given the syntax used, every method defined in the `spark_frame.nested` module assumes that all field</span>
@@ -1870,7 +1870,7 @@ This can be worked around using the transformation
 <span class="normal">147</span>
 <span class="normal">148</span>
 <span class="normal">149</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="n">field_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">starting_level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Column</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Recursively compute the sum of all elements in the given repeated field.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recursively compute the sum of all elements in the given repeated field.</span>
 
 <span class="sd">    !!! warning &quot;Limitation: Dots, percents, and exclamation marks are not supported in field names&quot;</span>
 <span class="sd">        Given the syntax used, every method defined in the `spark_frame.nested` module assumes that all field</span>

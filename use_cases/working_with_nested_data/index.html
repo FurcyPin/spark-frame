@@ -813,7 +813,7 @@ a <code>double</code>, and <code>skills.name</code> is now in uppercase. But hop
 looks quite complex, and that it's complexity would grow even more if we tried to perform more transformations
 at the same time.</p>
 <h4 id="spark_frame.examples.working_with_nested_data.transform_nested_fields--with-spark_framenested">With spark_frame.nested</h4>
-<p>The module <a href="/reference/nested"><code>spark_frame.nested</code></a> proposes several methods to help us deal
+<p>The module <a href="/spark-frame/reference/nested"><code>spark_frame.nested</code></a> proposes several methods to help us deal
 with nested data structure more easily.
 First, let's use <a class="autorefs autorefs-internal" href="../../reference/nested/#spark_frame.nested_impl.print_schema.print_schema"><code>spark_frame.nested.print_schema</code></a> to get
 a flat version of the DataFrame's schema:</p>
@@ -1066,7 +1066,7 @@ This can be worked around using the transformation
 <span class="normal">76</span>
 <span class="normal">77</span>
 <span class="normal">78</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">print_schema</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Print the DataFrame&#39;s flattened schema to the standard output.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print the DataFrame&#39;s flattened schema to the standard output.</span>
 
 <span class="sd">    - Structs are flattened with a `.` after their name.</span>
 <span class="sd">    - Arrays are flattened with a `!` character after their name.</span>
@@ -1170,6 +1170,8 @@ capability of working on nested and repeated fields (structs and arrays).</p>
 <li>When working on repeated fields, transformations must be expressed as higher order functions
   (e.g. lambda expressions). String and column expressions can be used on repeated fields as well,
   but their value will be repeated multiple times.</li>
+<li>When working on multiple levels of nested arrays, higher order functions may take multiple arguments,
+  corresponding to each level of repetition (See Example 5.).</li>
 <li><code>None</code> can also be used to represent the identity transformation, this is useful to select a field without
    changing and without having to repeat its name.</li>
 </ul>
@@ -1399,6 +1401,50 @@ but their value will be repeated multiple times.</p>
 <span class="go">|  1|{A -&gt; {2.0, 3}}|</span>
 <span class="go">+---+---------------+</span>
 </code></pre></div>
+    <p><em>Example 5: Accessing multiple repetition levels</em></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">... </span><span class="s1">    SELECT</span>
+<span class="gp">... </span><span class="s1">        1 as id,</span>
+<span class="gp">... </span><span class="s1">        ARRAY(</span>
+<span class="gp">... </span><span class="s1">            STRUCT(2 as average, ARRAY(1, 2, 3) as values),</span>
+<span class="gp">... </span><span class="s1">            STRUCT(3 as average, ARRAY(1, 2, 3, 4, 5) as values)</span>
+<span class="gp">... </span><span class="s1">        ) as s1</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nested</span><span class="o">.</span><span class="n">print_schema</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = false)</span>
+<span class="go"> |-- s1!.average: integer (nullable = false)</span>
+<span class="go"> |-- s1!.values!: integer (nullable = false)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+--------------------------------------+</span>
+<span class="go">|id |s1                                    |</span>
+<span class="go">+---+--------------------------------------+</span>
+<span class="go">|1  |[{2, [1, 2, 3]}, {3, [1, 2, 3, 4, 5]}]|</span>
+<span class="go">+---+--------------------------------------+</span>
+</code></pre></div>
+    <p>Here, the transformation applied to "s1!.values!" takes two arguments.</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">nested</span><span class="o">.</span><span class="n">with_fields</span><span class="p">,</span> <span class="p">{</span>
+<span class="gp">... </span> <span class="s2">&quot;s1!.values!&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">s1</span><span class="p">,</span> <span class="n">value</span> <span class="p">:</span> <span class="n">value</span> <span class="o">-</span> <span class="n">s1</span><span class="p">[</span><span class="s2">&quot;average&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+-----------------------------------------+</span>
+<span class="go">|id |s1                                       |</span>
+<span class="go">+---+-----------------------------------------+</span>
+<span class="go">|1  |[{2, [-1, 0, 1]}, {3, [-2, -1, 0, 1, 2]}]|</span>
+<span class="go">+---+-----------------------------------------+</span>
+</code></pre></div>
+    <p>Extra arguments can be added to the left for each repetition level, up to the root level.</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">nested</span><span class="o">.</span><span class="n">with_fields</span><span class="p">,</span> <span class="p">{</span>
+<span class="gp">... </span> <span class="s2">&quot;s1!.values!&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">root</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">value</span> <span class="p">:</span> <span class="n">value</span> <span class="o">-</span> <span class="n">s1</span><span class="p">[</span><span class="s2">&quot;average&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">root</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+---------------------------------------+</span>
+<span class="go">|id |s1                                     |</span>
+<span class="go">+---+---------------------------------------+</span>
+<span class="go">|1  |[{2, [0, 1, 2]}, {3, [-1, 0, 1, 2, 3]}]|</span>
+<span class="go">+---+---------------------------------------+</span>
+</code></pre></div>
 
       <details class="quote">
         <summary>Source code in <code>spark_frame/nested_impl/with_fields.py</code></summary>
@@ -1606,8 +1652,58 @@ but their value will be repeated multiple times.</p>
 <span class="normal">210</span>
 <span class="normal">211</span>
 <span class="normal">212</span>
-<span class="normal">213</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">with_fields</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">fields</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AnyKindOfTransformation</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Return a new [DataFrame][pyspark.sql.DataFrame] by adding or replacing (when they already exist) columns.</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">with_fields</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">fields</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AnyKindOfTransformation</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a new [DataFrame][pyspark.sql.DataFrame] by adding or replacing (when they already exist) columns.</span>
 
 <span class="sd">    This method is similar to the [DataFrame.withColumn][pyspark.sql.DataFrame.withColumn] method, with the extra</span>
 <span class="sd">    capability of working on nested and repeated fields (structs and arrays).</span>
@@ -1625,6 +1721,8 @@ but their value will be repeated multiple times.</p>
 <span class="sd">    - When working on repeated fields, transformations must be expressed as higher order functions</span>
 <span class="sd">      (e.g. lambda expressions). String and column expressions can be used on repeated fields as well,</span>
 <span class="sd">      but their value will be repeated multiple times.</span>
+<span class="sd">    - When working on multiple levels of nested arrays, higher order functions may take multiple arguments,</span>
+<span class="sd">      corresponding to each level of repetition (See Example 5.).</span>
 <span class="sd">    - `None` can also be used to represent the identity transformation, this is useful to select a field without</span>
 <span class="sd">       changing and without having to repeat its name.</span>
 
@@ -1807,6 +1905,54 @@ but their value will be repeated multiple times.</p>
 <span class="sd">        |  1|{A -&gt; {2.0, 3}}|</span>
 <span class="sd">        +---+---------------+</span>
 <span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        *Example 5: Accessing multiple repetition levels*</span>
+<span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;&#39;&#39;</span>
+<span class="sd">        ...     SELECT</span>
+<span class="sd">        ...         1 as id,</span>
+<span class="sd">        ...         ARRAY(</span>
+<span class="sd">        ...             STRUCT(2 as average, ARRAY(1, 2, 3) as values),</span>
+<span class="sd">        ...             STRUCT(3 as average, ARRAY(1, 2, 3, 4, 5) as values)</span>
+<span class="sd">        ...         ) as s1</span>
+<span class="sd">        ... &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nested.print_schema(df)</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = false)</span>
+<span class="sd">         |-- s1!.average: integer (nullable = false)</span>
+<span class="sd">         |-- s1!.values!: integer (nullable = false)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; df.show(truncate=False)</span>
+<span class="sd">        +---+--------------------------------------+</span>
+<span class="sd">        |id |s1                                    |</span>
+<span class="sd">        +---+--------------------------------------+</span>
+<span class="sd">        |1  |[{2, [1, 2, 3]}, {3, [1, 2, 3, 4, 5]}]|</span>
+<span class="sd">        +---+--------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        Here, the transformation applied to &quot;s1!.values!&quot; takes two arguments.</span>
+<span class="sd">        &gt;&gt;&gt; new_df = df.transform(nested.with_fields, {</span>
+<span class="sd">        ...  &quot;s1!.values!&quot;: lambda s1, value : value - s1[&quot;average&quot;]</span>
+<span class="sd">        ... })</span>
+<span class="sd">        &gt;&gt;&gt; new_df.show(truncate=False)</span>
+<span class="sd">        +---+-----------------------------------------+</span>
+<span class="sd">        |id |s1                                       |</span>
+<span class="sd">        +---+-----------------------------------------+</span>
+<span class="sd">        |1  |[{2, [-1, 0, 1]}, {3, [-2, -1, 0, 1, 2]}]|</span>
+<span class="sd">        +---+-----------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        Extra arguments can be added to the left for each repetition level, up to the root level.</span>
+<span class="sd">        &gt;&gt;&gt; new_df = df.transform(nested.with_fields, {</span>
+<span class="sd">        ...  &quot;s1!.values!&quot;: lambda root, s1, value : value - s1[&quot;average&quot;] + root[&quot;id&quot;]</span>
+<span class="sd">        ... })</span>
+<span class="sd">        &gt;&gt;&gt; new_df.show(truncate=False)</span>
+<span class="sd">        +---+---------------------------------------+</span>
+<span class="sd">        |id |s1                                     |</span>
+<span class="sd">        +---+---------------------------------------+</span>
+<span class="sd">        |1  |[{2, [0, 1, 2]}, {3, [-1, 0, 1, 2, 3]}]|</span>
+<span class="sd">        +---+---------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">default_columns</span> <span class="o">=</span> <span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">nested</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">df</span><span class="p">)}</span>
     <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">default_columns</span><span class="p">,</span> <span class="o">**</span><span class="n">fields</span><span class="p">}</span>
@@ -2101,7 +2247,7 @@ This can be worked around using the transformation
 <span class="normal">76</span>
 <span class="normal">77</span>
 <span class="normal">78</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">print_schema</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Print the DataFrame&#39;s flattened schema to the standard output.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print the DataFrame&#39;s flattened schema to the standard output.</span>
 
 <span class="sd">    - Structs are flattened with a `.` after their name.</span>
 <span class="sd">    - Arrays are flattened with a `!` character after their name.</span>
@@ -2205,6 +2351,8 @@ capability of working on nested and repeated fields (structs and arrays).</p>
 <li>When working on repeated fields, transformations must be expressed as higher order functions
   (e.g. lambda expressions). String and column expressions can be used on repeated fields as well,
   but their value will be repeated multiple times.</li>
+<li>When working on multiple levels of nested arrays, higher order functions may take multiple arguments,
+  corresponding to each level of repetition (See Example 5.).</li>
 <li><code>None</code> can also be used to represent the identity transformation, this is useful to select a field without
    changing and without having to repeat its name.</li>
 </ul>
@@ -2434,6 +2582,54 @@ but their value will be repeated multiple times.</p>
 <span class="go">|  1|{A -&gt; {2.0}}|</span>
 <span class="go">+---+------------+</span>
 </code></pre></div>
+    <p><em>Example 5: Accessing multiple repetition levels</em></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">... </span><span class="s1">    SELECT</span>
+<span class="gp">... </span><span class="s1">        1 as id,</span>
+<span class="gp">... </span><span class="s1">        ARRAY(</span>
+<span class="gp">... </span><span class="s1">            STRUCT(2 as average, ARRAY(1, 2, 3) as values),</span>
+<span class="gp">... </span><span class="s1">            STRUCT(3 as average, ARRAY(1, 2, 3, 4, 5) as values)</span>
+<span class="gp">... </span><span class="s1">        ) as s1</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nested</span><span class="o">.</span><span class="n">print_schema</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = false)</span>
+<span class="go"> |-- s1!.average: integer (nullable = false)</span>
+<span class="go"> |-- s1!.values!: integer (nullable = false)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+--------------------------------------+</span>
+<span class="go">|id |s1                                    |</span>
+<span class="go">+---+--------------------------------------+</span>
+<span class="go">|1  |[{2, [1, 2, 3]}, {3, [1, 2, 3, 4, 5]}]|</span>
+<span class="go">+---+--------------------------------------+</span>
+</code></pre></div>
+    <p>Here, the transformation applied to "s1!.values!" takes two arguments.</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">nested</span><span class="o">.</span><span class="n">select</span><span class="p">,</span> <span class="p">{</span>
+<span class="gp">... </span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span> <span class="s2">&quot;s1!.average&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span> <span class="s2">&quot;s1!.values!&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">s1</span><span class="p">,</span> <span class="n">value</span> <span class="p">:</span> <span class="n">value</span> <span class="o">-</span> <span class="n">s1</span><span class="p">[</span><span class="s2">&quot;average&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+-----------------------------------------+</span>
+<span class="go">|id |s1                                       |</span>
+<span class="go">+---+-----------------------------------------+</span>
+<span class="go">|1  |[{2, [-1, 0, 1]}, {3, [-2, -1, 0, 1, 2]}]|</span>
+<span class="go">+---+-----------------------------------------+</span>
+</code></pre></div>
+    <p>Extra arguments can be added to the left for each repetition level, up to the root level.</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">nested</span><span class="o">.</span><span class="n">with_fields</span><span class="p">,</span> <span class="p">{</span>
+<span class="gp">... </span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span> <span class="s2">&quot;s1!.average&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span> <span class="s2">&quot;s1!.values!&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">root</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">value</span> <span class="p">:</span> <span class="n">value</span> <span class="o">-</span> <span class="n">s1</span><span class="p">[</span><span class="s2">&quot;average&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">root</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+---------------------------------------+</span>
+<span class="go">|id |s1                                     |</span>
+<span class="go">+---+---------------------------------------+</span>
+<span class="go">|1  |[{2, [0, 1, 2]}, {3, [-1, 0, 1, 2, 3]}]|</span>
+<span class="go">+---+---------------------------------------+</span>
+</code></pre></div>
 
       <details class="quote">
         <summary>Source code in <code>spark_frame/nested_impl/select_impl.py</code></summary>
@@ -2646,8 +2842,62 @@ but their value will be repeated multiple times.</p>
 <span class="normal">216</span>
 <span class="normal">217</span>
 <span class="normal">218</span>
-<span class="normal">219</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">fields</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ColumnTransformation</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Project a set of expressions and returns a new [DataFrame][pyspark.sql.DataFrame].</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">fields</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ColumnTransformation</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Project a set of expressions and returns a new [DataFrame][pyspark.sql.DataFrame].</span>
 
 <span class="sd">    This method is similar to the [DataFrame.select][pyspark.sql.DataFrame.select] method, with the extra</span>
 <span class="sd">    capability of working on nested and repeated fields (structs and arrays).</span>
@@ -2665,6 +2915,8 @@ but their value will be repeated multiple times.</p>
 <span class="sd">    - When working on repeated fields, transformations must be expressed as higher order functions</span>
 <span class="sd">      (e.g. lambda expressions). String and column expressions can be used on repeated fields as well,</span>
 <span class="sd">      but their value will be repeated multiple times.</span>
+<span class="sd">    - When working on multiple levels of nested arrays, higher order functions may take multiple arguments,</span>
+<span class="sd">      corresponding to each level of repetition (See Example 5.).</span>
 <span class="sd">    - `None` can also be used to represent the identity transformation, this is useful to select a field without</span>
 <span class="sd">       changing and without having to repeat its name.</span>
 
@@ -2854,6 +3106,58 @@ but their value will be repeated multiple times.</p>
 <span class="sd">        |  1|{A -&gt; {2.0}}|</span>
 <span class="sd">        +---+------------+</span>
 <span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        *Example 5: Accessing multiple repetition levels*</span>
+<span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;&#39;&#39;</span>
+<span class="sd">        ...     SELECT</span>
+<span class="sd">        ...         1 as id,</span>
+<span class="sd">        ...         ARRAY(</span>
+<span class="sd">        ...             STRUCT(2 as average, ARRAY(1, 2, 3) as values),</span>
+<span class="sd">        ...             STRUCT(3 as average, ARRAY(1, 2, 3, 4, 5) as values)</span>
+<span class="sd">        ...         ) as s1</span>
+<span class="sd">        ... &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nested.print_schema(df)</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = false)</span>
+<span class="sd">         |-- s1!.average: integer (nullable = false)</span>
+<span class="sd">         |-- s1!.values!: integer (nullable = false)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; df.show(truncate=False)</span>
+<span class="sd">        +---+--------------------------------------+</span>
+<span class="sd">        |id |s1                                    |</span>
+<span class="sd">        +---+--------------------------------------+</span>
+<span class="sd">        |1  |[{2, [1, 2, 3]}, {3, [1, 2, 3, 4, 5]}]|</span>
+<span class="sd">        +---+--------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        Here, the transformation applied to &quot;s1!.values!&quot; takes two arguments.</span>
+<span class="sd">        &gt;&gt;&gt; new_df = df.transform(nested.select, {</span>
+<span class="sd">        ...  &quot;id&quot;: None,</span>
+<span class="sd">        ...  &quot;s1!.average&quot;: None,</span>
+<span class="sd">        ...  &quot;s1!.values!&quot;: lambda s1, value : value - s1[&quot;average&quot;]</span>
+<span class="sd">        ... })</span>
+<span class="sd">        &gt;&gt;&gt; new_df.show(truncate=False)</span>
+<span class="sd">        +---+-----------------------------------------+</span>
+<span class="sd">        |id |s1                                       |</span>
+<span class="sd">        +---+-----------------------------------------+</span>
+<span class="sd">        |1  |[{2, [-1, 0, 1]}, {3, [-2, -1, 0, 1, 2]}]|</span>
+<span class="sd">        +---+-----------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        Extra arguments can be added to the left for each repetition level, up to the root level.</span>
+<span class="sd">        &gt;&gt;&gt; new_df = df.transform(nested.with_fields, {</span>
+<span class="sd">        ...  &quot;id&quot;: None,</span>
+<span class="sd">        ...  &quot;s1!.average&quot;: None,</span>
+<span class="sd">        ...  &quot;s1!.values!&quot;: lambda root, s1, value : value - s1[&quot;average&quot;] + root[&quot;id&quot;]</span>
+<span class="sd">        ... })</span>
+<span class="sd">        &gt;&gt;&gt; new_df.show(truncate=False)</span>
+<span class="sd">        +---+---------------------------------------+</span>
+<span class="sd">        |id |s1                                     |</span>
+<span class="sd">        +---+---------------------------------------+</span>
+<span class="sd">        |1  |[{2, [0, 1, 2]}, {3, [-1, 0, 1, 2, 3]}]|</span>
+<span class="sd">        +---+---------------------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">resolve_nested_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">starting_level</span><span class="o">=</span><span class="n">df</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>

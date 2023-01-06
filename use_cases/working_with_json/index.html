@@ -791,19 +791,19 @@ This method requires the SparkSession to have already been instantiated.</p>
     <p><strong>Error cases:</strong></p>
     <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;blabla&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="err">pyspark.sql.utils.ParseException:...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;a: int,&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="err">pyspark.sql.utils.ParseException:...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;array&lt;int&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="err">pyspark.sql.utils.ParseException:...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_from_simple_string</span><span class="p">(</span><span class="s2">&quot;map&lt;int, boolean&gt;&gt;&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="err">pyspark.sql.utils.ParseException:...</span>
 </code></pre></div>
 
@@ -863,7 +863,7 @@ This method requires the SparkSession to have already been instantiated.</p>
 <span class="normal">106</span>
 <span class="normal">107</span>
 <span class="normal">108</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">schema_from_simple_string</span><span class="p">(</span><span class="n">schema_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataType</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Parses the given data type string to a :class:`DataType`. The data type string format equals</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parses the given data type string to a :class:`DataType`. The data type string format equals</span>
 <span class="sd">    [pyspark.sql.types.DataType.simpleString][], except that the top level struct type can omit</span>
 <span class="sd">    the ``struct&lt;&gt;``.</span>
 <span class="sd">    This method requires the SparkSession to have already been instantiated.</span>
@@ -1200,7 +1200,7 @@ instead of replacing that column it will create a new column outside the struct 
 <span class="normal">126</span>
 <span class="normal">127</span>
 <span class="normal">128</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">parse_json_columns</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Transform the specified columns containing json strings in the given DataFrame into structs containing</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform the specified columns containing json strings in the given DataFrame into structs containing</span>
 <span class="sd">    the equivalent parsed information.</span>
 
 <span class="sd">    This method is similar to Spark&#39;s `from_json` function, with one main difference: `from_json` requires the user</span>

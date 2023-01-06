@@ -488,6 +488,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#spark_frame.transformations_impl.flatten_all_arrays.flatten_all_arrays" class="md-nav__link">
+    flatten_all_arrays()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#spark_frame.transformations_impl.harmonize_dataframes.harmonize_dataframes" class="md-nav__link">
     harmonize_dataframes()
   </a>
@@ -604,6 +611,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#spark_frame.transformations_impl.flatten_all_arrays.flatten_all_arrays" class="md-nav__link">
+    flatten_all_arrays()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#spark_frame.transformations_impl.harmonize_dataframes.harmonize_dataframes" class="md-nav__link">
     harmonize_dataframes()
   </a>
@@ -688,7 +702,7 @@
 
   <h1>spark_frame.transformations</h1>
 
-<p>Unlike those in <a href="#spark_framefunctions">spark_frame.functions</a>, the methods in this module all take at least one
+<p>Unlike those in <a href="/spark-frame/reference/functions">spark_frame.functions</a>, the methods in this module all take at least one
 <a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a> as argument and return a new transformed DataFrame.
 These methods generally offer <em>higher order</em> transformation that requires to inspect the schema or event the content
 of the input DataFrame(s) before generating the next transformation. Those are typically generic operations 
@@ -880,7 +894,7 @@ and is compatible with field names containing special characters.</p>
 <span class="normal">69</span>
 <span class="normal">70</span>
 <span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">convert_all_maps_to_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Transform all columns of type `Map&lt;K,V&gt;` inside the given DataFrame into `ARRAY&lt;STRUCT&lt;key: K, value: V&gt;&gt;`.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform all columns of type `Map&lt;K,V&gt;` inside the given DataFrame into `ARRAY&lt;STRUCT&lt;key: K, value: V&gt;&gt;`.</span>
 <span class="sd">    This transformation works recursively on every nesting level.</span>
 
 <span class="sd">    !!! info</span>
@@ -1135,7 +1149,7 @@ It might be useful to change the separator when some DataFrame's column names al
 <span class="normal">78</span>
 <span class="normal">79</span>
 <span class="normal">80</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">struct_separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Flatten all the struct columns of a Spark [DataFrame][pyspark.sql.DataFrame].</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flatten all the struct columns of a Spark [DataFrame][pyspark.sql.DataFrame].</span>
 <span class="sd">    Nested fields names will be joined together using the specified separator</span>
 
 <span class="sd">    Args:</span>
@@ -1205,6 +1219,218 @@ It might be useful to change the separator when some DataFrame's column names al
 
     <span class="n">expand_struct</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">col_stack</span><span class="o">=</span><span class="p">[])</span>
     <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div><hr />
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="spark_frame.transformations_impl.flatten_all_arrays.flatten_all_arrays" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">flatten_all_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents first">
+  
+      <p>Flatten all columns of type <code>ARRAY&lt;ARRAY&lt;T&gt;&gt;</code> inside the given DataFrame into <code>ARRAY&lt;&lt;T&gt;&gt;&gt;</code>.
+This transformation works recursively on every nesting level.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>This method is compatible with any schema. It recursively applies on structs, arrays and maps
+and accepts field names containing dots (<code>.</code>), exclamation marks (<code>!</code>) or percentage (<code>%</code>).</p>
+</div>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A Spark DataFrame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td><p>A new DataFrame in which all arrays of array have been flattened</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;doctest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;SELECT 1 as id, ARRAY(ARRAY(ARRAY(1, 2), ARRAY(3)), ARRAY(ARRAY(4), ARRAY(5))) as a&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = false)</span>
+<span class="go"> |-- a: array (nullable = false)</span>
+<span class="go"> |    |-- element: array (containsNull = false)</span>
+<span class="go"> |    |    |-- element: array (containsNull = false)</span>
+<span class="go"> |    |    |    |-- element: integer (containsNull = false)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+---------------------------+</span>
+<span class="go">|id |a                          |</span>
+<span class="go">+---+---------------------------+</span>
+<span class="go">|1  |[[[1, 2], [3]], [[4], [5]]]|</span>
+<span class="go">+---+---------------------------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res_df</span> <span class="o">=</span> <span class="n">flatten_all_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res_df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="go">root</span>
+<span class="go"> |-- id: integer (nullable = false)</span>
+<span class="go"> |-- a: array (nullable = false)</span>
+<span class="go"> |    |-- element: integer (containsNull = false)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res_df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">+---+---------------+</span>
+<span class="go">|id |a              |</span>
+<span class="go">+---+---------------+</span>
+<span class="go">|1  |[1, 2, 3, 4, 5]|</span>
+<span class="go">+---+---------------+</span>
+</code></pre></div>
+
+      <details class="quote">
+        <summary>Source code in <code>spark_frame/transformations_impl/flatten_all_arrays.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">flatten_all_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flatten all columns of type `ARRAY&lt;ARRAY&lt;T&gt;&gt;` inside the given DataFrame into `ARRAY&lt;&lt;T&gt;&gt;&gt;`.</span>
+<span class="sd">    This transformation works recursively on every nesting level.</span>
+
+<span class="sd">    !!! info</span>
+<span class="sd">        This method is compatible with any schema. It recursively applies on structs, arrays and maps</span>
+<span class="sd">        and accepts field names containing dots (`.`), exclamation marks (`!`) or percentage (`%`).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: A Spark DataFrame</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A new DataFrame in which all arrays of array have been flattened</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from pyspark.sql import SparkSession</span>
+<span class="sd">        &gt;&gt;&gt; spark = SparkSession.builder.appName(&quot;doctest&quot;).getOrCreate()</span>
+<span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;SELECT 1 as id, ARRAY(ARRAY(ARRAY(1, 2), ARRAY(3)), ARRAY(ARRAY(4), ARRAY(5))) as a&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; df.printSchema()</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = false)</span>
+<span class="sd">         |-- a: array (nullable = false)</span>
+<span class="sd">         |    |-- element: array (containsNull = false)</span>
+<span class="sd">         |    |    |-- element: array (containsNull = false)</span>
+<span class="sd">         |    |    |    |-- element: integer (containsNull = false)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; df.show(truncate=False)</span>
+<span class="sd">        +---+---------------------------+</span>
+<span class="sd">        |id |a                          |</span>
+<span class="sd">        +---+---------------------------+</span>
+<span class="sd">        |1  |[[[1, 2], [3]], [[4], [5]]]|</span>
+<span class="sd">        +---+---------------------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; res_df = flatten_all_arrays(df)</span>
+<span class="sd">        &gt;&gt;&gt; res_df.printSchema()</span>
+<span class="sd">        root</span>
+<span class="sd">         |-- id: integer (nullable = false)</span>
+<span class="sd">         |-- a: array (nullable = false)</span>
+<span class="sd">         |    |-- element: integer (containsNull = false)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; res_df.show(truncate=False)</span>
+<span class="sd">        +---+---------------+</span>
+<span class="sd">        |id |a              |</span>
+<span class="sd">        +---+---------------+</span>
+<span class="sd">        |1  |[1, 2, 3, 4, 5]|</span>
+<span class="sd">        +---+---------------+</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">flatten_array</span><span class="p">(</span><span class="n">col</span><span class="p">:</span> <span class="n">Column</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span> <span class="n">DataType</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_type</span><span class="p">,</span> <span class="n">ArrayType</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_type</span><span class="o">.</span><span class="n">elementType</span><span class="p">,</span> <span class="n">ArrayType</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">transform_all_fields</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">flatten_array</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -1305,7 +1531,7 @@ Column names must appear in both DataFrames, and each column will be cast into t
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df2</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3.0 as b, &quot;4&quot; as c, 5 as d)) as s2) as s1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="gr">pyspark.sql.utils.AnalysisException</span>: <span class="n">Union can only be performed on tables with the compatible column types. ...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span> <span class="o">=</span> <span class="n">harmonize_dataframes</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -1381,7 +1607,7 @@ Column names must appear in both DataFrames, and each column will be cast into t
 <span class="normal">75</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">harmonize_dataframes</span><span class="p">(</span>
     <span class="n">left_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">right_df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">common_columns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Given two DataFrames, returns two new corresponding DataFrames with the same schemas by applying the following</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given two DataFrames, returns two new corresponding DataFrames with the same schemas by applying the following</span>
 <span class="sd">    changes:</span>
 
 <span class="sd">    - Only common columns are kept</span>
@@ -1437,7 +1663,7 @@ Column names must appear in both DataFrames, and each column will be cast into t
     <span class="n">common_columns_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">col_name</span><span class="p">:</span> <span class="n">build_col</span><span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">col_type</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">col_type</span><span class="p">)</span> <span class="ow">in</span> <span class="n">common_columns</span><span class="p">}</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">_build_nested_struct_tree</span><span class="p">(</span><span class="n">common_columns_dict</span><span class="p">)</span>
     <span class="n">root_transformation</span> <span class="o">=</span> <span class="n">_build_transformation_from_tree</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">left_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">root_transformation</span><span class="p">(</span><span class="n">left_df</span><span class="p">)),</span> <span class="n">right_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">root_transformation</span><span class="p">(</span><span class="n">right_df</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">left_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">root_transformation</span><span class="p">([</span><span class="n">left_df</span><span class="p">])),</span> <span class="n">right_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">root_transformation</span><span class="p">([</span><span class="n">right_df</span><span class="p">]))</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -1725,7 +1951,7 @@ instead of replacing that column it will create a new column outside the struct 
 <span class="normal">126</span>
 <span class="normal">127</span>
 <span class="normal">128</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">parse_json_columns</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Transform the specified columns containing json strings in the given DataFrame into structs containing</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform the specified columns containing json strings in the given DataFrame into structs containing</span>
 <span class="sd">    the equivalent parsed information.</span>
 
 <span class="sd">    This method is similar to Spark&#39;s `from_json` function, with one main difference: `from_json` requires the user</span>
@@ -2101,7 +2327,7 @@ This also applies to nested fields, even those inside other arrays.</p>
 <span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">sort_all_arrays</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Given a DataFrame, sort all fields of type `ARRAY` in a canonical order, making them comparable.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a DataFrame, sort all fields of type `ARRAY` in a canonical order, making them comparable.</span>
 <span class="sd">    This also applies to nested fields, even those inside other arrays.</span>
 
 <span class="sd">    !!! warning &quot;Limitation&quot;</span>
@@ -2323,7 +2549,7 @@ and is compatible with field names containing special characters.</p>
 </code></pre></div>
     <p><em><strong>Example 2: sanitizing field names</strong></em></p>
 <p>In this example we replace all dots and exclamation marks in field names with underscores.
-This is useful to make a DataFrame compatible with the <a href="/reference/nested">spark_frame.nested</a>
+This is useful to make a DataFrame compatible with the <a href="/spark-frame/reference/nested">spark_frame.nested</a>
 module.</p>
     <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;SELECT</span>
 <span class="gp">... </span><span class="s1">    ARRAY(STRUCT(</span>
@@ -2480,7 +2706,7 @@ module.</p>
 <span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">transform_all_field_names</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">transformation</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Apply a transformation to all nested field names of a DataFrame.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply a transformation to all nested field names of a DataFrame.</span>
 
 <span class="sd">    !!! info</span>
 <span class="sd">        This method is compatible with any schema. It recursively applies on structs, arrays and maps</span>
@@ -2535,7 +2761,7 @@ module.</p>
 <span class="sd">        _**Example 2: sanitizing field names**_</span>
 
 <span class="sd">        In this example we replace all dots and exclamation marks in field names with underscores.</span>
-<span class="sd">        This is useful to make a DataFrame compatible with the [spark_frame.nested](/reference/nested)</span>
+<span class="sd">        This is useful to make a DataFrame compatible with the [spark_frame.nested](/spark-frame/reference/nested)</span>
 <span class="sd">        module.</span>
 <span class="sd">        &gt;&gt;&gt; df = spark.sql(&#39;&#39;&#39;SELECT</span>
 <span class="sd">        ...     ARRAY(STRUCT(</span>
@@ -2790,7 +3016,7 @@ a Column expression and the DataType of the corresponding expression.</p></td>
 <span class="normal">76</span>
 <span class="normal">77</span>
 <span class="normal">78</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">transform_all_fields</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">transformation</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Column</span><span class="p">,</span> <span class="n">DataType</span><span class="p">],</span> <span class="n">Column</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Apply a transformation to all nested fields of a DataFrame.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply a transformation to all nested fields of a DataFrame.</span>
 
 <span class="sd">    !!! info</span>
 <span class="sd">        This method is compatible with any schema. It recursively applies on structs, arrays and maps</span>
@@ -3031,7 +3257,7 @@ Nested fields names will be separated from each other using the specified separa
 <span class="normal">131</span>
 <span class="normal">132</span>
 <span class="normal">133</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">unflatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Reverse of the flatten operation</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reverse of the flatten operation</span>
 <span class="sd">    Nested fields names will be separated from each other using the specified separator</span>
 
 <span class="sd">    Args:</span>
@@ -3219,7 +3445,7 @@ Nested fields names will be separated from each other using the specified separa
 <span class="normal">42</span>
 <span class="normal">43</span>
 <span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">union_dataframes</span><span class="p">(</span><span class="o">*</span><span class="n">dfs</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Returns the union between multiple DataFrames</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the union between multiple DataFrames</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dfs: One or more Spark DataFrames</span>
@@ -3504,7 +3730,7 @@ All columns that are not pivot columns should have the same type.</p>
 <span class="normal">97</span>
 <span class="normal">98</span>
 <span class="normal">99</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">unpivot</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">pivot_columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">key_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">value_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Unpivot the given DataFrame along the specified pivot columns.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unpivot the given DataFrame along the specified pivot columns.</span>
 <span class="sd">    All columns that are not pivot columns should have the same type.</span>
 
 <span class="sd">    This is the inverse transformation of the [pyspark.sql.GroupedData.pivot][] operation.</span>
@@ -3892,7 +4118,7 @@ All fields of the struct columns to convert must be of basic types.</p>
 <span class="normal">218</span>
 <span class="normal">219</span>
 <span class="normal">220</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">with_generic_typed_struct</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">col_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Transform the specified struct columns of a given [Dataframe][pyspark.sql.DataFrame] into</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform the specified struct columns of a given [Dataframe][pyspark.sql.DataFrame] into</span>
 <span class="sd">    generic typed struct columns with the following generic schema</span>
 <span class="sd">    (based on [https://spark.apache.org/docs/latest/sql-ref-datatypes.html](</span>
 <span class="sd">    https://spark.apache.org/docs/latest/sql-ref-datatypes.html)) :</span>
@@ -3986,14 +4212,14 @@ All fields of the struct columns to convert must be of basic types.</p>
         <span class="s2">&quot;string&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
         <span class="s2">&quot;binary&quot;</span><span class="p">:</span> <span class="s2">&quot;binary&quot;</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="sd">&quot;&quot;&quot;Mapping indicating for each source Spark DataTypes the type into which it will be cast.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mapping indicating for each source Spark DataTypes the type into which it will be cast.&quot;&quot;&quot;</span>
 
     <span class="n">cast_to_name</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;binary&quot;</span><span class="p">:</span> <span class="s2">&quot;bytes&quot;</span><span class="p">,</span>
         <span class="s2">&quot;bigint&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span>
         <span class="s2">&quot;double&quot;</span><span class="p">:</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="sd">&quot;&quot;&quot;Mapping indicating for each already cast Spark DataTypes the name of the corresponding field.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mapping indicating for each already cast Spark DataTypes the name of the corresponding field.</span>
 <span class="sd">    When missing, the same name will be kept.&quot;&quot;&quot;</span>
 
     <span class="n">name_cast</span> <span class="o">=</span> <span class="p">{</span><span class="n">cast_to_name</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">source_to_cast</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
@@ -4001,7 +4227,7 @@ All fields of the struct columns to convert must be of basic types.</p>
     <span class="n">name_cast</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">name_cast</span><span class="o">.</span><span class="n">items</span><span class="p">())}</span>
 
     <span class="k">def</span> <span class="nf">match_regex_types</span><span class="p">(</span><span class="n">source_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Matches the source types against regexes to identify more complex types (like Decimal(x, y))&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Matches the source types against regexes to identify more complex types (like Decimal(x, y))&quot;&quot;&quot;</span>
         <span class="n">regex_to_cast_types</span> <span class="o">=</span> <span class="p">[(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;decimal(.*)&quot;</span><span class="p">),</span> <span class="s2">&quot;float&quot;</span><span class="p">)]</span>
         <span class="k">for</span> <span class="n">regex</span><span class="p">,</span> <span class="n">cast_type</span> <span class="ow">in</span> <span class="n">regex_to_cast_types</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">source_type</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -4009,7 +4235,7 @@ All fields of the struct columns to convert must be of basic types.</p>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">field_to_col</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="n">StructField</span><span class="p">,</span> <span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Column</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Transforms the specified field into a generic column&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms the specified field into a generic column&quot;&quot;&quot;</span>
         <span class="n">source_type</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="o">.</span><span class="n">simpleString</span><span class="p">()</span>
         <span class="n">cast_type</span> <span class="o">=</span> <span class="n">source_to_cast</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source_type</span><span class="p">)</span>
         <span class="n">field_name</span> <span class="o">=</span> <span class="n">column_name</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">quote</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>

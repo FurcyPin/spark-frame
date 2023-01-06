@@ -592,9 +592,9 @@
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>The use case presented in this page is deprecated, but is kept to illustrate what flatten/unflatten can do.
-The <a href="/reference/nested">spark_frame.nested</a> module is much more powerful for manipulating nested data, 
+The <a href="/spark-frame/reference/nested">spark_frame.nested</a> module is much more powerful for manipulating nested data, 
 because unlike flatten/unflatten, it does work with arrays. We recommend checking 
-<a href="/use_cases/working_with_nested_data">this use-case</a> to see the <a href="/reference/nested">spark_frame.nested</a>
+<a href="/use_cases/working_with_nested_data">this use-case</a> to see the <a href="/spark-frame/reference/nested">spark_frame.nested</a>
 module in action.</p>
 </div>
 
@@ -913,7 +913,7 @@ It might be useful to change the separator when some DataFrame's column names al
 <span class="normal">78</span>
 <span class="normal">79</span>
 <span class="normal">80</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">struct_separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Flatten all the struct columns of a Spark [DataFrame][pyspark.sql.DataFrame].</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flatten all the struct columns of a Spark [DataFrame][pyspark.sql.DataFrame].</span>
 <span class="sd">    Nested fields names will be joined together using the specified separator</span>
 
 <span class="sd">    Args:</span>
@@ -1152,7 +1152,7 @@ Nested fields names will be separated from each other using the specified separa
 <span class="normal">131</span>
 <span class="normal">132</span>
 <span class="normal">133</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">unflatten</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">separator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Reverse of the flatten operation</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reverse of the flatten operation</span>
 <span class="sd">    Nested fields names will be separated from each other using the specified separator</span>
 
 <span class="sd">    Args:</span>

@@ -698,7 +698,7 @@ This is a workaround to the Spark method <code>typedLit</code> not being availab
 <span class="normal">41</span>
 <span class="normal">42</span>
 <span class="normal">43</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">empty_array</span><span class="p">(</span><span class="n">element_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">DataType</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create an empty Spark array column of the specified type.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an empty Spark array column of the specified type.</span>
 <span class="sd">    This is a workaround to the Spark method `typedLit` not being available in PySpark</span>
 
 <span class="sd">    Args:</span>
@@ -915,7 +915,7 @@ This is a workaround to the Spark method <code>typedLit</code> not being availab
 <span class="normal">101</span>
 <span class="normal">102</span>
 <span class="normal">103</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generic_struct</span><span class="p">(</span><span class="o">*</span><span class="n">columns</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">col_name_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">col_value_alias</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Transform a set of columns into a generic array of struct of type ARRAY&lt;STRUCT&lt;name: STRING, value: STRING&gt;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform a set of columns into a generic array of struct of type ARRAY&lt;STRUCT&lt;name: STRING, value: STRING&gt;</span>
 <span class="sd">    (column_name -&gt; column_value)</span>
 
 <span class="sd">    Args:</span>
@@ -1035,7 +1035,7 @@ This is especially useful for literal which are always non-nullable by default.<
 <span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">nullable</span><span class="p">(</span><span class="n">col</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Make a `pyspark.sql.Column` nullable.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make a `pyspark.sql.Column` nullable.</span>
 <span class="sd">    This is especially useful for literal which are always non-nullable by default.</span>
 
 <span class="sd">    Examples:</span>
