@@ -54,7 +54,7 @@ This library is tested against Mac and Linux.
 
 # Release notes
 
-# v0.1.1 (Upcoming)
+# v0.1.1
 
 - Added a new transformation `spark_frame.transformations.flatten_all_arrays`.
 - Added support for multi-arg transformation to `nested.select` and `nested.with_fields` 
