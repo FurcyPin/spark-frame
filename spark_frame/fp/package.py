@@ -35,21 +35,21 @@ def __compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction
     def f1f2(s):
         return f1.func(f2.func(s))
 
-    if callable(f1._alias) and callable(f2._alias):
-        c1 = cast(Callable, f1._alias)
-        c2 = cast(Callable, f2._alias)
+    if callable(f1.alias) and callable(f2.alias):
+        c1 = cast(Callable, f1.alias)
+        c2 = cast(Callable, f2.alias)
         return PrintableFunction(f1f2, lambda s: c1(c2(s)))
-    elif callable(f1._alias) and not callable(f2._alias):
-        c1 = cast(Callable, f1._alias)
-        a2 = str(f2._alias)
+    elif callable(f1.alias) and not callable(f2.alias):
+        c1 = cast(Callable, f1.alias)
+        a2 = str(f2.alias)
         return PrintableFunction(f1f2, c1(a2))
-    elif not callable(f1._alias) and callable(f2._alias):
-        a1 = str(f1._alias)
-        c2 = cast(Callable, f2._alias)
+    elif not callable(f1.alias) and callable(f2.alias):
+        a1 = str(f1.alias)
+        c2 = cast(Callable, f2.alias)
         return PrintableFunction(f1f2, lambda s: f"{a1}({c2(s)})")
     else:
-        a1 = str(f1._alias)
-        a2 = str(f2._alias)
+        a1 = str(f1.alias)
+        a2 = str(f2.alias)
         return PrintableFunction(f1f2, f"{a1}({a2})")
 
 

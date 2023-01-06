@@ -57,6 +57,33 @@ This library is tested against Mac and Linux.
 # v0.1.1 (Upcoming)
 
 - Added a new transformation `spark_frame.transformations.flatten_all_arrays`.
+- Added support for multi-arg transformation to `nested.select` and `nested.with_fields` 
+  With this feature, we can now access parent fields from higher levels
+  when applying a transformation. Example:
+  
+```
+>>> nested.print_schema(df)
+"""
+root
+ |-- id: integer (nullable = false)
+ |-- s1!.average: integer (nullable = false)
+ |-- s1!.values!: integer (nullable = false)
+"""
+>>> df.show(truncate=False)
++---+--------------------------------------+
+|id |s1                                    |
++---+--------------------------------------+
+|1  |[{2, [1, 2, 3]}, {3, [1, 2, 3, 4, 5]}]|
++---+--------------------------------------+
+>>> new_df = df.transform(nested.with_fields, {
+>>>     "s1!.values!": lambda s1, value: value - s1["average"]  # This transformation takes 2 arguments
+>>> })
++---+-----------------------------------------+
+|id |s1                                       |
++---+-----------------------------------------+
+|1  |[{2, [-1, 0, 1]}, {3, [-2, -1, 0, 1, 2]}]|
++---+-----------------------------------------+
+```
 
 # v0.1.0
 

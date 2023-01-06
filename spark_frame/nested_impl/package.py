@@ -8,7 +8,7 @@ from pyspark.sql.types import ArrayType, DataType, MapType, StructType
 from spark_frame import fp
 from spark_frame.conf import MAP_KEY, MAP_MARKER, MAP_VALUE, REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.fp import PrintableFunction, higher_order
-from spark_frame.utils import AnalysisException, assert_true, group_by_key, quote, quote_columns, str_to_col
+from spark_frame.utils import AnalysisException, assert_true, group_by_key, quote, quote_columns
 
 ColumnTransformation = Callable[[Optional[Column]], Column]
 AnyKindOfTransformation = Union[str, Column, ColumnTransformation, "PrintableFunction", None]
@@ -210,24 +210,35 @@ def _convert_transformation_to_printable_function(
     transformation: AnyKindOfTransformation, parent_structs: List[str]
 ) -> PrintableFunction:
     """Transform any kind of column transformation (str, Column, Callable[[Column], Column], PrintableFunction)
-    into a PrintableFunction"""
+    into a PrintableFunction.
+
+    The transformation is "boxed" which means that they will be passed an array containing all eligible arguments.
+    Only the "n" right-most arguments will be passed to the transformation to match it's arity.
+
+    If a transformations returns a string, we assume it is meant as a Column name and try to convert it into a Column.
+    """
     if isinstance(transformation, PrintableFunction):
         printable_func_trans = cast(PrintableFunction, transformation)
-        return PrintableFunction(
-            lambda x: str_to_col(printable_func_trans(x)), lambda x: printable_func_trans.apply_alias(x)
-        )
+        res = printable_func_trans
     elif callable(transformation):
         func_trans = cast(ColumnTransformation, transformation)
-        return PrintableFunction(lambda x: func_trans(x), lambda x: repr(func_trans))
+        res = PrintableFunction(func_trans, lambda x: repr(func_trans))
     elif isinstance(transformation, Column):
         col_trans = cast(Column, transformation)
-        return PrintableFunction(lambda x: col_trans, lambda x: str(col_trans))
+        res = PrintableFunction(lambda x: col_trans, lambda x: str(col_trans))
     elif isinstance(transformation, str):
         str_trans = cast(str, transformation)
-        return PrintableFunction(lambda x: f.col(str_trans), lambda x: f"f.col('{str_trans}')")
+        res = PrintableFunction(lambda x: f.col(str_trans), lambda x: f"f.col('{str_trans}')")
     else:
         assert_true(transformation is None, f"Error, unsupported transformation type: {type(transformation)}")
-        return higher_order.recursive_struct_get(parent_structs)
+        res = higher_order.recursive_struct_get(parent_structs)
+
+    # The transformation is "boxed" which means that they will be passed an array containing all eligible arguments.
+    # Only the "n" right-most arguments will be passed to the transformation to match it's arity.
+    res = res.boxed()
+    # If a transformations returns a string, we assume it is meant as a Column name and try to convert it into a Column.
+    res = fp.compose(higher_order.str_to_col, res)
+    return res
 
 
 def _merge_functions(functions: List[PrintableFunction]) -> PrintableFunction:
@@ -240,7 +251,7 @@ def _merge_functions(functions: List[PrintableFunction]) -> PrintableFunction:
     """
     return PrintableFunction(
         lambda x: [fun(x) for fun in functions],
-        lambda x: "[" + ", ".join([fun.apply_alias(x) for fun in functions]) + "]",
+        lambda x: "[" + ", ".join([fun.alias(x) for fun in functions]) + "]",
     )
 
 
@@ -290,17 +301,13 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
         elif key == REPETITION_MARKER:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type array with siblings")
             repeated_col = recurse_node_with_one_item(col_or_children, parent_structs=[])
-            res = higher_order.transform(repeated_col)
-            res = fp.compose(res, higher_order.recursive_struct_get(parent_structs))
+            res = higher_order.boxed_transform(repeated_col, parent_structs)
             return res
         elif key == MAP_MARKER:
             [key_transformation, value_transformation] = recurse_node_with_multiple_items(
                 col_or_children, parent_structs=[]
             )
-            f1 = higher_order.transform_keys(key_transformation)
-            f2 = higher_order.transform_values(value_transformation)
-            f3 = higher_order.recursive_struct_get(parent_structs)
-            res = fp.compose(f1, f2, f3)
+            res = higher_order.boxed_transform_map(key_transformation, value_transformation, parent_structs)
             return res
         elif key in [MAP_MARKER + MAP_KEY, MAP_MARKER + MAP_VALUE]:
             child_transformation = recurse_node_with_one_item(col_or_children, parent_structs=[])
@@ -620,7 +627,7 @@ def resolve_nested_fields(
     validate_nested_field_names(*fields.keys(), known_fields=known_fields)
     tree = _build_nested_struct_tree(fields)
     root_transformation = _build_transformation_from_tree(tree)
-    return root_transformation(starting_level)
+    return root_transformation([starting_level])
 
 
 def unnest_fields(

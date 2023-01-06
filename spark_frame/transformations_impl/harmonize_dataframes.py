@@ -72,4 +72,4 @@ def harmonize_dataframes(
     common_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in common_columns}
     tree = _build_nested_struct_tree(common_columns_dict)
     root_transformation = _build_transformation_from_tree(tree)
-    return left_df.select(*root_transformation(left_df)), right_df.select(*root_transformation(right_df))
+    return left_df.select(*root_transformation([left_df])), right_df.select(*root_transformation([right_df]))
