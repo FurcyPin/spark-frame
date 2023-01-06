@@ -117,7 +117,7 @@ def transform_nested_fields():
 
         ### With spark_frame.nested
 
-        The module [`spark_frame.nested`](/reference/nested) proposes several methods to help us deal
+        The module [`spark_frame.nested`](/spark-frame/reference/nested) proposes several methods to help us deal
         with nested data structure more easily.
         First, let's use [`spark_frame.nested.print_schema`][spark_frame.nested_impl.print_schema.print_schema] to get
         a flat version of the DataFrame's schema:

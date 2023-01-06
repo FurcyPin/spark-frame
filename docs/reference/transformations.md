@@ -1,4 +1,4 @@
-Unlike those in [spark_frame.functions](#spark_framefunctions), the methods in this module all take at least one
+Unlike those in [spark_frame.functions](/spark-frame/reference/functions), the methods in this module all take at least one
 [DataFrame][pyspark.sql.DataFrame] as argument and return a new transformed DataFrame.
 These methods generally offer _higher order_ transformation that requires to inspect the schema or event the content
 of the input DataFrame(s) before generating the next transformation. Those are typically generic operations 

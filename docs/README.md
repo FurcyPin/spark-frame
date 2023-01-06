@@ -4,7 +4,7 @@
 
 ## Usage
 
-Spark-frame contains several utility methods, all documented in the [reference](/reference). 
+Spark-frame contains several utility methods, all documented in the [reference](/spark-frame/reference). 
 There are grouped into several modules:
 
 - [functions](reference#spark_framefunctions): 

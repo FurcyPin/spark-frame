@@ -61,7 +61,7 @@ def transform_all_field_names(df: DataFrame, transformation: Callable[[str], str
         _**Example 2: sanitizing field names**_
 
         In this example we replace all dots and exclamation marks in field names with underscores.
-        This is useful to make a DataFrame compatible with the [spark_frame.nested](/reference/nested)
+        This is useful to make a DataFrame compatible with the [spark_frame.nested](/spark-frame/reference/nested)
         module.
         >>> df = spark.sql('''SELECT
         ...     ARRAY(STRUCT(
