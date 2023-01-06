@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Callable, List, Optional
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
@@ -6,6 +6,7 @@ from pyspark.sql import functions as f
 from spark_frame import fp
 from spark_frame.fp.printable_function import PrintableFunction
 from spark_frame.utils import quote
+from spark_frame.utils import str_to_col as _str_to_col
 
 
 def alias(name: str) -> PrintableFunction:
@@ -15,6 +16,7 @@ def alias(name: str) -> PrintableFunction:
 
 identity = PrintableFunction(lambda s: s, lambda s: str(s))
 struct = PrintableFunction(lambda x: f.struct(x), lambda x: f"f.struct({x})")
+str_to_col = PrintableFunction(lambda x: _str_to_col(x), lambda s: str(s))
 
 
 def struct_get(key: str) -> PrintableFunction:
@@ -72,7 +74,7 @@ def transform(transformation: PrintableFunction) -> PrintableFunction:
     """
     return PrintableFunction(
         lambda x: f.transform(x, transformation.func),
-        lambda x: f"f.transform({x}, {transformation})",
+        lambda x: f"f.transform({x}, lambda x: {transformation.alias('x')})",
     )
 
 
@@ -82,7 +84,7 @@ def transform_keys(transformation: PrintableFunction) -> PrintableFunction:
     """
     return PrintableFunction(
         lambda x: f.transform_keys(x, lambda k, v: transformation.func(k)),
-        lambda x: f"f.transform_keys({x}, {transformation})",
+        lambda x: f"f.transform_keys({x}, lambda k, v: {transformation.alias('k')})",
     )
 
 
@@ -92,5 +94,48 @@ def transform_values(transformation: PrintableFunction) -> PrintableFunction:
     """
     return PrintableFunction(
         lambda x: f.transform_values(x, lambda k, v: transformation.func(v)),
-        lambda x: f"f.transform_values({x}, {transformation})",
+        lambda x: f"f.transform_values({x}, lambda k, v: {transformation.alias('v')})",
+    )
+
+
+def _partial_box_right(func: Callable, args: Any):
+    """Given a function and an array of arguments, return a new function that takes an argument, add it to the
+    array, and pass it to the original function."""
+    if isinstance(args, str):
+        args = [args]
+    return lambda a: func(args + [a])
+
+
+def boxed_transform(transformation: PrintableFunction, parents: List[str]) -> PrintableFunction:
+    """Return a PrintableFunction version of the `pyspark.sql.functions.transform` method,
+    which applies the given transformation to any array column.
+    """
+    return PrintableFunction(
+        lambda x: f.transform(recursive_struct_get(parents)(x[-1]), _partial_box_right(transformation.func, x)),
+        lambda x: f"f.transform({recursive_struct_get(parents).alias(x[-1])}, "
+        f"lambda x: {_partial_box_right(transformation.alias, x)('x')})",
+    )
+
+
+def boxed_transform_map(
+    key_transformation: PrintableFunction, value_transformation: PrintableFunction, parents: List[str]
+) -> PrintableFunction:
+    """Return a PrintableFunction version of the `pyspark.sql.functions.transform_keys` method,
+    which applies the given transformation to any array column.
+    """
+    return PrintableFunction(
+        lambda x: f.transform_values(
+            f.transform_keys(
+                recursive_struct_get(parents)(x[-1]),
+                lambda k, v: _partial_box_right(key_transformation.func, x)(k),
+            ),
+            lambda k, v: _partial_box_right(value_transformation.func, x)(v),
+        ),
+        lambda x: "f.transform_values("
+        "f.transform_keys("
+        f"{recursive_struct_get(parents).alias(x[-1])}, "
+        f"lambda k, v: {_partial_box_right(key_transformation.alias, x)('k')})"
+        "),"
+        f"lambda k, v: {_partial_box_right(value_transformation.alias, x)('v')}"
+        ")",
     )

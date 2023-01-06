@@ -26,6 +26,8 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
     - When working on repeated fields, transformations must be expressed as higher order functions
       (e.g. lambda expressions). String and column expressions can be used on repeated fields as well,
       but their value will be repeated multiple times.
+    - When working on multiple levels of nested arrays, higher order functions may take multiple arguments,
+      corresponding to each level of repetition (See Example 5.).
     - `None` can also be used to represent the identity transformation, this is useful to select a field without
        changing and without having to repeat its name.
 
@@ -215,5 +217,57 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         |  1|{A -> {2.0}}|
         +---+------------+
         <BLANKLINE>
+
+        *Example 5: Accessing multiple repetition levels*
+        >>> df = spark.sql('''
+        ...     SELECT
+        ...         1 as id,
+        ...         ARRAY(
+        ...             STRUCT(2 as average, ARRAY(1, 2, 3) as values),
+        ...             STRUCT(3 as average, ARRAY(1, 2, 3, 4, 5) as values)
+        ...         ) as s1
+        ... ''')
+        >>> nested.print_schema(df)
+        root
+         |-- id: integer (nullable = false)
+         |-- s1!.average: integer (nullable = false)
+         |-- s1!.values!: integer (nullable = false)
+        <BLANKLINE>
+        >>> df.show(truncate=False)
+        +---+--------------------------------------+
+        |id |s1                                    |
+        +---+--------------------------------------+
+        |1  |[{2, [1, 2, 3]}, {3, [1, 2, 3, 4, 5]}]|
+        +---+--------------------------------------+
+        <BLANKLINE>
+
+        Here, the transformation applied to "s1!.values!" takes two arguments.
+        >>> new_df = df.transform(nested.select, {
+        ...  "id": None,
+        ...  "s1!.average": None,
+        ...  "s1!.values!": lambda s1, value : value - s1["average"]
+        ... })
+        >>> new_df.show(truncate=False)
+        +---+-----------------------------------------+
+        |id |s1                                       |
+        +---+-----------------------------------------+
+        |1  |[{2, [-1, 0, 1]}, {3, [-2, -1, 0, 1, 2]}]|
+        +---+-----------------------------------------+
+        <BLANKLINE>
+
+        Extra arguments can be added to the left for each repetition level, up to the root level.
+        >>> new_df = df.transform(nested.with_fields, {
+        ...  "id": None,
+        ...  "s1!.average": None,
+        ...  "s1!.values!": lambda root, s1, value : value - s1["average"] + root["id"]
+        ... })
+        >>> new_df.show(truncate=False)
+        +---+---------------------------------------+
+        |id |s1                                     |
+        +---+---------------------------------------+
+        |1  |[{2, [0, 1, 2]}, {3, [-1, 0, 1, 2, 3]}]|
+        +---+---------------------------------------+
+        <BLANKLINE>
+
     """
     return df.select(*resolve_nested_fields(fields, starting_level=df))
