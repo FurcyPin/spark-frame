@@ -10,4 +10,4 @@ section at the end of the section:
     ::: spark_frame.functions.nullable
 
 
-You can also find a comprehensive list of all methods in the [reference](/spark-frame/reference).
+You can also find a comprehensive list of all methods in the [reference](/spark-frame/reference/functions).
