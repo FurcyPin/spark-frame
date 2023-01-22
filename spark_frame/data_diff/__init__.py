@@ -1,0 +1,3 @@
+from spark_frame.data_diff.dataframe_comparator import DataframeComparator
+
+DataframeComparator = DataframeComparator

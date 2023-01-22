@@ -160,3 +160,5 @@ cython_debug/
 # project files
 /experimental
 /test_working_dir
+/diff_report.html
+/data

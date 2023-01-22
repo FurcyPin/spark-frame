@@ -1,0 +1,450 @@
+<html>
+<head>
+    <!-- Include the diff2html library -->
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/diff2html@3.4.29/bundles/css/diff2html.min.css" />
+    <!-- Javascripts -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/diff2html@3.4.29/bundles/js/diff2html.min.js"></script>
+
+    <style>
+      .collapsible {
+        background-color: #eee;
+        color: #444;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+      }
+
+      .active, .collapsible:hover {
+        background-color: #ccc;
+      }
+
+      .content {
+        padding: 0 18px;
+        display: block;
+        overflow: hidden;
+      }
+
+      .box {
+        text-align: center;
+        font-size: large;
+      }
+
+      .green {
+        background-color: green;
+        color: white;
+      }
+
+      .red {
+        background-color: red;
+        color: white;
+      }
+
+      .orange {
+        background-color: orange;
+        color: white;
+      }
+
+      /* Define the style for the whole document */
+      .main {
+        max-width: 1000px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      /* Define the style for the bar charts */
+      .chart_bar_container {
+        width: 100%;
+      }
+
+      /* Define the style for the bar charts */
+      .chart_bar_table {
+        table-layout: fixed;
+        width: 100%; 
+        flex: auto;
+        /*max-width: 500px;*/
+        border-collapse: collapse;
+      }
+
+
+      /* Define the style for the column name */
+      .column_name {
+        padding-right: 5px;
+        width: 20%;
+      }
+
+      /* Define the style for columns with no change */
+      .no_change {
+        display: 'table-row';
+      }
+
+      /* Define the style for columns with no change */
+      .details {
+        display: none;
+      }
+
+
+      button.active {
+        background-color: darkgrey;
+        color: black;
+      }
+
+      .top_cols_container {
+        flex: auto;
+        display: inline-flex;
+      }
+
+      .top_cols_table_container {
+        flex: auto;
+      }
+
+      .top_cols_table {
+        margin: 0 auto;
+        border-collapse: collapse;
+        display: inline-block;
+        overflow-y: auto; 
+        overflow-x: hidden; 
+        max-height: 500px
+      }
+
+      /* Define the style for details table header */
+      .top_col_table_div {
+        padding-right: 10px;
+        white-space: nowrap;
+      }
+
+      /* Define the style for the bar charts */
+      .top_col_bar_table {
+        table-layout: fixed;
+        width: 100%; 
+      }
+    </style>
+</head>
+<body>
+  <div class="main">
+    <h1 style="text-align: center;">{{ title }}</h1>
+    {% if diff_result_summary.same_schema %}
+      <div class="box green">SCHEMA: OK</div>
+      <button type="button" class="collapsible">Show Schema</button>
+      <div class="content" style="display: none;">
+        <div>
+          <div class="d2h-wrapper">
+            <div class="d2h-file-wrapper" data-lang="">
+              <div class="d2h-file-header">
+                <span class="d2h-file-name-wrapper">
+                <svg aria-hidden="true" class="d2h-icon" height="16" version="1.1" viewBox="0 0 12 16" width="12">
+                  <path d="M6 5H2v-1h4v1zM2 8h7v-1H2v1z m0 2h7v-1H2v1z m0 2h7v-1H2v1z m10-7.5v9.5c0 0.55-0.45 1-1 1H1c-0.55 0-1-0.45-1-1V2c0-0.55 0.45-1 1-1h7.5l3.5 3.5z m-1 0.5L8 2H1v12h10V5z"></path>
+                </svg>
+                <span class="d2h-file-name">Schema</span>
+              </div>
+              <div class="d2h-file-diff">
+                <div class="d2h-code-wrapper">
+                  <table class="d2h-diff-table">
+                    <tbody class="d2h-diff-tbody">
+                      {% for line in diff_result_summary.schema_diff_result.left_schema_str.split("\n") %}
+                        <tr>
+                          <td class="d2h-code-side-linenumber d2h-cntx">
+                            {{loop.index}}
+                          </td>
+                          <td class="d2h-cntx">
+                            <div class="d2h-code-side-line d2h-cntx">
+                              <span class="d2h-code-side-line-prefix">&nbsp;</span>
+                              <span class="d2h-code-side-line-ctn">{{ line }}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="box red">SCHEMA: CHANGES DETECTED</div>
+      <button type="button" class="collapsible">Show Schema Diff</button>
+      <div class="content" style="display: block">
+        <!-- The container element for the diff output -->
+        <div id="schema_diff"></div>
+      </div>
+
+      <div>
+        <i>
+          Column that disappeared or changed names have been ignored in the diff.<br/>
+          Column that changed type have been converted to perform the comparison.
+        </i>
+      </div>
+    {% endif %}
+
+
+
+    {% if diff_result_summary.same_data %}
+      <div class="box green">DATA: OK</div>
+    {% else %}
+      <div class="box red">DATA: CHANGES DETECTED</div>
+    {% endif %}
+
+
+    <div>
+      <!-- Create a toggle button -->
+      <button class="button_toggleHideColumnsWithNoChange" onclick="toggleHideColumnsWithNoChange()">Hide columns with no change</button>
+      <!-- Create a expand_all button -->
+      <button class="button_toggleExpandAllDetails"  onclick="toggleExpandAllDetails()">Expand all details</button>
+    </div>
+    <!-- Create a table to display the information -->
+    <table style="border-spacing: 0; width: auto; display: inline-block">
+      {% if diff_per_col[0].counts.no_change == 0 %}
+        <div class="box orange">Both DataFrames are empty</div>
+      {% else %}
+        {% for col_diff in diff_per_col %}
+          <tr {% if col_diff.counts.changed == 0 %}class="no_change"{% endif %}>
+            <!-- Display the column name -->
+            <td class="column_name">{{ col_diff.column_name }}</td>
+            <!-- Create a container element to hold the bar charts -->
+            <td class="chart_bar_container">
+              {% set elements =
+                [
+                  {
+                    'type': 'no_change',
+                    'name': 'Not changed',
+                    'desc': 'Number of values that did not change',
+                    'count': col_diff.counts.no_change,
+                    'diff': col_diff.diff.no_change,
+                    'top_title': 'Most frequent identical values',
+                    'pct': (col_diff.counts.no_change / col_diff.counts.total * 100) | round(2),
+                    'color': 'green'
+                  },
+                  {
+                    'type': 'changed',
+                    'name': 'Changed',
+                    'desc': 'Number of values that changed',
+                    'count': col_diff.counts.changed,
+                    'diff': col_diff.diff.changed,
+                    'top_title': 'Most frequent changes',
+                    'pct': (col_diff.counts.changed / col_diff.counts.total * 100) | round(2),
+                    'color': 'red'
+                  },
+                  {
+                    'type': 'only_in_left',
+                    'name': 'Only in ' + diff_result_summary.left_df_alias,
+                    'desc': 'Number of values only in ' + diff_result_summary.left_df_alias,
+                    'count': col_diff.counts.only_in_left,
+                    'diff': col_diff.diff.only_in_left,
+                    'top_title': 'Most frequent values in ' + diff_result_summary.left_df_alias,
+                    'pct': (col_diff.counts.only_in_left / col_diff.counts.total * 100) | round(2),
+                    'color': 'blue'
+                  },
+                  {
+                    'type': 'only_in_right',
+                    'name': 'Only in ' + diff_result_summary.right_df_alias,
+                    'desc': 'Number of values only in ' + diff_result_summary.right_df_alias,
+                    'count': col_diff.counts.only_in_right,
+                    'diff': col_diff.diff.only_in_right,
+                    'top_title': 'Most frequent values in ' + diff_result_summary.right_df_alias,
+                    'pct': (col_diff.counts.only_in_right / col_diff.counts.total * 100) | round(2),
+                    'color': 'purple'
+                  }
+                ]
+              %}
+
+              <table class="chart_bar_table">
+                <tr style="width: 100%; height: 20px;">
+
+                  {% for element in elements %}
+                    <td
+                      style="
+                        background-color: {{ element.color }};
+                        width: {% if element.count > 0 %} {{ [element.pct, 2.5] | max }}% {% else %} 0% {% endif %};
+                        height: 100%;
+                        padding: 0
+                      "
+                      title="{{ element.name }}: {{ element.count }} ({{ element.pct }}%)"
+                      onclick="toggleColumnDetails('{{ col_diff.column_name }}')"
+                    >
+                    </td>
+                  {% endfor %}
+
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <tr 
+            class="details{% if col_diff.counts.changed == 0 %} no_change{% endif %}" 
+            column_name="{{ col_diff.column_name }}"
+          >
+            <td colspan="2">
+            <div class="top_cols_container">
+              {% for element in elements %}
+                {% if element.count > 0 %}
+                  <div class="top_cols_table_container">
+                    <b> {{ element.top_title }} </b>
+                    <table class="top_cols_table">
+                      {% for difference in element.diff %}
+                      {% set diff_element = {
+                          'nb': difference.nb,
+                          'pct': (difference.nb / col_diff.counts.total * 100) | round(2),
+                        }
+                      %}
+                      <tr>
+                        {% if element.type == "no_change" %}
+                          <td class="top_col_table_div">{{ difference.left_value }}</td>
+                        {% elif element.type == "changed" %}
+                          <td class="top_col_table_div">{{ difference.left_value }}</td>
+                          <td class="top_col_table_div"> &#10132; <difference>
+                          <td class="top_col_table_div">{{ difference.right_value }}</td>
+                        {% elif element.type == "only_in_left" %}
+                          <td class="top_col_table_div">{{ difference.left_value }}</td>
+                        {% elif element.type == "only_in_right" %}
+                          <td class="top_col_table_div">{{ difference.right_value }}</td>
+                        {% endif %}
+                        <td class="top_col_table_div">{{ difference.nb }}</td>
+                        <td class="top_col_table_div">
+
+                          <table class="top_col_bar_table" style="width: 100%; border-collapse: collapse">
+                            <tr style="width: 100%; height: 20px;">
+                              <td
+                                style="
+                                  background-color: {{ element.color }};
+                                  width: {{ [diff_element.nb, 2.5] | max }}px;
+                                  height: 100%;
+                                  padding: 0
+                                "
+                                title="{{ diff_element.nb }} ({{ diff_element.pct }}%)"
+                              >
+                              </td>
+                              <td></td>
+                            </tr>
+                          </table>
+
+                        </td>
+
+                      </tr>
+                      {% endfor %}
+                    </table>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            </td>
+          </tr>
+
+        {% endfor %}
+      {%  endif %}
+    </table>
+  <div>
+  <script>
+    /**********************************************************/
+    /* Handle collapsible sections */
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+      coll[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {
+          content.style.display = "none";
+        } else {
+          content.style.display = "block";
+        }
+      });
+    }
+    /**********************************************************/
+    /* Handle schema diff */
+
+    // The input data for the diff
+    var diffString = `
+--- Schema
++++ Schema
+{{diff_result_summary.schema_diff_result.diff_str}}
+`;
+      document.addEventListener('DOMContentLoaded', () => {
+        var diffHtml = Diff2Html.html(diffString, {
+          drawFileList: false,
+          matching: 'lines',
+          outputFormat: 'side-by-side',
+        });
+        document.getElementById('schema_diff').innerHTML = diffHtml;
+      });
+
+    /**********************************************************/
+    var bool_toggleHideColumnsWithNoChange = false;
+    var bool_toggleExpandAllDetails = false;
+
+    function updateVisibility(element) {
+      var should_display = true;
+      if (element.classList.contains("details") && !bool_toggleExpandAllDetails) {
+        should_display = false;
+      }
+      if (element.classList.contains("no_change") && bool_toggleHideColumnsWithNoChange) {
+        should_display = false;
+      }
+
+      if (should_display) {
+        element.style.display = 'table-row';
+      }
+      else {
+        element.style.display = 'none';
+      }
+
+    }
+
+    function toggleHideColumnsWithNoChange() {
+      // Get the button element
+      let button = document.querySelector('.button_toggleHideColumnsWithNoChange');
+
+      let noChangeElements = document.querySelectorAll('.no_change');
+
+      // Check if the button has the "active" class
+      if (bool_toggleHideColumnsWithNoChange) {
+        bool_toggleHideColumnsWithNoChange = false;
+        button.classList.remove('active');
+      } else {
+        bool_toggleHideColumnsWithNoChange = true;
+        button.classList.add('active');
+      }
+      noChangeElements.forEach(updateVisibility);
+    }
+
+    function toggleColumnDetails(columnName) {
+      // Get all the no_change elements
+      let detailsElements = document.querySelectorAll('.details');
+      // Toggle their visibility
+      for (let element of detailsElements) {
+        if (element.getAttribute('column_name') == columnName) {
+          if (element.style.display != 'table-row') {
+            element.style.display = 'table-row';
+          } else {
+            element.style.display = 'none';
+          }
+        }
+      }
+    }
+
+    function toggleExpandAllDetails(columnName) {
+      // Get the button element
+      let button = document.querySelector('.button_toggleExpandAllDetails');
+      let detailsElements = document.querySelectorAll('.details');
+
+
+      // Check if the button has the "active" class
+      if (bool_toggleExpandAllDetails) {
+        bool_toggleExpandAllDetails = false;
+        button.classList.remove('active');
+      } else {
+        bool_toggleExpandAllDetails = true;
+        button.classList.add('active');
+      }
+      detailsElements.forEach(updateVisibility);
+    }
+  </script>
+</body>
+</html>
