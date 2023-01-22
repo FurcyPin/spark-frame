@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
-        os: [ubuntu-latest, macos-latest] # We don't run on Windows atm, it's quite difficult to make Spark run on Windows
+        os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -64,9 +64,13 @@ jobs:
       - name: Build docs
         run: poetry run mkdocs build
 
+      - name: Update PATH on Windows
+        run: echo ".github/workflows/resources/hadoop/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        if: matrix.os == 'windows-latest'
+
       - name: Run Unit Tests
         env:
-          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+          HADOOP_HOME: .github/workflows/resources/hadoop
         run: poetry run pytest
 
       - name: Create coverage.xml
