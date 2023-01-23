@@ -54,6 +54,26 @@ This library is tested against Mac and Linux.
 
 # Release notes
 
+
+# v0.2.0
+
+Two new exciting features: *analyze* and *data_diff*. 
+They are still in experimental stage and will be improved in future releases.
+
+- Added a new transformation `spark_frame.transformations.analyze`.
+- Added new *data_diff* feature. Example:
+
+```python
+from pyspark.sql import DataFrame
+from spark_frame.data_diff import DataframeComparator
+df1: DataFrame = ...
+df2: DataFrame = ...
+diff_result = DataframeComparator().compare_df(df1, df2) # Produces a DiffResult object
+diff_result.display() # Print a diff report in the terminal
+diff_result.export_to_html() # Generates a html diff report file named diff_report.html
+```
+
+
 # v0.1.1
 
 - Added a new transformation `spark_frame.transformations.flatten_all_arrays`.
