@@ -153,9 +153,10 @@ def test_compare_df_with_structs(spark: SparkSession, df_comparator: DataframeCo
     diff_result.display()
     diff_result.export_to_html()
     analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
-    diff_count_per_col_df = analyzer._get_diff_count_per_col_df(diff_result.changed_df, join_cols=["id"])
+    top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
+    diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
     # We make sure that the displayed column name is 'a.c' and not 'a__DOT__c'
-    assert diff_count_per_col_df.collect()[0].asDict().get("column_name") == "a.c"
+    assert diff_per_col_df.collect()[3].asDict().get("column_name") == "a.c"
 
 
 def test_compare_df_with_struct_and_different_schemas(spark: SparkSession, df_comparator: DataframeComparator):
@@ -288,8 +289,9 @@ def test_compare_df_with_missing_empty_and_null_arrays(spark: SparkSession, df_c
     diff_result.display()
     diff_result.export_to_html()
     analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
-    diff_count_per_col_df = analyzer._get_diff_count_per_col_df(diff_result.changed_df, join_cols=["id"])
-    assert diff_count_per_col_df.count() == 1
+    top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
+    diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
+    assert diff_per_col_df.count() == 2
 
 
 def test_compare_df_with_arrays_of_structs_ok(spark: SparkSession, df_comparator: DataframeComparator):
@@ -447,5 +449,6 @@ def test_compare_df_with_sharded_array_of_struct(spark: SparkSession, df_compara
     # diff_result.display()
     diff_result.export_to_html()
     analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
-    diff_count_per_col_df = analyzer._get_diff_count_per_col_df(diff_result.changed_df, join_cols=["id"])
-    assert diff_count_per_col_df.count() == 1
+    top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
+    diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
+    assert diff_per_col_df.count() == 2
