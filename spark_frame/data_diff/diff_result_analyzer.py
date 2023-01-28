@@ -84,61 +84,6 @@ class DiffResultAnalyzer:
         )
         return unpivot
 
-    def _get_diff_per_col_df(self, diff_count_per_col_df: DataFrame, diff_result: DiffResult) -> DataFrame:
-        """Given a diff_count_per_col_df, return a Dict[str, int] that gives for each column the total number
-        of differences.
-
-        Examples:
-            >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
-            >>> diff_result = _get_test_diff_result()
-            >>> diff_result.diff_df.show()
-            +---+----------------+----------------+-------------+------------+
-            | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
-            +---+----------------+----------------+-------------+------------+
-            |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-            |  2|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-            |  3|{c, null, false}|{3, null, false}|{true, false}|       false|
-            |  4|{null, f, false}|{null, 3, false}|{false, true}|       false|
-            +---+----------------+----------------+-------------+------------+
-            <BLANKLINE>
-            >>> diff_result.diff_stats
-            DiffStats(total=4, no_change=1, changed=1, in_left=3, in_right=3, only_in_left=1, only_in_right=1)
-            >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
-            >>> diff_count_per_col_df = analyzer._get_diff_count_per_col_df(diff_result.changed_df, join_cols=["id"])
-            >>> df = analyzer._get_diff_per_col_df(diff_count_per_col_df, diff_result)
-            >>> df.show()
-            +-----------+-----+---------+-------+------------+-------------+-----------+
-            |column_name|total|no_change|changed|only_in_left|only_in_right|differences|
-            +-----------+-----+---------+-------+------------+-------------+-----------+
-            |         id|    4|        2|      0|           1|            1|         []|
-            |         c1|    4|        2|      0|           1|            1|         []|
-            |         c2|    4|        1|      1|           1|            1|[{2, 4, 1}]|
-            +-----------+-----+---------+-------+------------+-------------+-----------+
-            <BLANKLINE>
-        """
-        diff_stats = diff_result.diff_stats
-        columns = diff_result.diff_df.columns[:-2]
-        col_df = diff_result.diff_df.sparkSession.createDataFrame(
-            list(enumerate(columns)), "column_number INT, column_name STRING"
-        )
-        agg_per_col_df = diff_count_per_col_df.groupBy("column_name").agg(
-            f.max("total_nb_differences").alias("changed"),
-            f.expr("ARRAY_AGG(STRUCT(left_value, right_value, nb_differences))").alias("differences"),
-        )
-        return (
-            col_df.join(agg_per_col_df, "column_name", "left")
-            .withColumn("changed", f.coalesce(f.col("changed"), f.lit(0)))
-            .select(
-                f.col("column_name").alias("column_name"),
-                f.lit(diff_stats.total).alias("total"),
-                (f.lit(diff_stats.in_both) - f.col("changed")).alias("no_change"),
-                f.col("changed"),
-                f.lit(diff_stats.only_in_left).alias("only_in_left"),
-                f.lit(diff_stats.only_in_right).alias("only_in_right"),
-                f.coalesce(f.col("differences"), f.array()).alias("differences"),
-            )
-        )
-
     def _get_diff_count_per_col_df(self, diff_df: DataFrame, join_cols: List[str]) -> DataFrame:
         """Given a diff_df and its list of join_cols, return a DataFrame with the following properties:
 
@@ -532,9 +477,10 @@ class DiffResultAnalyzer:
         )
         return df
 
-    def _get_diff_per_col_df_2(self, top_per_col_state_df: DataFrame, diff_result: DiffResult) -> DataFrame:
-        """Given a diff_count_per_col_df, return a Dict[str, int] that gives for each column the total number
-        of differences.
+    def _get_diff_per_col_df(self, top_per_col_state_df: DataFrame, diff_result: DiffResult) -> DataFrame:
+        """Given a top_per_col_state_df, return a Dict[str, int] that gives for each column and each
+        column state (changed, no_change, only_in_left, only_in_right) the total number of occurences
+        and the most frequent occurrences.
 
         Examples:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
@@ -570,7 +516,7 @@ class DiffResultAnalyzer:
             +-----------+-------------+----------+-----------+---+---------------+
             <BLANKLINE>
 
-            >>> df = analyzer._get_diff_per_col_df_2(top_per_col_state_df, diff_result)
+            >>> df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
             >>> from spark_frame import nested
             >>> nested.print_schema(df)
             root
@@ -706,8 +652,8 @@ class DiffResultAnalyzer:
 
     def get_diff_result_summary(self, diff_result: DiffResult) -> DiffResultSummary:
         join_cols = diff_result.join_cols
-        diff_count_per_col_df = self._get_top_per_col_state_df(diff_result.diff_df, join_cols).localCheckpoint()
-        diff_per_col_df = self._get_diff_per_col_df_2(diff_count_per_col_df, diff_result)
+        top_per_col_state_df = self._get_top_per_col_state_df(diff_result.diff_df, join_cols).localCheckpoint()
+        diff_per_col_df = self._get_diff_per_col_df(top_per_col_state_df, diff_result)
         summary = DiffResultSummary(
             left_df_alias=self.diff_format_options.left_df_alias,
             right_df_alias=self.diff_format_options.right_df_alias,
