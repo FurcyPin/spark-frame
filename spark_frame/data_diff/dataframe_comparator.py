@@ -412,8 +412,9 @@ class DataframeComparator:
             - If you want to test a column renaming, you can temporarily add renaming step to the DataFrame
               you want to test.
             - When comparing arrays, this algorithm ignores their ordering (e.g. `[1, 2, 3] == [3, 2, 1]`)
-            - The algorithm is able to handle nested non-repeated records, such as STRUCT<STRUCT<>>, or even ARRAY<STRUCT>>
-              but it doesn't support nested repeated structures, such as ARRAY<STRUCT<ARRAY<>>>.
+            - The algorithm is able to handle nested non-repeated records, such as STRUCT<STRUCT<>>
+              or even ARRAY<STRUCT>>, but it doesn't support nested repeated structures,
+              such as ARRAY<STRUCT<ARRAY<>>>.
 
         Args:
             left_df: A Spark DataFrame
@@ -426,13 +427,13 @@ class DataframeComparator:
         Examples:
             >>> from spark_frame.data_diff.dataframe_comparator import __get_test_dfs
             >>> df1, df2 = __get_test_dfs()
-            >>> diff_result = DataframeComparator().compare_df(df1, df2)
+            >>> diff_result = DataframeComparator().compare_df(df1, df2)  # noqa: E501
             <BLANKLINE>
             Analyzing differences...
             No join_cols provided: trying to automatically infer a column that can be used for joining the two DataFrames
             Found the following column: id
             We will try to find the differences by joining the DataFrames together using the inferred column: id
-            >>> diff_result.display()  # noqa: E501
+            >>> diff_result.display()
             Schema has changed:
             @@ -1,4 +1,5 @@
             <BLANKLINE>
@@ -454,34 +455,30 @@ class DataframeComparator:
             1 (25.0%) rows are only in 'left'
             1 (25.0%) rows are only in 'right
             <BLANKLINE>
-            Found the following differences:
+            Found the following changes:
             +-----------+-------------+---------------------+---------------------+--------------+
-            |column_name|total_nb_diff|left                 |right                |nb_differences|
+            |column_name|total_nb_diff|left_value           |right_value          |nb_differences|
             +-----------+-------------+---------------------+---------------------+--------------+
             |my_array   |1            |[{"a":1,"b":2,"c":3}]|[{"a":2,"b":2,"c":3}]|1             |
             +-----------+-------------+---------------------+---------------------+--------------+
             <BLANKLINE>
             1 rows were only found in 'left' :
-            Analyzing 4 columns ...
-            +-------------+-----------+-----------+-----+--------------+----------+---+---+
-            |column_number|column_name|column_type|count|count_distinct|count_null|min|max|
-            +-------------+-----------+-----------+-----+--------------+----------+---+---+
-            |            0|         id|    INTEGER|    1|             1|         0|  3|  3|
-            |            1|my_array!.a|    INTEGER|    1|             1|         0|  1|  1|
-            |            2|my_array!.b|    INTEGER|    1|             1|         0|  2|  2|
-            |            3|my_array!.c|    INTEGER|    1|             1|         0|  3|  3|
-            +-------------+-----------+-----------+-----+--------------+----------+---+---+
+            Most frequent values in 'left' for each column :
+            +-----------+---------------------+---+
+            |column_name|value                |nb |
+            +-----------+---------------------+---+
+            |id         |3                    |1  |
+            |my_array   |[{"a":1,"b":2,"c":3}]|1  |
+            +-----------+---------------------+---+
             <BLANKLINE>
-            1 rows were only found in 'right':
-            Analyzing 4 columns ...
-            +-------------+-----------+-----------+-----+--------------+----------+---+---+
-            |column_number|column_name|column_type|count|count_distinct|count_null|min|max|
-            +-------------+-----------+-----------+-----+--------------+----------+---+---+
-            |            0|         id|    INTEGER|    1|             1|         0|  4|  4|
-            |            1|my_array!.a|    INTEGER|    1|             1|         0|  1|  1|
-            |            2|my_array!.b|    INTEGER|    1|             1|         0|  2|  2|
-            |            3|my_array!.c|    INTEGER|    1|             1|         0|  3|  3|
-            +-------------+-----------+-----------+-----+--------------+----------+---+---+
+            1 rows were only found in 'right' :
+            Most frequent values in 'right' for each column :
+            +-----------+---------------------+---+
+            |column_name|value                |nb |
+            +-----------+---------------------+---+
+            |id         |4                    |1  |
+            |my_array   |[{"a":1,"b":2,"c":3}]|1  |
+            +-----------+---------------------+---+
             <BLANKLINE>
         """
         if join_cols == []:

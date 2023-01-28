@@ -8,6 +8,8 @@ StringOrColumn = Union[str, Column]
 K = TypeVar("K")
 V = TypeVar("V")
 
+MAX_JAVA_INT = 2147483647
+
 
 class AnalysisException(Exception):
     pass

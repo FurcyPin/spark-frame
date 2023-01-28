@@ -16,8 +16,7 @@ from spark_frame.data_diff.package import (
     STRUCT_SEPARATOR_REPLACEMENT,
     canonize_col,
 )
-from spark_frame.transformations import analyze
-from spark_frame.utils import assert_true, quote, quote_columns
+from spark_frame.utils import MAX_JAVA_INT, quote, quote_columns
 
 
 class DiffResultAnalyzer:
@@ -79,91 +78,13 @@ class DiffResultAnalyzer:
             ],
         )
 
-        unpivot = df_transformations.unpivot(
+        unpivoted_df = df_transformations.unpivot(
             diff_df, pivot_columns=join_cols, key_alias="column_name", value_alias="diff"
         )
-        return unpivot
-
-    def _get_diff_count_per_col_df(self, diff_df: DataFrame, join_cols: List[str]) -> DataFrame:
-        """Given a diff_df and its list of join_cols, return a DataFrame with the following properties:
-
-        - One row per "diff tuple" (col_name, col_value_left, col_value_right)
-        - A column nb_differences that gives the number of occurrence of each "diff tuple"
-        - A column total_nb_differences that gives total number of differences found for this col_name.
-
-        Examples:
-            >>> from spark_frame.data_diff.diff_result_analyzer import _get_test_intersection_diff_df
-            >>> _diff_df = _get_test_intersection_diff_df()
-            >>> _diff_df.show()
-            +---+-------------+-------------+
-            | id|           c1|           c2|
-            +---+-------------+-------------+
-            |  1|{a, d, false}| {1, 1, true}|
-            |  2|{b, a, false}|{2, 4, false}|
-            +---+-------------+-------------+
-            <BLANKLINE>
-            >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
-            >>> diff_count_per_col_df = analyzer._get_diff_count_per_col_df(_diff_df, join_cols = ['id'])
-            >>> diff_count_per_col_df.orderBy("column_name", "left_value").show()
-            +-----------+----------+-----------+--------------+--------------------+
-            |column_name|left_value|right_value|nb_differences|total_nb_differences|
-            +-----------+----------+-----------+--------------+--------------------+
-            |         c1|         a|          d|             1|                   2|
-            |         c1|         b|          a|             1|                   2|
-            |         c2|         2|          4|             1|                   1|
-            +-----------+----------+-----------+--------------+--------------------+
-            <BLANKLINE>
-        """
-        unpivoted_diff_df = self._unpivot(diff_df, join_cols)
-        diff_count_per_col_df = self._build_diff_count_per_col_df_from_unpivoted_diff_df(unpivoted_diff_df).orderBy(
-            "column_name"
+        unpivoted_df = unpivoted_df.withColumn(
+            "column_name", f.regexp_replace(f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, ".")
         )
-        return diff_count_per_col_df
-
-    def _display_diff_count_per_col(self, diff_count_per_col_df: DataFrame):
-        """Displays the results of the diff analysis.
-        We first display the a summary of all columns that changed with the number of changes,
-        then for each column, we display a summary of the most frequent changes and then
-        we display examples of rows where this column changed, along with all the other columns
-        that changed in this diff.
-
-        Example:
-
-        >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> diff_count_per_col_df = spark.sql(# noqa: E501
-        ... '''
-        ...     SELECT INLINE(ARRAY(
-        ...         STRUCT('c1' as column_name, 'a' as left_value, 'd' as right_value, 1 as nb_differences, 3 as total_nb_differences),
-        ...         STRUCT('c3' as column_name, '2' as left_value, '4' as right_value, 1 as nb_differences, 1 as total_nb_differences)
-        ... ))''')
-        >>> diff_count_per_col_df.show()
-        +-----------+----------+-----------+--------------+--------------------+
-        |column_name|left_value|right_value|nb_differences|total_nb_differences|
-        +-----------+----------+-----------+--------------+--------------------+
-        |         c1|         a|          d|             1|                   3|
-        |         c3|         2|          4|             1|                   1|
-        +-----------+----------+-----------+--------------+--------------------+
-        <BLANKLINE>
-        >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
-        >>> analyzer._display_diff_count_per_col(diff_count_per_col_df)
-        Found the following differences:
-        +-----------+-------------+------+-----+--------------+
-        |column_name|total_nb_diff|before|after|nb_differences|
-        +-----------+-------------+------+-----+--------------+
-        |c1         |3            |a     |d    |1             |
-        |c3         |1            |2     |4    |1             |
-        +-----------+-------------+------+-----+--------------+
-        <BLANKLINE>
-        """
-        print("Found the following differences:")
-        diff_count_per_col_df.select(
-            f.col("column_name"),
-            f.col("total_nb_differences").alias("total_nb_diff"),
-            f.col("left_value").alias(self.diff_format_options.left_df_alias),
-            f.col("right_value").alias(self.diff_format_options.right_df_alias),
-            f.col("nb_differences").alias("nb_differences"),
-        ).show(1000 * self.diff_format_options.nb_diffed_rows, truncate=False)
+        return unpivoted_df
 
     def _format_diff_df(self, join_cols: List[str], diff_df: DataFrame) -> DataFrame:
         """Given a diff DataFrame, rename the columns to prefix them with the left_df_alias and right_df_alias."""
@@ -184,64 +105,17 @@ class DiffResultAnalyzer:
             ],
         )
 
-    def _display_diff_examples(self, diff_df: DataFrame, diff_count_per_col_df: DataFrame, join_cols: List[str]):
+    def _display_diff_examples(self, diff_df: DataFrame, diff_per_col_df: DataFrame, join_cols: List[str]):
         """For each column that has differences, print examples of rows where such a difference occurs.
 
         Examples:
-            >>> from spark_frame.data_diff.diff_result_analyzer import _get_test_intersection_diff_df
-            >>> _diff_df = _get_test_intersection_diff_df()
-            >>> _diff_df.show()  # noqa: E501
-            +---+-------------+-------------+
-            | id|           c1|           c2|
-            +---+-------------+-------------+
-            |  1|{a, d, false}| {1, 1, true}|
-            |  2|{b, a, false}|{2, 4, false}|
-            +---+-------------+-------------+
-            <BLANKLINE>
+            >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+            >>> diff_result = _get_test_diff_result()
             >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
-            >>> _diff_count_per_col_df = analyzer._get_diff_count_per_col_df(_diff_df, join_cols = ['id'])
-            >>> analyzer._display_diff_examples(_diff_df, _diff_count_per_col_df, join_cols = ['id'])
-            Detailed examples :
-            'c1' : 2 rows
-            +---+----------+---------+----------+---------+
-            | id|before__c1|after__c1|before__c2|after__c2|
-            +---+----------+---------+----------+---------+
-            |  1|         a|        d|         1|        1|
-            |  2|         b|        a|         2|        4|
-            +---+----------+---------+----------+---------+
-            <BLANKLINE>
-            'c2' : 1 rows
-            +---+----------+---------+----------+---------+
-            | id|before__c1|after__c1|before__c2|after__c2|
-            +---+----------+---------+----------+---------+
-            |  2|         b|        a|         2|        4|
-            +---+----------+---------+----------+---------+
-            <BLANKLINE>
-        """
-        rows = (
-            diff_count_per_col_df.select("column_name", "total_nb_differences")
-            .distinct()
-            .orderBy("column_name")
-            .collect()
-        )
-        diff_count_per_col = [(r[0], r[1]) for r in rows]
-        print("Detailed examples :")
-        for col, nb in diff_count_per_col:
-            print(f"'{col}' : {nb} rows")
-            rows_that_changed_for_that_column = diff_df.filter(~diff_df[quote(col)]["is_equal"]).select(
-                *join_cols, *[quote(r[0]) for r in rows]
-            )
-            self._format_diff_df(join_cols, rows_that_changed_for_that_column).show(
-                self.diff_format_options.nb_diffed_rows
-            )
-
-    def _get_side_diff_df(self, diff_df: DataFrame, side: str, join_cols: List[str]) -> DataFrame:
-        """Given a diff_df, compute the set of all values present only on the specified side.
-
-        Examples:
-            >>> from spark_frame.data_diff.package import _get_test_diff_df
-            >>> _diff_df = _get_test_diff_df()
-            >>> _diff_df.show()  # noqa: E501
+            >>> top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=['id'])
+            >>> diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
+            >>> diff_df = diff_result.diff_df
+            >>> diff_df.show()
             +---+----------------+----------------+-------------+------------+
             | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
             +---+----------------+----------------+-------------+------------+
@@ -252,99 +126,35 @@ class DiffResultAnalyzer:
             +---+----------------+----------------+-------------+------------+
             <BLANKLINE>
             >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
-            >>> analyzer._get_side_diff_df(_diff_df, side="left", join_cols=["id"]).show()
-            +---+---+---+
-            | id| c1| c2|
-            +---+---+---+
-            |  3|  c|  3|
-            +---+---+---+
-            <BLANKLINE>
-            >>> analyzer._get_side_diff_df(_diff_df, side="right", join_cols=["id"]).show()
-            +---+---+---+
-            | id| c1| c2|
-            +---+---+---+
-            |  4|  f|  3|
-            +---+---+---+
+            >>> diff_per_col_df = _get_test_diff_per_col_df()
+            >>> analyzer._display_diff_examples(diff_df, diff_per_col_df, join_cols = ['id'])
+            Detailed examples :
+            'c2' : 1 rows
+            +---+----------+---------+
+            | id|before__c2|after__c2|
+            +---+----------+---------+
+            |  2|         2|        4|
+            +---+----------+---------+
             <BLANKLINE>
         """
-        assert_true(side in ["left", "right"])
-        if side == "left":
-            predicate = PREDICATES.only_in_left
-        else:
-            predicate = PREDICATES.only_in_right
-        df = diff_df.filter(predicate).drop(EXISTS_COL_NAME, IS_EQUAL_COL_NAME)
-        compared_cols = [
-            f.col(f"{field.name}.{side}_value").alias(field.name) for field in df.schema if field.name not in join_cols
-        ]
-        return df.select(*join_cols, *compared_cols)
-
-    def _build_diff_count_per_col_df_from_unpivoted_diff_df(self, unpivoted_diff_df: DataFrame) -> DataFrame:
-        """Given an `unpivoted_diff_df` DataFrame, builds a DataFrame that gives for each column the N most frequent
-        differences that are happening, where N = `nb_diffed_rows`.
-
-        Args:
-            unpivoted_diff_df: A diff DataFrame
-            nb_diffed_rows: A dict that gives for each column with differences the number of rows with changed values
-              for this column
-
-        Returns:
-
-        Examples:
-            >>> from pyspark.sql import SparkSession
-            >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-            >>> unpivoted_diff_df = spark.sql( # noqa: E501
-            ... '''
-            ...     SELECT INLINE(ARRAY(
-            ...         STRUCT(1 as id, "c1" as column_name, STRUCT("a" as left_value, "d" as right_value, False as is_equal) as diff),
-            ...         STRUCT(1 as id, "c2" as column_name, STRUCT("x" as left_value, "x" as right_value, True as is_equal) as diff),
-            ...         STRUCT(1 as id, "c3" as column_name, STRUCT("1" as left_value, "1" as right_value, True as is_equal) as diff),
-            ...         STRUCT(2 as id, "c1" as column_name, STRUCT("b" as left_value, "a" as right_value, False as is_equal) as diff),
-            ...         STRUCT(2 as id, "c2" as column_name, STRUCT("y" as left_value, "y" as right_value, True as is_equal) as diff),
-            ...         STRUCT(2 as id, "c3" as column_name, STRUCT("2" as left_value, "4" as right_value, False as is_equal) as diff),
-            ...         STRUCT(3 as id, "c1" as column_name, STRUCT("c" as left_value, "f" as right_value, False as is_equal) as diff),
-            ...         STRUCT(3 as id, "c2" as column_name, STRUCT("z" as left_value, "z" as right_value, True as is_equal) as diff),
-            ...         STRUCT(3 as id, "c3" as column_name, STRUCT("3" as left_value, "3" as right_value, True as is_equal) as diff)
-            ...     ))
-            ... ''')
-            >>> unpivoted_diff_df.show()
-            +---+-----------+-------------+
-            | id|column_name|         diff|
-            +---+-----------+-------------+
-            |  1|         c1|{a, d, false}|
-            |  1|         c2| {x, x, true}|
-            |  1|         c3| {1, 1, true}|
-            |  2|         c1|{b, a, false}|
-            |  2|         c2| {y, y, true}|
-            |  2|         c3|{2, 4, false}|
-            |  3|         c1|{c, f, false}|
-            |  3|         c2| {z, z, true}|
-            |  3|         c3| {3, 3, true}|
-            +---+-----------+-------------+
-            <BLANKLINE>
-            >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after", nb_diffed_rows=1))
-            >>> analyzer._build_diff_count_per_col_df_from_unpivoted_diff_df(unpivoted_diff_df).orderBy('column_name').show()
-            +-----------+----------+-----------+--------------+--------------------+
-            |column_name|left_value|right_value|nb_differences|total_nb_differences|
-            +-----------+----------+-----------+--------------+--------------------+
-            |         c1|         a|          d|             1|                   3|
-            |         c3|         2|          4|             1|                   1|
-            +-----------+----------+-----------+--------------+--------------------+
-            <BLANKLINE>
-        """
-        # We must make sure to break ties on nb_differences when ordering to ensure a deterministic for unit tests.
-        window = Window.partitionBy(f.col("column_name")).orderBy(
-            f.col("nb_differences").desc(), f.col("left_value"), f.col("right_value")
+        rows = (
+            diff_per_col_df.where(~f.col("column_name").isin(join_cols))
+            .where(f.col("counts.changed") > 0)
+            .select("column_name", f.col("counts.changed").alias("total_nb_differences"))
+            .collect()
         )
-        df = (
-            unpivoted_diff_df.filter("COALESCE(diff.is_equal, FALSE) = FALSE")
-            .groupBy("column_name", "diff.left_value", "diff.right_value")
-            .agg(f.count(f.lit(1)).alias("nb_differences"))
-            .withColumn("row_num", f.row_number().over(window))
-            .withColumn("total_nb_differences", f.sum("nb_differences").over(Window.partitionBy("column_name")))
-            .where(f.col("row_num") <= f.lit(self.diff_format_options.nb_diffed_rows))
-            .drop("row_num")
-        )
-        return df.withColumn("column_name", f.regexp_replace(f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, "."))
+        diff_count_per_col = [(r[0], r[1]) for r in rows]
+        print("Detailed examples :")
+        for col, nb in diff_count_per_col:
+            print(f"'{col}' : {nb} rows")
+            rows_that_changed_for_that_column = (
+                diff_df.where(PREDICATES.present_in_both)
+                .where(~diff_df[quote(col)]["is_equal"])
+                .select(*join_cols, *[quote(r[0]) for r in rows])
+            )
+            self._format_diff_df(join_cols, rows_that_changed_for_that_column).show(
+                self.diff_format_options.nb_diffed_rows
+            )
 
     def _get_top_per_col_state_df(
         self, diff_df: DataFrame, join_cols: List[str], max_nb_rows_per_col_state: Optional[int] = None
@@ -553,7 +363,7 @@ class DiffResultAnalyzer:
         columns = diff_result.diff_df.columns[:-2]
         col_df = diff_result.diff_df.sparkSession.createDataFrame(
             list(enumerate(columns)), "column_number INT, column_name STRING"
-        )
+        ).withColumn("column_name", f.regexp_replace(f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, "."))
         # col_df.show()
         # +-------------+-----------+
         # |column_number|column_name|
@@ -619,7 +429,7 @@ class DiffResultAnalyzer:
                 f.col("only_in_left_diff").alias("only_in_left"),
                 f.col("only_in_right_diff").alias("only_in_right"),
             ).alias("diff"),
-        )
+        ).orderBy("column_number")
         # df.show(truncate=False)
         # +-----------+------------------+------------------------------------------------------------+
         # |column_name|counts            |diff                                                        |
@@ -630,30 +440,167 @@ class DiffResultAnalyzer:
         # +-----------+------------------+------------------------------------------------------------+
         return df
 
+    @staticmethod
+    def _display_changed(diff_per_col_df: DataFrame):
+        """Displays the results of the diff analysis.
+
+        We first display a summary of all columns that changed with the number of changes,
+        then for each column, we display a summary of the most frequent changes and then
+        we display examples of rows where this column changed, along with all the other columns
+        that changed in this diff.
+
+        Example:
+
+        >>> diff_per_col_df = _get_test_diff_per_col_df()
+        >>> diff_per_col_df.show(truncate=False)
+        +-----------+---------------+------------------------------------------------------------+
+        |column_name|counts         |diff                                                        |
+        +-----------+---------------+------------------------------------------------------------+
+        |id         |{4, 0, 2, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}], [{3, null, 1}], [{null, 4, 1}]}|
+        |c1         |{4, 0, 2, 1, 1}|{[], [{a, a, 1}, {b, b, 1}], [{c, null, 1}], [{null, f, 1}]}|
+        |c2         |{4, 1, 1, 1, 1}|{[{2, 4, 1}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}  |
+        +-----------+---------------+------------------------------------------------------------+
+        <BLANKLINE>
+        >>> from spark_frame import nested
+        >>> nested.print_schema(diff_per_col_df)
+        root
+         |-- column_name: string (nullable = true)
+         |-- counts.total: integer (nullable = false)
+         |-- counts.changed: long (nullable = false)
+         |-- counts.no_change: long (nullable = false)
+         |-- counts.only_in_left: long (nullable = false)
+         |-- counts.only_in_right: long (nullable = false)
+         |-- diff.changed!.left_value: string (nullable = true)
+         |-- diff.changed!.right_value: string (nullable = true)
+         |-- diff.changed!.nb: long (nullable = false)
+         |-- diff.no_change!.left_value: string (nullable = true)
+         |-- diff.no_change!.right_value: string (nullable = true)
+         |-- diff.no_change!.nb: long (nullable = false)
+         |-- diff.only_in_left!.left_value: string (nullable = true)
+         |-- diff.only_in_left!.right_value: string (nullable = true)
+         |-- diff.only_in_left!.nb: long (nullable = false)
+         |-- diff.only_in_right!.left_value: string (nullable = true)
+         |-- diff.only_in_right!.right_value: string (nullable = true)
+         |-- diff.only_in_right!.nb: long (nullable = false)
+        <BLANKLINE>
+        >>> DiffResultAnalyzer._display_changed(diff_per_col_df)
+        +-----------+-------------+----------+-----------+--------------+
+        |column_name|total_nb_diff|left_value|right_value|nb_differences|
+        +-----------+-------------+----------+-----------+--------------+
+        |c2         |1            |2         |4          |1             |
+        +-----------+-------------+----------+-----------+--------------+
+        <BLANKLINE>
+
+        """
+        df = diff_per_col_df.where(f.col("counts.changed") > 0)
+        df = df.select(
+            "column_name", f.col("counts.changed").alias("total_nb_diff"), f.explode("diff.changed").alias("diff")
+        )
+        df = df.select(
+            "column_name",
+            "total_nb_diff",
+            "diff.left_value",
+            "diff.right_value",
+            f.col("diff.nb").alias("nb_differences"),
+        )
+        df.show(MAX_JAVA_INT, truncate=False)
+
+    @staticmethod
+    def _display_only_in_left_or_right(diff_per_col_df: DataFrame, left_or_right: str) -> None:
+        """Displays the results of the diff analysis.
+
+        We first display a summary of all columns that changed with the number of changes,
+        then for each column, we display a summary of the most frequent changes and then
+        we display examples of rows where this column changed, along with all the other columns
+        that changed in this diff.
+
+        Example:
+
+        >>> diff_per_col_df = _get_test_diff_per_col_df()
+        >>> diff_per_col_df.show(truncate=False)
+        +-----------+---------------+------------------------------------------------------------+
+        |column_name|counts         |diff                                                        |
+        +-----------+---------------+------------------------------------------------------------+
+        |id         |{4, 0, 2, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}], [{3, null, 1}], [{null, 4, 1}]}|
+        |c1         |{4, 0, 2, 1, 1}|{[], [{a, a, 1}, {b, b, 1}], [{c, null, 1}], [{null, f, 1}]}|
+        |c2         |{4, 1, 1, 1, 1}|{[{2, 4, 1}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}  |
+        +-----------+---------------+------------------------------------------------------------+
+        <BLANKLINE>
+        >>> from spark_frame import nested
+        >>> nested.print_schema(diff_per_col_df)
+        root
+         |-- column_name: string (nullable = true)
+         |-- counts.total: integer (nullable = false)
+         |-- counts.changed: long (nullable = false)
+         |-- counts.no_change: long (nullable = false)
+         |-- counts.only_in_left: long (nullable = false)
+         |-- counts.only_in_right: long (nullable = false)
+         |-- diff.changed!.left_value: string (nullable = true)
+         |-- diff.changed!.right_value: string (nullable = true)
+         |-- diff.changed!.nb: long (nullable = false)
+         |-- diff.no_change!.left_value: string (nullable = true)
+         |-- diff.no_change!.right_value: string (nullable = true)
+         |-- diff.no_change!.nb: long (nullable = false)
+         |-- diff.only_in_left!.left_value: string (nullable = true)
+         |-- diff.only_in_left!.right_value: string (nullable = true)
+         |-- diff.only_in_left!.nb: long (nullable = false)
+         |-- diff.only_in_right!.left_value: string (nullable = true)
+         |-- diff.only_in_right!.right_value: string (nullable = true)
+         |-- diff.only_in_right!.nb: long (nullable = false)
+        <BLANKLINE>
+        >>> DiffResultAnalyzer._display_only_in_left_or_right(diff_per_col_df, "left")
+        +-----------+-----+---+
+        |column_name|value|nb |
+        +-----------+-----+---+
+        |id         |3    |1  |
+        |c1         |c    |1  |
+        |c2         |3    |1  |
+        +-----------+-----+---+
+        <BLANKLINE>
+        >>> DiffResultAnalyzer._display_only_in_left_or_right(diff_per_col_df, "right")
+        +-----------+-----+---+
+        |column_name|value|nb |
+        +-----------+-----+---+
+        |id         |4    |1  |
+        |c1         |f    |1  |
+        |c2         |3    |1  |
+        +-----------+-----+---+
+        <BLANKLINE>
+
+        """
+        df = diff_per_col_df.select("column_name", f.explode(f"diff.only_in_{left_or_right}").alias("diff"))
+        df = df.select("column_name", f.col(f"diff.{left_or_right}_value").alias("value"), f.col("diff.nb").alias("nb"))
+        df.show(MAX_JAVA_INT, truncate=False)
+
     def display_diff_results(self, diff_result: DiffResult, show_examples: bool):
+        join_cols = diff_result.join_cols
+        top_per_col_state_df = self._get_top_per_col_state_df(diff_result.diff_df, join_cols).localCheckpoint()
+        diff_per_col_df = self._get_diff_per_col_df(top_per_col_state_df, diff_result).localCheckpoint()
+
         left_df_alias = self.diff_format_options.left_df_alias
         right_df_alias = self.diff_format_options.right_df_alias
-        join_cols = diff_result.join_cols
         diff_stats = diff_result.diff_stats
-        print_diff_stats(diff_result.diff_stats, left_df_alias, right_df_alias)
+
+        print_diff_stats(diff_stats, left_df_alias, right_df_alias)
+
         if diff_stats.changed > 0:
-            diff_count_per_col_df = self._get_diff_count_per_col_df(diff_result.changed_df, join_cols).persist()
-            self._display_diff_count_per_col(diff_count_per_col_df)
+            print("Found the following changes:")
+            self._display_changed(diff_per_col_df)
             if show_examples:
-                self._display_diff_examples(diff_result.diff_df, diff_count_per_col_df, join_cols)
+                self._display_diff_examples(diff_result.diff_df, diff_per_col_df, join_cols)
         if diff_stats.only_in_left > 0:
-            left_only_df = self._get_side_diff_df(diff_result.diff_df, "left", join_cols).persist()
             print(f"{diff_stats.only_in_left} rows were only found in '{left_df_alias}' :")
-            analyze(left_only_df).show(100000)
+            print(f"Most frequent values in '{left_df_alias}' for each column :")
+            self._display_only_in_left_or_right(diff_per_col_df, "left")
         if diff_stats.only_in_right > 0:
-            right_only_df = self._get_side_diff_df(diff_result.diff_df, "right", join_cols).persist()
-            print(f"{diff_stats.only_in_right} rows were only found in '{right_df_alias}':")
-            analyze(right_only_df).show(100000)
+            print(f"{diff_stats.only_in_left} rows were only found in '{right_df_alias}' :")
+            print(f"Most frequent values in '{right_df_alias}' for each column :")
+            self._display_only_in_left_or_right(diff_per_col_df, "right")
 
     def get_diff_result_summary(self, diff_result: DiffResult) -> DiffResultSummary:
         join_cols = diff_result.join_cols
         top_per_col_state_df = self._get_top_per_col_state_df(diff_result.diff_df, join_cols).localCheckpoint()
-        diff_per_col_df = self._get_diff_per_col_df(top_per_col_state_df, diff_result)
+        diff_per_col_df = self._get_diff_per_col_df(top_per_col_state_df, diff_result).localCheckpoint()
         summary = DiffResultSummary(
             left_df_alias=self.diff_format_options.left_df_alias,
             right_df_alias=self.diff_format_options.right_df_alias,
@@ -688,3 +635,13 @@ def _get_test_intersection_diff_df() -> DataFrame:
     """
     )
     return diff_df
+
+
+def _get_test_diff_per_col_df() -> DataFrame:
+    from spark_frame.data_diff.diff_results import _get_test_diff_result
+
+    diff_result = _get_test_diff_result()
+    analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
+    top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
+    df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
+    return df
