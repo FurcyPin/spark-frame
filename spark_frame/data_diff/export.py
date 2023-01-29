@@ -1,9 +1,9 @@
 from typing import Optional
 
-import jinja2
 import pkg_resources
 
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
+from spark_frame.utils import load_external_module
 
 
 def export_html_diff_report(diff_result_summary: DiffResultSummary, title: Optional[str] = None) -> None:
@@ -16,6 +16,8 @@ def export_html_diff_report(diff_result_summary: DiffResultSummary, title: Optio
         diff_result_summary: A summary of the diff.
         title: The title of the report
     """
+    jinja2 = load_external_module("jinja2")
+
     if title is None:
         title_str = f"{diff_result_summary.left_df_alias} vs {diff_result_summary.right_df_alias}"
     else:

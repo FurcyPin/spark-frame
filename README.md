@@ -44,13 +44,23 @@ pip install spark-frame
 ## Compatibilities and requirements
 
 This library does not depend on any other library.
-Pyspark must be installed separately to use it.
+**Pyspark must be installed separately to use it.**
 It is compatible with the following versions:
 
 - Python: requires 3.8.1 or higher (tested against Python 3.9, 3.10 and 3.11)
 - pyspark: requires 3.3.0 or higher
 
 This library is tested against Windows, Mac and Linux.
+
+
+**Some features require extra libraries to be installed alongside this project.**
+**We chose to not include them as direct dependencies for security and flexibility reasons.**
+**This way, users who are not using these features don't need to worry about these dependencies.**
+
+| feature                               | Method                      | module required |
+|---------------------------------------|-----------------------------|----------------:|
+| Generating HTML reports for data diff | `DiffResult.export_to_html` |          jinja2 |
+
 
 # Release notes
 
