@@ -10,6 +10,7 @@ from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.diff_stats import print_diff_stats
 from spark_frame.data_diff.package import (
+    CHANGED_COL_NAME,
     EXISTS_COL_NAME,
     IS_EQUAL_COL_NAME,
     PREDICATES,
@@ -139,8 +140,8 @@ class DiffResultAnalyzer:
         """
         rows = (
             diff_per_col_df.where(~f.col("column_name").isin(join_cols))
-            .where(f.col("counts.changed") > 0)
-            .select("column_name", f.col("counts.changed").alias("total_nb_differences"))
+            .where(f.col(f"counts.{CHANGED_COL_NAME}") > 0)
+            .select("column_name", f.col(f"counts.{CHANGED_COL_NAME}").alias("total_nb_differences"))
             .collect()
         )
         diff_count_per_col = [(r[0], r[1]) for r in rows]
@@ -499,9 +500,11 @@ class DiffResultAnalyzer:
         <BLANKLINE>
 
         """
-        df = diff_per_col_df.where(f.col("counts.changed") > 0)
+        df = diff_per_col_df.where(f.col(f"counts.{CHANGED_COL_NAME}") > 0)
         df = df.select(
-            "column_name", f.col("counts.changed").alias("total_nb_diff"), f.explode("diff.changed").alias("diff")
+            "column_name",
+            f.col(f"counts.{CHANGED_COL_NAME}").alias("total_nb_diff"),
+            f.explode("diff.changed").alias("diff"),
         )
         df = df.select(
             "column_name",
