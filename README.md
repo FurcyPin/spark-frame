@@ -50,7 +50,7 @@ It is compatible with the following versions:
 - Python: requires 3.8.1 or higher (tested against Python 3.9, 3.10 and 3.11)
 - pyspark: requires 3.3.0 or higher
 
-This library is tested against Mac and Linux.
+This library is tested against Windows, Mac and Linux.
 
 # Release notes
 
