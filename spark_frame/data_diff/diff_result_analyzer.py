@@ -156,9 +156,7 @@ class DiffResultAnalyzer:
                 self.diff_format_options.nb_diffed_rows
             )
 
-    def _get_top_per_col_state_df(
-        self, diff_df: DataFrame, join_cols: List[str], max_nb_rows_per_col_state: Optional[int] = None
-    ) -> DataFrame:
+    def _get_top_per_col_state_df(self, diff_df: DataFrame, join_cols: List[str]) -> DataFrame:
         """Given a diff_df and its list of join_cols, return a DataFrame with the following properties:
 
         - One row per tuple (column_name, state, left_value, right_value)
@@ -171,7 +169,6 @@ class DiffResultAnalyzer:
         Args:
             diff_df: A diff_df
             join_cols: The list of columns used for the join
-            max_nb_rows_per_col_state: Max number of rows to keep for each (column_name, state) tuple
 
         Returns:
             A Dataframe
@@ -193,49 +190,46 @@ class DiffResultAnalyzer:
             >>> (analyzer._get_top_per_col_state_df(_diff_df, join_cols = ['id'])
             ...  .orderBy("column_name", "state", "left_value")
             ... ).show()
-            +-----------+-------------+----------+-----------+---+---------------+
-            |column_name|        state|left_value|right_value| nb|col_state_total|
-            +-----------+-------------+----------+-----------+---+---------------+
-            |         c1|    no_change|         a|          a|  1|              2|
-            |         c1|    no_change|         b|          b|  1|              2|
-            |         c1| only_in_left|         c|       null|  1|              1|
-            |         c1|only_in_right|      null|          f|  1|              1|
-            |         c2|      changed|         2|          4|  1|              1|
-            |         c2|    no_change|         1|          1|  1|              1|
-            |         c2| only_in_left|         3|       null|  1|              1|
-            |         c2|only_in_right|      null|          3|  1|              1|
-            |         id|    no_change|         1|          1|  1|              2|
-            |         id|    no_change|         2|          2|  1|              2|
-            |         id| only_in_left|         3|       null|  1|              1|
-            |         id|only_in_right|      null|          4|  1|              1|
-            +-----------+-------------+----------+-----------+---+---------------+
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            |         c1|    no_change|         a|          a|  1|              2|      1|
+            |         c1|    no_change|         b|          b|  1|              2|      2|
+            |         c1| only_in_left|         c|       null|  1|              1|      1|
+            |         c1|only_in_right|      null|          f|  1|              1|      1|
+            |         c2|      changed|         2|          4|  1|              1|      1|
+            |         c2|    no_change|         1|          1|  1|              1|      1|
+            |         c2| only_in_left|         3|       null|  1|              1|      1|
+            |         c2|only_in_right|      null|          3|  1|              1|      1|
+            |         id|    no_change|         1|          1|  1|              2|      1|
+            |         id|    no_change|         2|          2|  1|              2|      2|
+            |         id| only_in_left|         3|       null|  1|              1|      1|
+            |         id|only_in_right|      null|          4|  1|              1|      1|
+            +-----------+-------------+----------+-----------+---+---------------+-------+
             <BLANKLINE>
 
             *With `max_nb_rows_per_col_state=1`*
-            >>> (analyzer._get_top_per_col_state_df(_diff_df, join_cols = ['id'], max_nb_rows_per_col_state=1)
+            >>> (analyzer._get_top_per_col_state_df(_diff_df, join_cols = ['id'])
             ...  .orderBy("column_name", "state", "left_value")
             ... ).show()
-            +-----------+-------------+----------+-----------+---+---------------+
-            |column_name|        state|left_value|right_value| nb|col_state_total|
-            +-----------+-------------+----------+-----------+---+---------------+
-            |         c1|    no_change|         a|          a|  1|              2|
-            |         c1| only_in_left|         c|       null|  1|              1|
-            |         c1|only_in_right|      null|          f|  1|              1|
-            |         c2|      changed|         2|          4|  1|              1|
-            |         c2|    no_change|         1|          1|  1|              1|
-            |         c2| only_in_left|         3|       null|  1|              1|
-            |         c2|only_in_right|      null|          3|  1|              1|
-            |         id|    no_change|         1|          1|  1|              2|
-            |         id| only_in_left|         3|       null|  1|              1|
-            |         id|only_in_right|      null|          4|  1|              1|
-            +-----------+-------------+----------+-----------+---+---------------+
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            |         c1|    no_change|         a|          a|  1|              2|      1|
+            |         c1|    no_change|         b|          b|  1|              2|      2|
+            |         c1| only_in_left|         c|       null|  1|              1|      1|
+            |         c1|only_in_right|      null|          f|  1|              1|      1|
+            |         c2|      changed|         2|          4|  1|              1|      1|
+            |         c2|    no_change|         1|          1|  1|              1|      1|
+            |         c2| only_in_left|         3|       null|  1|              1|      1|
+            |         c2|only_in_right|      null|          3|  1|              1|      1|
+            |         id|    no_change|         1|          1|  1|              2|      1|
+            |         id|    no_change|         2|          2|  1|              2|      2|
+            |         id| only_in_left|         3|       null|  1|              1|      1|
+            |         id|only_in_right|      null|          4|  1|              1|      1|
+            +-----------+-------------+----------+-----------+---+---------------+-------+
             <BLANKLINE>
         """
-        if max_nb_rows_per_col_state is None:
-            _max_nb_rows_per_col_state = self.diff_format_options.nb_diffed_rows
-        else:
-            _max_nb_rows_per_col_state = max_nb_rows_per_col_state
-
         for join_col in join_cols:
             diff_df = diff_df.withColumn(
                 join_col,
@@ -280,14 +274,14 @@ class DiffResultAnalyzer:
         df = (
             df_2.groupBy("column_name", "state", "left_value", "right_value")
             .agg(f.count(f.lit(1)).alias("nb"))
-            .withColumn("row_num", f.row_number().over(window))
             .withColumn("col_state_total", f.sum("nb").over(Window.partitionBy("column_name", "state")))
-            .where(f.col("row_num") <= f.lit(_max_nb_rows_per_col_state))
-            .drop("row_num")
+            .withColumn("row_num", f.row_number().over(window))
         )
         return df
 
-    def _get_diff_per_col_df(self, top_per_col_state_df: DataFrame, diff_result: DiffResult) -> DataFrame:
+    def _get_diff_per_col_df(
+        self, top_per_col_state_df: DataFrame, diff_result: DiffResult, max_nb_rows_per_col_state: Optional[int] = None
+    ) -> DataFrame:
         """Given a top_per_col_state_df, return a Dict[str, int] that gives for each column and each
         column state (changed, no_change, only_in_left, only_in_right) the total number of occurences
         and the most frequent occurrences.
@@ -359,6 +353,11 @@ class DiffResultAnalyzer:
             +-----------+---------------+------------------------------------------------------------+
             <BLANKLINE>
         """
+        if max_nb_rows_per_col_state is None:
+            _max_nb_rows_per_col_state = self.diff_format_options.nb_diffed_rows
+        else:
+            _max_nb_rows_per_col_state = max_nb_rows_per_col_state
+
         diff_stats = diff_result.diff_stats
         columns = diff_result.diff_df.columns[:-2]
         col_df = diff_result.diff_df.sparkSession.createDataFrame(
@@ -393,7 +392,15 @@ class DiffResultAnalyzer:
         pivoted_df = (
             top_per_col_state_df.groupBy("column_name")
             .pivot("state", values=["changed", "no_change", "only_in_left", "only_in_right"])
-            .agg(f.sum("nb").alias("nb"), f.expr("ARRAY_AGG(STRUCT(left_value, right_value, nb))").alias("diff"))
+            .agg(
+                f.sum("nb").alias("nb"),
+                f.expr(
+                    f"""
+                ARRAY_AGG(
+                    CASE WHEN row_num <= {_max_nb_rows_per_col_state} THEN STRUCT(left_value, right_value, nb) END
+                )"""
+                ).alias("diff"),
+            )
         )
         # pivoted_df.show(truncate=False)
         # +-----------+----------+------------+--------+----------------------+---------------+-----------------+----------------+------------------+  # noqa: E501
