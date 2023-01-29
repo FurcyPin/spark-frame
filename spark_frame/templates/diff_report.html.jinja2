@@ -111,7 +111,14 @@
         max-height: 500px
       }
 
-      /* Define the style for details table header */
+      .top_col_table_header {
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-style: italic;
+        font-weight: normal;
+      }
+
       .top_col_table_div {
         padding-right: 10px;
         white-space: nowrap;
@@ -281,58 +288,74 @@
             column_name="{{ col_diff.column_name }}"
           >
             <td colspan="2">
-            <div class="top_cols_container">
-              {% for element in elements %}
-                {% if element.count > 0 %}
-                  <div class="top_cols_table_container">
-                    <b> {{ element.top_title }} </b>
-                    <table class="top_cols_table">
-                      {% for difference in element.diff %}
-                      {% set diff_element = {
-                          'nb': difference.nb,
-                          'pct': (difference.nb / col_diff.counts.total * 100) | round(2),
-                        }
-                      %}
-                      <tr>
-                        {% if element.type == "no_change" %}
-                          <td class="top_col_table_div">{{ difference.left_value }}</td>
-                        {% elif element.type == "changed" %}
-                          <td class="top_col_table_div">{{ difference.left_value }}</td>
-                          <td class="top_col_table_div"> &#10132; <difference>
-                          <td class="top_col_table_div">{{ difference.right_value }}</td>
-                        {% elif element.type == "only_in_left" %}
-                          <td class="top_col_table_div">{{ difference.left_value }}</td>
-                        {% elif element.type == "only_in_right" %}
-                          <td class="top_col_table_div">{{ difference.right_value }}</td>
-                        {% endif %}
-                        <td class="top_col_table_div">{{ difference.nb }}</td>
-                        <td class="top_col_table_div">
+              <div class="top_cols_container">
+                {% for element in elements %}
+                  {% if element.count > 0 %}
+                    <div class="top_cols_table_container">
+                      <b> {{ element.top_title }} </b>
+                      <table class="top_cols_table">
 
-                          <table class="top_col_bar_table" style="width: 100%; border-collapse: collapse">
-                            <tr style="width: 100%; height: 20px;">
-                              <td
-                                style="
-                                  background-color: {{ element.color }};
-                                  width: {{ [diff_element.nb, 2.5] | max }}px;
-                                  height: 100%;
-                                  padding: 0
-                                "
-                                title="{{ diff_element.nb }} ({{ diff_element.pct }}%)"
-                              >
-                              </td>
-                              <td></td>
-                            </tr>
-                          </table>
+                        <tr>
+                          {% if element.type == "no_change" %}
+                            <th class="top_col_table_header"> Value </th>
+                          {% elif element.type == "changed" %}
+                            <th class="top_col_table_header">{{ diff_result_summary.left_df_alias }}</td>
+                            <th class="top_col_table_header"> <difference>
+                            <th class="top_col_table_header">{{ diff_result_summary.right_df_alias }}</td>
+                          {% elif element.type == "only_in_left" %}
+                            <th class="top_col_table_header"> Value </th>
+                          {% elif element.type == "only_in_right" %}
+                            <th class="top_col_table_header"> Value </th>
+                          {% endif %}
+                            <th colspan="2" class="top_col_table_header">Nb occurrences</th>
+                        </tr>
 
-                        </td>
+                        {% for difference in element.diff %}
+                        {% set diff_element = {
+                            'nb': difference.nb,
+                            'pct': (difference.nb / col_diff.counts.total * 100) | round(2),
+                          }
+                        %}
+                        <tr>
+                          {% if element.type == "no_change" %}
+                            <td class="top_col_table_div">{{ difference.left_value }}</td>
+                          {% elif element.type == "changed" %}
+                            <td class="top_col_table_div">{{ difference.left_value }}</td>
+                            <td class="top_col_table_div"> &#10132; <difference>
+                            <td class="top_col_table_div">{{ difference.right_value }}</td>
+                          {% elif element.type == "only_in_left" %}
+                            <td class="top_col_table_div">{{ difference.left_value }}</td>
+                          {% elif element.type == "only_in_right" %}
+                            <td class="top_col_table_div">{{ difference.right_value }}</td>
+                          {% endif %}
+                          <td class="top_col_table_div">{{ difference.nb }}</td>
+                          <td class="top_col_table_div">
 
-                      </tr>
-                      {% endfor %}
-                    </table>
-                  </div>
-                {% endif %}
-              {% endfor %}
-            </div>
+                            <table class="top_col_bar_table" style="width: 100%; border-collapse: collapse">
+                              <tr style="width: 100%; height: 20px;">
+                                <td
+                                  style="
+                                    background-color: {{ element.color }};
+                                    width: {{ [diff_element.nb, 2.5] | max }}px;
+                                    height: 100%;
+                                    padding: 0
+                                  "
+                                  title="{{ diff_element.nb }} ({{ diff_element.pct }}%)"
+                                >
+                                </td>
+                                <td></td>
+                              </tr>
+                            </table>
+
+                          </td>
+
+                        </tr>
+                        {% endfor %}
+                      </table>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
             </td>
           </tr>
 
@@ -364,7 +387,7 @@
     var diffString = `
 --- Schema
 +++ Schema
-{{diff_result_summary.schema_diff_result.diff_str}}
+{{diff_result_summary.schema_diff_result.diff_str | replace("`", "\`")}}
 `;
       document.addEventListener('DOMContentLoaded', () => {
         var diffHtml = Diff2Html.html(diffString, {
