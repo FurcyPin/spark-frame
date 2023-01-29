@@ -7,6 +7,15 @@ from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 
 
 def export_html_diff_report(diff_result_summary: DiffResultSummary, title: Optional[str] = None) -> None:
+    """Generate an HTML report of the diff.
+
+    This generates a file named diff_report.html in the current working directory.
+    It can be open directly with a web browser.
+
+    Args:
+        diff_result_summary: A summary of the diff.
+        title: The title of the report
+    """
     if title is None:
         title_str = f"{diff_result_summary.left_df_alias} vs {diff_result_summary.right_df_alias}"
     else:

@@ -102,6 +102,11 @@ class DiffResult:
         analyzer.display_diff_results(self, show_examples)
 
     def export_to_html(self):
+        """Generate an HTML report of this diff result.
+
+        This generates a file named diff_report.html in the current working directory.
+        It can be open directly with a web browser.
+        """
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
         analyzer = DiffResultAnalyzer(self.diff_format_options)
