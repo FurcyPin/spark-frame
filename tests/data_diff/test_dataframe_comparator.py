@@ -446,7 +446,7 @@ def test_compare_df_with_sharded_array_of_struct(spark: SparkSession, df_compara
     assert diff_result.same_data is False
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
-    # diff_result.display()
+    diff_result.display()
     diff_result.export_to_html()
     analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
     top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
