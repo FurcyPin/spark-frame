@@ -80,7 +80,7 @@ class DiffResult:
         diff_df: DataFrame,
         join_cols: List[str],
         diff_format_options: DiffFormatOptions = DiffFormatOptions(),
-    ):
+    ) -> None:
         """Class containing the results of a diff between two DataFrames"""
         self.schema_diff_result = schema_diff_result
         self.diff_df = diff_df
@@ -98,24 +98,24 @@ class DiffResult:
         self._changed_df_shards: Optional[List[DataFrame]] = None
 
     @property
-    def same_schema(self):
+    def same_schema(self) -> bool:
         return self.schema_diff_result.same_schema
 
-    @cached_property
-    def diff_stats(self):
-        return self._compute_diff_stats()
-
-    @cached_property
-    def top_per_col_state_df(self):
-        return self._compute_top_per_col_state_df()
-
     @property
-    def same_data(self):
+    def same_data(self) -> bool:
         return self.diff_stats.same_data
 
     @property
-    def is_ok(self):
+    def is_ok(self) -> bool:
         return self.same_schema and self.same_data
+
+    @cached_property
+    def diff_stats(self) -> DiffStats:
+        return self._compute_diff_stats()
+
+    @cached_property
+    def top_per_col_state_df(self) -> DataFrame:
+        return self._compute_top_per_col_state_df().localCheckpoint()
 
     @cached_property
     def changed_df(self) -> DataFrame:
@@ -289,14 +289,14 @@ class DiffResult:
         )
         return df
 
-    def display(self, show_examples: bool = False):
+    def display(self, show_examples: bool = False) -> None:
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
         self.schema_diff_result.display()
         analyzer = DiffResultAnalyzer(self.diff_format_options)
         analyzer.display_diff_results(self, show_examples)
 
-    def export_to_html(self):
+    def export_to_html(self) -> None:
         """Generate an HTML report of this diff result.
 
         This generates a file named diff_report.html in the current working directory.
