@@ -81,19 +81,33 @@ def _get_test_diff_df() -> DataFrame:
             STRUCT(
                 2 as id,
                 STRUCT("b" as left_value, "b" as right_value, True as is_equal) as c1,
-                STRUCT(2 as left_value, 4 as right_value, False as is_equal) as c2,
+                STRUCT(2 as left_value, 3 as right_value, False as is_equal) as c2,
                 STRUCT(True as left_value, True as right_value) as __EXISTS__,
                 FALSE as __IS_EQUAL__
             ),
             STRUCT(
                 3 as id,
+                STRUCT("b" as left_value, "b" as right_value, True as is_equal) as c1,
+                STRUCT(2 as left_value, 4 as right_value, False as is_equal) as c2,
+                STRUCT(True as left_value, True as right_value) as __EXISTS__,
+                FALSE as __IS_EQUAL__
+            ),
+            STRUCT(
+                4 as id,
+                STRUCT("b" as left_value, "b" as right_value, True as is_equal) as c1,
+                STRUCT(2 as left_value, 4 as right_value, False as is_equal) as c2,
+                STRUCT(True as left_value, True as right_value) as __EXISTS__,
+                FALSE as __IS_EQUAL__
+            ),
+            STRUCT(
+                5 as id,
                 STRUCT("c" as left_value, NULL as right_value, False as is_equal) as c1,
                 STRUCT(3 as left_value, NULL as right_value, False as is_equal) as c2,
                 STRUCT(True as left_value, False as right_value) as __EXISTS__,
                 FALSE as __IS_EQUAL__
             ),
             STRUCT(
-                4 as id,
+                6 as id,
                 STRUCT(NULL as left_value, "f" as right_value, False as is_equal) as c1,
                 STRUCT(NULL as left_value, 3 as right_value, False as is_equal) as c2,
                 STRUCT(False as left_value, True as right_value) as __EXISTS__,

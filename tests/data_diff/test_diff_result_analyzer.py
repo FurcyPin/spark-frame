@@ -7,7 +7,7 @@ from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.utils import show_string, strip_margin
 
 
-def test_compare_df_with_more_lines_than_nb_diffed_rows(spark: SparkSession):
+def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
     """
     GIVEN two DataFrames differing with more lines than `DiffFormatOptions.nb_diffed_rows`
     WHEN we compare them
@@ -62,11 +62,11 @@ def test_compare_df_with_more_lines_than_nb_diffed_rows(spark: SparkSession):
     )
     assert show_string(diff_per_col_df, truncate=False) == strip_margin(
         """
-        |+-----------+---------------+--------------------------+
-        ||column_name|counts         |diff                      |
-        |+-----------+---------------+--------------------------+
-        ||id         |{3, 0, 3, 0, 0}|{[], [{1, 1, 1}], [], []} |
-        ||col1       |{3, 3, 0, 0, 0}|{[{a, a1, 1}], [], [], []}|
-        |+-----------+---------------+--------------------------+
+        |+-------------+-----------+---------------+--------------------------+
+        ||column_number|column_name|counts         |diff                      |
+        |+-------------+-----------+---------------+--------------------------+
+        ||0            |id         |{3, 0, 3, 0, 0}|{[], [{1, 1, 1}], [], []} |
+        ||1            |col1       |{3, 3, 0, 0, 0}|{[{a, a1, 1}], [], [], []}|
+        |+-------------+-----------+---------------+--------------------------+
         |"""
     )
