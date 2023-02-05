@@ -166,8 +166,8 @@ def test_compare_df_with_struct_and_different_schemas(spark: SparkSession, df_co
             STRUCT(1 as id, STRUCT(1 as a, 1 as b) as s1),
             STRUCT(2 as id, STRUCT(1 as a, 1 as b) as s1),
             STRUCT(3 as id, STRUCT(1 as a, 1 as b) as s1)
-       ))
-       """
+        ))
+        """
     )
     df_2 = spark.sql(
         """
@@ -175,8 +175,8 @@ def test_compare_df_with_struct_and_different_schemas(spark: SparkSession, df_co
             STRUCT(1 as id, STRUCT(1 as a, 1 as c) as s1),
             STRUCT(2 as id, STRUCT(2 as a, 1 as c) as s1),
             STRUCT(3 as id, STRUCT(1 as a, 1 as c) as s1)
-       ))
-       """
+        ))
+        """
     )
     diff_result: DiffResult = df_comparator.compare_df(df_1, df_2, join_cols=["id"])
     expected_diff_stats = DiffStats(
@@ -196,8 +196,8 @@ def test_compare_df_with_arrays(spark: SparkSession, df_comparator: DataframeCom
             STRUCT(1 as id, ARRAY(1, 2, 3) as a),
             STRUCT(2 as id, ARRAY(1, 2, 3) as a),
             STRUCT(3 as id, ARRAY(1, 2, 3) as a)
-       ))
-       """
+        ))
+        """
     )
     df_2 = spark.sql(
         """
@@ -205,8 +205,8 @@ def test_compare_df_with_arrays(spark: SparkSession, df_comparator: DataframeCom
             STRUCT(1 as id, ARRAY(1, 2, 3) as a),
             STRUCT(2 as id, ARRAY(3, 2, 1) as a),
             STRUCT(3 as id, ARRAY(3, 1, 2) as a)
-       ))
-       """
+        ))
+        """
     )
     diff_result: DiffResult = df_comparator.compare_df(df_1, df_2)
     expected_diff_stats = DiffStats(
@@ -232,15 +232,15 @@ def test_compare_df_with_empty_and_null_arrays(spark: SparkSession, df_comparato
         """
         SELECT INLINE(ARRAY(
             STRUCT(1 as id, CAST(ARRAY() AS ARRAY<INT>) as a)
-       ))
-       """
+        ))
+        """
     )
     df_2 = spark.sql(
         """
         SELECT INLINE(ARRAY(
             STRUCT(1 as id, CAST(NULL AS ARRAY<INT>) as a)
-       ))
-       """
+        ))
+        """
     )
     diff_result: DiffResult = df_comparator.compare_df(df_1, df_2)
     expected_diff_stats = DiffStats(
@@ -268,15 +268,15 @@ def test_compare_df_with_missing_empty_and_null_arrays(spark: SparkSession, df_c
             STRUCT(1 as id, ARRAY(1) as a),
             STRUCT(2 as id, CAST(ARRAY() AS ARRAY<INT>) as a),
             STRUCT(3 as id, CAST(NULL AS ARRAY<INT>) as a)
-       ))
-       """
+        ))
+        """
     )
     df_2 = spark.sql(
         """
         SELECT INLINE(ARRAY(
             STRUCT(1 as id, ARRAY(2) as a)
-       ))
-       """
+        ))
+        """
     )
     diff_result: DiffResult = df_comparator.compare_df(df_1, df_2, join_cols=["id"])
     expected_diff_stats = DiffStats(
@@ -299,8 +299,8 @@ def test_compare_df_with_arrays_of_structs_ok(spark: SparkSession, df_comparator
             STRUCT(1 as id, ARRAY(STRUCT(1 as a, "a" as b), STRUCT(2 as a, "a" as b), STRUCT(3 as a, "a" as b)) as a),
             STRUCT(2 as id, ARRAY(STRUCT(1 as a, "b" as b), STRUCT(2 as a, "b" as b), STRUCT(3 as a, "b" as b)) as a),
             STRUCT(3 as id, ARRAY(STRUCT(1 as a, "c" as b), STRUCT(2 as a, "c" as b), STRUCT(3 as a, "c" as b)) as a)
-       ))
-       """
+        ))
+        """
     )
     df_2 = spark.sql(
         """
@@ -308,8 +308,8 @@ def test_compare_df_with_arrays_of_structs_ok(spark: SparkSession, df_comparator
             STRUCT(1 as id, ARRAY(STRUCT("a" as b, 3 as a), STRUCT("a" as b, 1 as a), STRUCT("a" as b, 2 as a)) as a),
             STRUCT(2 as id, ARRAY(STRUCT("b" as b, 1 as a), STRUCT("b" as b, 3 as a), STRUCT("b" as b, 2 as a)) as a),
             STRUCT(3 as id, ARRAY(STRUCT("c" as b, 3 as a), STRUCT("c" as b, 2 as a), STRUCT("c" as b, 1 as a)) as a)
-       ))
-       """
+        ))
+        """
     )
     diff_result: DiffResult = df_comparator.compare_df(df_1, df_2)
     expected_diff_stats = DiffStats(
@@ -330,8 +330,8 @@ def test_compare_df_with_arrays_of_structs_not_ok(spark: SparkSession, df_compar
             STRUCT(1 as id, ARRAY(STRUCT(1 as a, "a" as b), STRUCT(2 as a, "a" as b), STRUCT(3 as a, "a" as b)) as a),
             STRUCT(2 as id, ARRAY(STRUCT(1 as a, "b" as b), STRUCT(2 as a, "b" as b), STRUCT(3 as a, "b" as b)) as a),
             STRUCT(3 as id, ARRAY(STRUCT(1 as a, "c" as b), STRUCT(2 as a, "c" as b), STRUCT(3 as a, "c" as b)) as a)
-       ))
-       """
+        ))
+        """
     )
     df_2 = spark.sql(
         """
@@ -339,8 +339,8 @@ def test_compare_df_with_arrays_of_structs_not_ok(spark: SparkSession, df_compar
             STRUCT(1 as id, ARRAY(STRUCT("a" as b, 3 as a), STRUCT("a" as b, 1 as a), STRUCT("a" as b, 2 as a)) as a),
             STRUCT(2 as id, ARRAY(STRUCT("b" as b, 1 as a), STRUCT("b" as b, 3 as a), STRUCT("b" as b, 2 as a)) as a),
             STRUCT(3 as id, ARRAY(STRUCT("c" as b, 3 as a), STRUCT("c" as b, 2 as a), STRUCT("d" as b, 1 as a)) as a)
-       ))
-       """
+        ))
+        """
     )
     diff_result: DiffResult = df_comparator.compare_df(df_1, df_2)
     expected_diff_stats = DiffStats(
@@ -361,8 +361,8 @@ def test_compare_df_with_differing_types(spark: SparkSession, df_comparator: Dat
             STRUCT(1 as id, "a" as name),
             STRUCT(2 as id, "b" as name),
             STRUCT(3 as id, "c" as name)
-       ))
-       """
+        ))
+        """
     )
     df_2 = spark.sql(
         """
@@ -370,8 +370,8 @@ def test_compare_df_with_differing_types(spark: SparkSession, df_comparator: Dat
             STRUCT(1.0 as id, "a" as name),
             STRUCT(2.0 as id, "b" as name),
             STRUCT(3.0 as id, "d" as name)
-       ))
-       """
+        ))
+        """
     )
     diff_result: DiffResult = df_comparator.compare_df(df_1, df_2)
     expected_diff_stats = DiffStats(
@@ -396,8 +396,8 @@ def test_compare_df_when_flattened_column_name_collision(spark: SparkSession, df
             STRUCT(1 as id, STRUCT(1 as a) as s, 2 as s_a),
             STRUCT(2 as id, STRUCT(2 as a) as s, 3 as s_a),
             STRUCT(3 as id, STRUCT(3 as a) as s, 4 as s_a)
-       ))
-       """
+        ))
+        """
     )
     diff_result: DiffResult = df_comparator.compare_df(df, df, join_cols=["id"])
     expected_diff_stats = DiffStats(
@@ -423,8 +423,8 @@ def test_compare_df_with_sharded_array_of_struct(spark: SparkSession, df_compara
             STRUCT(1 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array),
             STRUCT(2 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array),
             STRUCT(3 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array)
-       ))
-       """
+        ))
+        """
     )
     df2 = spark.sql(
         """
@@ -432,8 +432,8 @@ def test_compare_df_with_sharded_array_of_struct(spark: SparkSession, df_compara
             STRUCT(1 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array),
             STRUCT(2 as id, ARRAY(STRUCT(2 as a, 2 as b, 3 as c, 4 as d)) as my_array),
             STRUCT(4 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array)
-       ))
-       """
+        ))
+        """
     )
     df_comparator = DataframeComparator(_shard_size=1)
     diff_result: DiffResult = df_comparator.compare_df(df1, df2, join_cols=["id"])
