@@ -1,14 +1,24 @@
 from typing import List, Optional
 
-from pyspark.sql import DataFrame
+from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.diff_stats import print_diff_stats
-from spark_frame.data_diff.package import CHANGED_COL_NAME, PREDICATES, STRUCT_SEPARATOR_REPLACEMENT
+from spark_frame.data_diff.package import PREDICATES, STRUCT_SEPARATOR_REPLACEMENT
 from spark_frame.utils import MAX_JAVA_INT, quote, quote_columns
+
+
+def _counts_changed_col() -> Column:
+    """This method is used to make Sonar stop complaining about code duplicates"""
+    return f.col("counts.changed")
+
+
+def _diff_nb_col() -> Column:
+    """This method is used to make Sonar stop complaining about code duplicates"""
+    return f.col("diff.nb")
 
 
 class DiffResultAnalyzer:
@@ -71,8 +81,8 @@ class DiffResultAnalyzer:
         """
         rows = (
             diff_per_col_df.where(~f.col("column_name").isin(join_cols))
-            .where(f.col(f"counts.{CHANGED_COL_NAME}") > 0)
-            .select("column_name", f.col(f"counts.{CHANGED_COL_NAME}").alias("total_nb_differences"))
+            .where(_counts_changed_col() > 0)
+            .select("column_name", _counts_changed_col().alias("total_nb_differences"))
             .collect()
         )
         diff_count_per_col = [(r[0], r[1]) for r in rows]
@@ -368,18 +378,18 @@ class DiffResultAnalyzer:
         +-----------+-------------+----------+-----------+--------------+
         <BLANKLINE>
         """
-        df = diff_per_col_df.where(f.col(f"counts.{CHANGED_COL_NAME}") > 0)
+        df = diff_per_col_df.where(_counts_changed_col() > 0)
         df = df.select(
             "column_name",
-            f.col(f"counts.{CHANGED_COL_NAME}").alias("total_nb_diff"),
+            _counts_changed_col().alias("total_nb_diff"),
             f.explode("diff.changed").alias("diff"),
-        ).orderBy("column_number", f.desc("diff.nb"))
+        ).orderBy("column_number", f.desc(_diff_nb_col()))
         df = df.select(
             "column_name",
             "total_nb_diff",
             "diff.left_value",
             "diff.right_value",
-            f.col("diff.nb").alias("nb_differences"),
+            _diff_nb_col().alias("nb_differences"),
         )
         df.show(MAX_JAVA_INT, truncate=False)
 
@@ -448,7 +458,7 @@ class DiffResultAnalyzer:
 
         """
         df = diff_per_col_df.select("column_name", f.explode(f"diff.only_in_{left_or_right}").alias("diff"))
-        df = df.select("column_name", f.col(f"diff.{left_or_right}_value").alias("value"), f.col("diff.nb").alias("nb"))
+        df = df.select("column_name", f.col(f"diff.{left_or_right}_value").alias("value"), _diff_nb_col().alias("nb"))
         df.show(MAX_JAVA_INT, truncate=False)
 
     def display_diff_results(self, diff_result: DiffResult, show_examples: bool):
