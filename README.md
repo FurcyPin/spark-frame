@@ -65,7 +65,7 @@ This library is tested against Windows, Mac and Linux.
 # Release notes
 
 
-# v0.2.1
+# v0.3.0
 
 Fixes and improvements on data_diff
 

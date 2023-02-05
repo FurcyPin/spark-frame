@@ -12,3 +12,13 @@ bumpversion patch
 # 0.1.1 -> 0.2.0
 bumpversion minor
 ```
+
+### Release
+
+- [ ] add release notes to README
+- [ ] bumpversion
+- [ ] `git push`
+- [ ] `check build`
+- [ ] `git push --tags`
+- [ ] Check docs with `poetry run mkdocs serve`
+- [ ] `poetry run mkdocs gh-deploy`
