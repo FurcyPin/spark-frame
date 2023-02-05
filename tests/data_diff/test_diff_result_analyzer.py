@@ -44,9 +44,8 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
     analyzer = DiffResultAnalyzer(diff_result.diff_format_options)
-    top_per_col_state_df = DiffResultAnalyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols)
-    diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
-    assert show_string(top_per_col_state_df, truncate=False) == strip_margin(
+    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
+    assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
         |+-----------+---------+----------+-----------+---+---------------+-------+
         ||column_name|state    |left_value|right_value|nb |col_state_total|row_num|
@@ -110,9 +109,8 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(spark: Spark
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
     analyzer = DiffResultAnalyzer(diff_result.diff_format_options)
-    top_per_col_state_df = DiffResultAnalyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols)
-    diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
-    assert show_string(top_per_col_state_df, truncate=False) == strip_margin(
+    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
+    assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
         |+-----------+---------+----------+-----------+---+---------------+-------+
         ||column_name|state    |left_value|right_value|nb |col_state_total|row_num|
