@@ -65,6 +65,16 @@ This library is tested against Windows, Mac and Linux.
 # Release notes
 
 
+# v0.2.1
+
+Fixes and improvements on data_diff
+
+- Fixed incorrect diff results
+- Column values are not truncated at all, this was causing incorrect results. The possibility to limit the size 
+  of the column values will be added back in a later version
+- Made sure that the most frequent values per column are now displayed by decreasing order of frequency
+
+
 # v0.2.0
 
 Two new exciting features: *analyze* and *data_diff*. 
