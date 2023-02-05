@@ -222,7 +222,7 @@
                     'name': 'Not changed',
                     'desc': 'Number of values that did not change',
                     'count': col_diff.counts.no_change,
-                    'diff': col_diff.diff.no_change,
+                    'diff': col_diff.diff.no_change | sort(attribute='nb', reverse=True),
                     'top_title': 'Most frequent identical values',
                     'pct': (col_diff.counts.no_change / col_diff.counts.total * 100) | round(2),
                     'color': 'green'
@@ -232,7 +232,7 @@
                     'name': 'Changed',
                     'desc': 'Number of values that changed',
                     'count': col_diff.counts.changed,
-                    'diff': col_diff.diff.changed,
+                    'diff': col_diff.diff.changed | sort(attribute='nb', reverse=True),
                     'top_title': 'Most frequent changes',
                     'pct': (col_diff.counts.changed / col_diff.counts.total * 100) | round(2),
                     'color': 'red'
@@ -242,7 +242,7 @@
                     'name': 'Only in ' + diff_result_summary.left_df_alias,
                     'desc': 'Number of values only in ' + diff_result_summary.left_df_alias,
                     'count': col_diff.counts.only_in_left,
-                    'diff': col_diff.diff.only_in_left,
+                    'diff': col_diff.diff.only_in_left | sort(attribute='nb', reverse=True),
                     'top_title': 'Most frequent values in ' + diff_result_summary.left_df_alias,
                     'pct': (col_diff.counts.only_in_left / col_diff.counts.total * 100) | round(2),
                     'color': 'blue'
@@ -252,7 +252,7 @@
                     'name': 'Only in ' + diff_result_summary.right_df_alias,
                     'desc': 'Number of values only in ' + diff_result_summary.right_df_alias,
                     'count': col_diff.counts.only_in_right,
-                    'diff': col_diff.diff.only_in_right,
+                    'diff': col_diff.diff.only_in_right | sort(attribute='nb', reverse=True),
                     'top_title': 'Most frequent values in ' + diff_result_summary.right_df_alias,
                     'pct': (col_diff.counts.only_in_right / col_diff.counts.total * 100) | round(2),
                     'color': 'purple'

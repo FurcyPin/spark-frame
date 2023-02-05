@@ -68,15 +68,17 @@ class DiffResult:
         | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
         +---+----------------+----------------+-------------+------------+
         |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-        |  2|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-        |  3|{c, null, false}|{3, null, false}|{true, false}|       false|
-        |  4|{null, f, false}|{null, 3, false}|{false, true}|       false|
+        |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
+        |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+        |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+        |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
+        |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
         +---+----------------+----------------+-------------+------------+
         <BLANKLINE>
         >>> schema_diff_result = SchemaDiffResult(same_schema=True, diff_str="",
         ...                                       nb_cols=0, left_schema_str="", right_schema_str="")
         >>> DiffResult(schema_diff_result, diff_df=_diff_df, join_cols=['id'])._compute_diff_stats()
-        DiffStats(total=4, no_change=1, changed=1, in_left=3, in_right=3, only_in_left=1, only_in_right=1)
+        DiffStats(total=6, no_change=1, changed=3, in_left=5, in_right=5, only_in_left=1, only_in_right=1)
         """
         res_df = self.diff_df.select(
             f.count(f.lit(1)).alias("total"),

@@ -121,20 +121,24 @@ class DiffResultAnalyzer:
             | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
             +---+----------------+----------------+-------------+------------+
             |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-            |  2|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-            |  3|{c, null, false}|{3, null, false}|{true, false}|       false|
-            |  4|{null, f, false}|{null, 3, false}|{false, true}|       false|
+            |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
+            |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+            |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+            |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
+            |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
             +---+----------------+----------------+-------------+------------+
             <BLANKLINE>
             >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
             >>> diff_per_col_df = _get_test_diff_per_col_df()
             >>> analyzer._display_diff_examples(diff_df, diff_per_col_df, join_cols = ['id'])
             Detailed examples :
-            'c2' : 1 rows
+            'c2' : 3 rows
             +---+----------+---------+
             | id|before__c2|after__c2|
             +---+----------+---------+
-            |  2|         2|        4|
+            |  2|         2|        3|
+            |  3|         2|        4|
+            |  4|         2|        4|
             +---+----------+---------+
             <BLANKLINE>
         """
@@ -182,9 +186,11 @@ class DiffResultAnalyzer:
             | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
             +---+----------------+----------------+-------------+------------+
             |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-            |  2|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-            |  3|{c, null, false}|{3, null, false}|{true, false}|       false|
-            |  4|{null, f, false}|{null, 3, false}|{false, true}|       false|
+            |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
+            |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+            |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+            |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
+            |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
             +---+----------------+----------------+-------------+------------+
             <BLANKLINE>
             >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
@@ -194,18 +200,21 @@ class DiffResultAnalyzer:
             +-----------+-------------+----------+-----------+---+---------------+-------+
             |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
             +-----------+-------------+----------+-----------+---+---------------+-------+
-            |         c1|    no_change|         a|          a|  1|              2|      1|
-            |         c1|    no_change|         b|          b|  1|              2|      2|
+            |         c1|    no_change|         a|          a|  1|              4|      2|
+            |         c1|    no_change|         b|          b|  3|              4|      1|
             |         c1| only_in_left|         c|       null|  1|              1|      1|
             |         c1|only_in_right|      null|          f|  1|              1|      1|
-            |         c2|      changed|         2|          4|  1|              1|      1|
+            |         c2|      changed|         2|          4|  2|              3|      1|
+            |         c2|      changed|         2|          3|  1|              3|      2|
             |         c2|    no_change|         1|          1|  1|              1|      1|
             |         c2| only_in_left|         3|       null|  1|              1|      1|
             |         c2|only_in_right|      null|          3|  1|              1|      1|
-            |         id|    no_change|         1|          1|  1|              2|      1|
-            |         id|    no_change|         2|          2|  1|              2|      2|
-            |         id| only_in_left|         3|       null|  1|              1|      1|
-            |         id|only_in_right|      null|          4|  1|              1|      1|
+            |         id|    no_change|         1|          1|  1|              4|      1|
+            |         id|    no_change|         2|          2|  1|              4|      2|
+            |         id|    no_change|         3|          3|  1|              4|      3|
+            |         id|    no_change|         4|          4|  1|              4|      4|
+            |         id| only_in_left|         5|       null|  1|              1|      1|
+            |         id|only_in_right|      null|          6|  1|              1|      1|
             +-----------+-------------+----------+-----------+---+---------------+-------+
             <BLANKLINE>
 
@@ -216,18 +225,21 @@ class DiffResultAnalyzer:
             +-----------+-------------+----------+-----------+---+---------------+-------+
             |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
             +-----------+-------------+----------+-----------+---+---------------+-------+
-            |         c1|    no_change|         a|          a|  1|              2|      1|
-            |         c1|    no_change|         b|          b|  1|              2|      2|
+            |         c1|    no_change|         a|          a|  1|              4|      2|
+            |         c1|    no_change|         b|          b|  3|              4|      1|
             |         c1| only_in_left|         c|       null|  1|              1|      1|
             |         c1|only_in_right|      null|          f|  1|              1|      1|
-            |         c2|      changed|         2|          4|  1|              1|      1|
+            |         c2|      changed|         2|          4|  2|              3|      1|
+            |         c2|      changed|         2|          3|  1|              3|      2|
             |         c2|    no_change|         1|          1|  1|              1|      1|
             |         c2| only_in_left|         3|       null|  1|              1|      1|
             |         c2|only_in_right|      null|          3|  1|              1|      1|
-            |         id|    no_change|         1|          1|  1|              2|      1|
-            |         id|    no_change|         2|          2|  1|              2|      2|
-            |         id| only_in_left|         3|       null|  1|              1|      1|
-            |         id|only_in_right|      null|          4|  1|              1|      1|
+            |         id|    no_change|         1|          1|  1|              4|      1|
+            |         id|    no_change|         2|          2|  1|              4|      2|
+            |         id|    no_change|         3|          3|  1|              4|      3|
+            |         id|    no_change|         4|          4|  1|              4|      4|
+            |         id| only_in_left|         5|       null|  1|              1|      1|
+            |         id|only_in_right|      null|          6|  1|              1|      1|
             +-----------+-------------+----------+-----------+---+---------------+-------+
             <BLANKLINE>
         """
@@ -287,6 +299,10 @@ class DiffResultAnalyzer:
         column state (changed, no_change, only_in_left, only_in_right) the total number of occurences
         and the most frequent occurrences.
 
+        !!! warning
+            The arrays contained in the field `diff` are NOT guaranteed to be sorted,
+            and Spark currently does not provide any way to perform a sort_by on an ARRAY<STRUCT>.
+
         Examples:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
             >>> diff_result = _get_test_diff_result()
@@ -295,36 +311,42 @@ class DiffResultAnalyzer:
             | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
             +---+----------------+----------------+-------------+------------+
             |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-            |  2|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-            |  3|{c, null, false}|{3, null, false}|{true, false}|       false|
-            |  4|{null, f, false}|{null, 3, false}|{false, true}|       false|
+            |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
+            |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+            |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+            |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
+            |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
             +---+----------------+----------------+-------------+------------+
             <BLANKLINE>
             >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
             >>> top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols = ['id'])
             >>> top_per_col_state_df.show()
-            +-----------+-------------+----------+-----------+---+---------------+
-            |column_name|        state|left_value|right_value| nb|col_state_total|
-            +-----------+-------------+----------+-----------+---+---------------+
-            |         c1|    no_change|         a|          a|  1|              2|
-            |         c1|    no_change|         b|          b|  1|              2|
-            |         c1| only_in_left|         c|       null|  1|              1|
-            |         c1|only_in_right|      null|          f|  1|              1|
-            |         c2|      changed|         2|          4|  1|              1|
-            |         c2|    no_change|         1|          1|  1|              1|
-            |         c2| only_in_left|         3|       null|  1|              1|
-            |         c2|only_in_right|      null|          3|  1|              1|
-            |         id|    no_change|         1|          1|  1|              2|
-            |         id|    no_change|         2|          2|  1|              2|
-            |         id| only_in_left|         3|       null|  1|              1|
-            |         id|only_in_right|      null|          4|  1|              1|
-            +-----------+-------------+----------+-----------+---+---------------+
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            |         c1|    no_change|         b|          b|  3|              4|      1|
+            |         c1|    no_change|         a|          a|  1|              4|      2|
+            |         c1| only_in_left|         c|       null|  1|              1|      1|
+            |         c1|only_in_right|      null|          f|  1|              1|      1|
+            |         c2|      changed|         2|          4|  2|              3|      1|
+            |         c2|      changed|         2|          3|  1|              3|      2|
+            |         c2|    no_change|         1|          1|  1|              1|      1|
+            |         c2| only_in_left|         3|       null|  1|              1|      1|
+            |         c2|only_in_right|      null|          3|  1|              1|      1|
+            |         id|    no_change|         1|          1|  1|              4|      1|
+            |         id|    no_change|         2|          2|  1|              4|      2|
+            |         id|    no_change|         3|          3|  1|              4|      3|
+            |         id|    no_change|         4|          4|  1|              4|      4|
+            |         id| only_in_left|         5|       null|  1|              1|      1|
+            |         id|only_in_right|      null|          6|  1|              1|      1|
+            +-----------+-------------+----------+-----------+---+---------------+-------+
             <BLANKLINE>
 
             >>> df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
             >>> from spark_frame import nested
             >>> nested.print_schema(df)
             root
+             |-- column_number: integer (nullable = true)
              |-- column_name: string (nullable = true)
              |-- counts.total: integer (nullable = false)
              |-- counts.changed: long (nullable = false)
@@ -344,14 +366,23 @@ class DiffResultAnalyzer:
              |-- diff.only_in_right!.right_value: string (nullable = true)
              |-- diff.only_in_right!.nb: long (nullable = false)
             <BLANKLINE>
-            >>> df.show(truncate=False)
-            +-----------+---------------+------------------------------------------------------------+
-            |column_name|counts         |diff                                                        |
-            +-----------+---------------+------------------------------------------------------------+
-            |id         |{4, 0, 2, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}], [{3, null, 1}], [{null, 4, 1}]}|
-            |c1         |{4, 0, 2, 1, 1}|{[], [{a, a, 1}, {b, b, 1}], [{c, null, 1}], [{null, f, 1}]}|
-            |c2         |{4, 1, 1, 1, 1}|{[{2, 4, 1}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}  |
-            +-----------+---------------+------------------------------------------------------------+
+            >>> df.show(truncate=False)  # noqa: E501
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+            |column_number|column_name|counts         |diff                                                                              |
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+            |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}], [{5, null, 1}], [{null, 6, 1}]}|
+            |1            |c1         |{6, 0, 4, 1, 1}|{[], [{b, b, 3}, {a, a, 1}], [{c, null, 1}], [{null, f, 1}]}                      |
+            |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 4, 2}, {2, 3, 1}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}             |
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+            <BLANKLINE>
+            >>> analyzer._get_diff_per_col_df(top_per_col_state_df.orderBy("nb"), diff_result).show(truncate=False)  # noqa: E501
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+            |column_number|column_name|counts         |diff                                                                              |
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+            |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}], [{5, null, 1}], [{null, 6, 1}]}|
+            |1            |c1         |{6, 0, 4, 1, 1}|{[], [{a, a, 1}, {b, b, 3}], [{c, null, 1}], [{null, f, 1}]}                      |
+            |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 3, 1}, {2, 4, 2}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}             |
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------+
             <BLANKLINE>
         """
         if max_nb_rows_per_col_state is None:
@@ -423,6 +454,7 @@ class DiffResultAnalyzer:
             .withColumn("only_in_right_diff", f.coalesce(f.col("only_in_right_diff"), f.array()))
         )
         df = df.select(
+            f.col("column_number"),
             f.col("column_name"),
             f.struct(
                 f.lit(diff_stats.total).alias("total"),
@@ -460,18 +492,19 @@ class DiffResultAnalyzer:
         Example:
 
         >>> diff_per_col_df = _get_test_diff_per_col_df()
-        >>> diff_per_col_df.show(truncate=False)
-        +-----------+---------------+------------------------------------------------------------+
-        |column_name|counts         |diff                                                        |
-        +-----------+---------------+------------------------------------------------------------+
-        |id         |{4, 0, 2, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}], [{3, null, 1}], [{null, 4, 1}]}|
-        |c1         |{4, 0, 2, 1, 1}|{[], [{a, a, 1}, {b, b, 1}], [{c, null, 1}], [{null, f, 1}]}|
-        |c2         |{4, 1, 1, 1, 1}|{[{2, 4, 1}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}  |
-        +-----------+---------------+------------------------------------------------------------+
+        >>> diff_per_col_df.show(truncate=False)  # noqa: E501
+        +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+        |column_number|column_name|counts         |diff                                                                              |
+        +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+        |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}], [{5, null, 1}], [{null, 6, 1}]}|
+        |1            |c1         |{6, 0, 4, 1, 1}|{[], [{a, a, 1}, {b, b, 3}], [{c, null, 1}], [{null, f, 1}]}                      |
+        |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 3, 1}, {2, 4, 2}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}             |
+        +-------------+-----------+---------------+----------------------------------------------------------------------------------+
         <BLANKLINE>
         >>> from spark_frame import nested
         >>> nested.print_schema(diff_per_col_df)
         root
+         |-- column_number: integer (nullable = true)
          |-- column_name: string (nullable = true)
          |-- counts.total: integer (nullable = false)
          |-- counts.changed: long (nullable = false)
@@ -495,17 +528,17 @@ class DiffResultAnalyzer:
         +-----------+-------------+----------+-----------+--------------+
         |column_name|total_nb_diff|left_value|right_value|nb_differences|
         +-----------+-------------+----------+-----------+--------------+
-        |c2         |1            |2         |4          |1             |
+        |c2         |3            |2         |4          |2             |
+        |c2         |3            |2         |3          |1             |
         +-----------+-------------+----------+-----------+--------------+
         <BLANKLINE>
-
         """
         df = diff_per_col_df.where(f.col(f"counts.{CHANGED_COL_NAME}") > 0)
         df = df.select(
             "column_name",
             f.col(f"counts.{CHANGED_COL_NAME}").alias("total_nb_diff"),
             f.explode("diff.changed").alias("diff"),
-        )
+        ).orderBy("column_number", f.desc("diff.nb"))
         df = df.select(
             "column_name",
             "total_nb_diff",
@@ -527,18 +560,19 @@ class DiffResultAnalyzer:
         Example:
 
         >>> diff_per_col_df = _get_test_diff_per_col_df()
-        >>> diff_per_col_df.show(truncate=False)
-        +-----------+---------------+------------------------------------------------------------+
-        |column_name|counts         |diff                                                        |
-        +-----------+---------------+------------------------------------------------------------+
-        |id         |{4, 0, 2, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}], [{3, null, 1}], [{null, 4, 1}]}|
-        |c1         |{4, 0, 2, 1, 1}|{[], [{a, a, 1}, {b, b, 1}], [{c, null, 1}], [{null, f, 1}]}|
-        |c2         |{4, 1, 1, 1, 1}|{[{2, 4, 1}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}  |
-        +-----------+---------------+------------------------------------------------------------+
+        >>> diff_per_col_df.show(truncate=False)  # noqa: E501
+        +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+        |column_number|column_name|counts         |diff                                                                              |
+        +-------------+-----------+---------------+----------------------------------------------------------------------------------+
+        |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}], [{5, null, 1}], [{null, 6, 1}]}|
+        |1            |c1         |{6, 0, 4, 1, 1}|{[], [{a, a, 1}, {b, b, 3}], [{c, null, 1}], [{null, f, 1}]}                      |
+        |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 3, 1}, {2, 4, 2}], [{1, 1, 1}], [{3, null, 1}], [{null, 3, 1}]}             |
+        +-------------+-----------+---------------+----------------------------------------------------------------------------------+
         <BLANKLINE>
         >>> from spark_frame import nested
         >>> nested.print_schema(diff_per_col_df)
         root
+         |-- column_number: integer (nullable = true)
          |-- column_name: string (nullable = true)
          |-- counts.total: integer (nullable = false)
          |-- counts.changed: long (nullable = false)
@@ -562,7 +596,7 @@ class DiffResultAnalyzer:
         +-----------+-----+---+
         |column_name|value|nb |
         +-----------+-----+---+
-        |id         |3    |1  |
+        |id         |5    |1  |
         |c1         |c    |1  |
         |c2         |3    |1  |
         +-----------+-----+---+
@@ -571,7 +605,7 @@ class DiffResultAnalyzer:
         +-----------+-----+---+
         |column_name|value|nb |
         +-----------+-----+---+
-        |id         |4    |1  |
+        |id         |6    |1  |
         |c1         |f    |1  |
         |c2         |3    |1  |
         +-----------+-----+---+
@@ -610,7 +644,7 @@ class DiffResultAnalyzer:
     def get_diff_result_summary(self, diff_result: DiffResult) -> DiffResultSummary:
         join_cols = diff_result.join_cols
         top_per_col_state_df = self._get_top_per_col_state_df(diff_result.diff_df, join_cols).localCheckpoint()
-        diff_per_col_df = self._get_diff_per_col_df(top_per_col_state_df, diff_result).localCheckpoint()
+        diff_per_col_df = self._get_diff_per_col_df(top_per_col_state_df.orderBy("nb"), diff_result).localCheckpoint()
         summary = DiffResultSummary(
             left_df_alias=self.diff_format_options.left_df_alias,
             right_df_alias=self.diff_format_options.right_df_alias,
@@ -648,10 +682,14 @@ def _get_test_intersection_diff_df() -> DataFrame:
 
 
 def _get_test_diff_per_col_df() -> DataFrame:
+    """Return an example of diff_per_col_df for testing purposes.
+    We intentionally sort top_per_col_state_df by increasing "nb" to simulate the fact that we don't have
+    any way to guarantee that the diff arrays will be sorted by decreasing order of "nb" in the `diff` column.
+    """
     from spark_frame.data_diff.diff_results import _get_test_diff_result
 
     diff_result = _get_test_diff_result()
     analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
     top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
-    df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
+    df = analyzer._get_diff_per_col_df(top_per_col_state_df.orderBy("nb"), diff_result)
     return df
