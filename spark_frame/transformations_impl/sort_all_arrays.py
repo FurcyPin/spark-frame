@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 from pyspark.sql.types import ArrayType, DataType
@@ -107,8 +109,10 @@ def sort_all_arrays(df: DataFrame) -> DataFrame:
         <BLANKLINE>
     """
 
-    def sort_array(col: Column, data_type: DataType):
+    def sort_array(col: Column, data_type: DataType) -> Optional[Column]:
         if isinstance(data_type, ArrayType):
             return f.sort_array(col)
+        else:
+            return None
 
     return transform_all_fields(df, sort_array)

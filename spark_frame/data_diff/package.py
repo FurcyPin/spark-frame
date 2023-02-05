@@ -19,31 +19,31 @@ class Predicates:
     # These predicates must be defined in a lazy way, because they require the SparkSession to be instatiated.
 
     @property
-    def present_in_both(self):
+    def present_in_both(self) -> Column:
         return f.col(f"{EXISTS_COL_NAME}.left_value") & f.col(f"{EXISTS_COL_NAME}.right_value")
 
     @property
-    def in_left(self):
+    def in_left(self) -> Column:
         return f.col(f"{EXISTS_COL_NAME}.left_value")
 
     @property
-    def in_right(self):
+    def in_right(self) -> Column:
         return f.col(f"{EXISTS_COL_NAME}.right_value")
 
     @property
-    def only_in_left(self):
+    def only_in_left(self) -> Column:
         return f.col(f"{EXISTS_COL_NAME}.left_value") & (f.col(f"{EXISTS_COL_NAME}.right_value") == f.lit(False))
 
     @property
-    def only_in_right(self):
+    def only_in_right(self) -> Column:
         return (f.col(f"{EXISTS_COL_NAME}.left_value") == f.lit(False)) & f.col(f"{EXISTS_COL_NAME}.right_value")
 
     @property
-    def row_is_equal(self):
+    def row_is_equal(self) -> Column:
         return f.col(IS_EQUAL_COL_NAME)
 
     @property
-    def row_changed(self):
+    def row_changed(self) -> Column:
         return f.col(IS_EQUAL_COL_NAME) == f.lit(False)
 
 

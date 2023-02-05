@@ -4,7 +4,6 @@ from spark_frame import transformations
 
 
 def test_unpivot_with_complex_col_names(spark: SparkSession):
-    spark = spark
     df = spark.createDataFrame(
         [
             (2018, "Orange", None, 4000, None),

@@ -1,6 +1,7 @@
 import importlib
 import re
-from typing import Dict, Iterable, List, Tuple, TypeVar, Union, cast
+from types import ModuleType
+from typing import Dict, Iterable, List, Optional, Tuple, TypeVar, Union, cast
 
 from pyspark.sql import Column, DataFrame, SparkSession
 from pyspark.sql import functions as f
@@ -18,7 +19,7 @@ class AnalysisException(Exception):
     pass
 
 
-def is_sub_field(sub_field: str, field: str):
+def is_sub_field(sub_field: str, field: str) -> bool:
     """Return True if `sub_field` is a sub-field of `field`
 
     >>> is_sub_field("a", "a")
@@ -38,7 +39,7 @@ def is_sub_field(sub_field: str, field: str):
     return sub_field == field or sub_field.startswith(field + ".")
 
 
-def is_sub_field_of_any(sub_field: str, fields: List[str]):
+def is_sub_field_of_any(sub_field: str, fields: List[str]) -> bool:
     """Return True if `sub_field` is a sub-field of any field in `fields`
 
     >>> is_sub_field_of_any("a", ["a", "b"])
@@ -273,7 +274,7 @@ def str_to_col(col: StringOrColumn) -> Column:
         return col
 
 
-def strip_margin(text: str):
+def strip_margin(text: str) -> str:
     """For every line in this string, strip a leading prefix consisting of whitespace, tabs and carriage returns
     followed by | from the line.
 
@@ -411,7 +412,7 @@ def schema_string(df: DataFrame) -> str:
     return df._jdf.schema().treeString()
 
 
-def assert_true(assertion: bool, error: Union[str, BaseException] = None) -> None:
+def assert_true(assertion: bool, error: Optional[Union[str, BaseException]] = None) -> None:
     """Raise an Exception with the given error_message if the assertion passed is false.
 
     !!! Tip
@@ -447,7 +448,7 @@ def assert_true(assertion: bool, error: Union[str, BaseException] = None) -> Non
             raise AssertionError()
 
 
-def load_external_module(module_name: str):
+def load_external_module(module_name: str) -> ModuleType:
     """Load and return a Python module, raising an exception if it is not installed or does not meet the
     expected version requirements.
 

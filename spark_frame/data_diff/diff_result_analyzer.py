@@ -44,7 +44,7 @@ class DiffResultAnalyzer:
             ],
         )
 
-    def _display_diff_examples(self, diff_df: DataFrame, diff_per_col_df: DataFrame, join_cols: List[str]):
+    def _display_diff_examples(self, diff_df: DataFrame, diff_per_col_df: DataFrame, join_cols: List[str]) -> None:
         """For each column that has differences, print examples of rows where such a difference occurs.
 
         Examples:
@@ -326,7 +326,7 @@ class DiffResultAnalyzer:
         return df
 
     @staticmethod
-    def _display_changed(diff_per_col_df: DataFrame):
+    def _display_changed(diff_per_col_df: DataFrame) -> None:
         """Displays the results of the diff analysis.
 
         We first display a summary of all columns that changed with the number of changes,
@@ -461,7 +461,7 @@ class DiffResultAnalyzer:
         df = df.select("column_name", f.col(f"diff.{left_or_right}_value").alias("value"), _diff_nb_col().alias("nb"))
         df.show(MAX_JAVA_INT, truncate=False)
 
-    def display_diff_results(self, diff_result: DiffResult, show_examples: bool):
+    def display_diff_results(self, diff_result: DiffResult, show_examples: bool) -> None:
         join_cols = diff_result.join_cols
         diff_per_col_df = self._get_diff_per_col_df(diff_result).localCheckpoint()
 

@@ -21,7 +21,7 @@ def _identity_column_transformation(col: Column, data_type: DataType) -> Column:
 
 def build_transformation_from_schema(
     schema: StructType,
-    column_transformation: Optional[Callable[[Column, DataType], Column]] = None,
+    column_transformation: Optional[Callable[[Column, DataType], Optional[Column]]] = None,
     name_transformation: Optional[Callable[[str], str]] = None,
 ) -> PrintableFunction:
     """Given a DataFrame schema, recursively build a PrintableFunction that reproduces this schema.
@@ -40,15 +40,15 @@ def build_transformation_from_schema(
         A PrintableFunction that produces a list of Column expressions
     """
     if column_transformation is None:
-        _column_transformation: Callable[[Column, DataType], Column] = _identity_column_transformation
+        _column_transformation: Callable[[Column, DataType], Optional[Column]] = _identity_column_transformation
     else:
-        _column_transformation = cast(Callable[[Column, DataType], Column], column_transformation)
+        _column_transformation = column_transformation
     if name_transformation is None:
         _name_transformation: Callable[[str], str] = higher_order.identity
     else:
-        _name_transformation = cast(Callable[[str], str], name_transformation)
+        _name_transformation = name_transformation
 
-    def column_transformation_with_fallback(col: Column, data_type: DataType):
+    def column_transformation_with_fallback(col: Column, data_type: DataType) -> Column:
         """Enrich the input transformation with a fallback that
         returns the input if the result of the transformation is None
         """
@@ -92,7 +92,7 @@ def build_transformation_from_schema(
     return merged_root_transformation
 
 
-def __find_first_occurrence(string, *chars: str) -> int:
+def __find_first_occurrence(string: str, *chars: str) -> int:
     """Find the index of the first occurence of the given characters in the given string.
     Return -1 if no such occurrence is found.
 
@@ -218,16 +218,16 @@ def _convert_transformation_to_printable_function(
     If a transformations returns a string, we assume it is meant as a Column name and try to convert it into a Column.
     """
     if isinstance(transformation, PrintableFunction):
-        printable_func_trans = cast(PrintableFunction, transformation)
+        printable_func_trans = transformation
         res = printable_func_trans
     elif callable(transformation):
-        func_trans = cast(ColumnTransformation, transformation)
+        func_trans = transformation
         res = PrintableFunction(func_trans, lambda x: repr(func_trans))
     elif isinstance(transformation, Column):
-        col_trans = cast(Column, transformation)
+        col_trans = transformation
         res = PrintableFunction(lambda x: col_trans, lambda x: str(col_trans))
     elif isinstance(transformation, str):
-        str_trans = cast(str, transformation)
+        str_trans = transformation
         res = PrintableFunction(lambda x: f.col(str_trans), lambda x: f"f.col('{str_trans}')")
     else:
         assert_true(transformation is None, f"Error, unsupported transformation type: {type(transformation)}")
@@ -420,7 +420,7 @@ def _get_map_fields(fields: List[str]) -> Set[str]:
     return {prefix for field in fields for prefix in _get_prefixes_of_repeated_field(field, separator=MAP_MARKER)}
 
 
-def _find_fields_starting_with_prefix(prefix: str, fields: Iterable[str], separator: str):
+def _find_fields_starting_with_prefix(prefix: str, fields: Iterable[str], separator: str) -> List[str]:
     """Given a prefix, find in the list all field names that start with this prefix and contain exactly one more
     exclamation mark.
 
@@ -443,7 +443,7 @@ def _find_fields_starting_with_prefix(prefix: str, fields: Iterable[str], separa
         ['a%key.b%']
     """
 
-    def aux():
+    def aux() -> Generator[str, None, None]:
         for field in fields:
             if field.startswith(prefix) and field.count(separator) == prefix.count(separator) + 1:
                 yield field
@@ -451,7 +451,7 @@ def _find_fields_starting_with_prefix(prefix: str, fields: Iterable[str], separa
     return list(aux())
 
 
-def validate_is_repeated_field_known(field_name: str, known_repeated_fields: Set[str]):
+def validate_is_repeated_field_known(field_name: str, known_repeated_fields: Set[str]) -> Generator[str, None, None]:
     """Check for the following error:
 
     - Repeated field name not matching any known field
@@ -480,7 +480,7 @@ def validate_is_repeated_field_known(field_name: str, known_repeated_fields: Set
             return
 
 
-def validate_is_map_field_known(field_name: str, known_map_fields: Set[str]):
+def validate_is_map_field_known(field_name: str, known_map_fields: Set[str]) -> Generator[str, None, None]:
     """Check for the following error:
 
     - Map field name not matching any known field
@@ -513,7 +513,9 @@ def validate_is_map_field_known(field_name: str, known_map_fields: Set[str]):
             return
 
 
-def validate_nested_field_names(*field_names: str, allow_maps=True, known_fields: Optional[List[str]] = None) -> None:
+def validate_nested_field_names(
+    *field_names: str, allow_maps: bool = True, known_fields: Optional[List[str]] = None
+) -> None:
     """Perform various checks on the given nested field names and raise an `spark_frame.utils.AnalysisException`
     if any is found.
 

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 from pyspark.sql.types import DataType, MapType
@@ -64,8 +66,10 @@ def convert_all_maps_to_arrays(df: DataFrame) -> DataFrame:
         <BLANKLINE>
     """
 
-    def map_to_arrays(col: Column, data_type: DataType):
+    def map_to_arrays(col: Column, data_type: DataType) -> Optional[Column]:
         if isinstance(data_type, MapType):
             return f.map_entries(col)
+        else:
+            return None
 
     return transform_all_fields(df, map_to_arrays)

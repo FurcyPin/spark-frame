@@ -16,10 +16,10 @@ def _analyze_flat_df(
     index_by_field: Dict[str, int],
     group_by: List[str],
     aggs: List[Callable[[str, StructField, int], Column]],
-):
+) -> DataFrame:
     agg_alias = "_agg"
 
-    def agg_struct(col: StructField):
+    def agg_struct(col: StructField) -> Column:
         """Builds a struct will all aggregation function results for the given column"""
         return f.struct([agg(quote(col.name), col, index_by_field[col.name]) for agg in aggs])
 

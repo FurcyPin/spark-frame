@@ -41,22 +41,22 @@ class PrintableFunction:
         else:
             return cast(str, self.alias)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return self.func(*args, **kwargs)
 
-    def boxed(self):
+    def boxed(self) -> "PrintableFunction":
         """Return a boxed version of this method."""
         return PrintableFunction(box(self.func), box(self.alias))
 
 
-def arity(function: Callable):
+def arity(function: Callable) -> int:
     """Return the arity of the given function"""
     sig = inspect.signature(function)
     arity = len(sig.parameters)
     return arity
 
 
-def box(func):
+def box(func: Callable) -> Callable:
     """Transform a constant or function that takes any number `n` of arguments into a function that takes
     a single argument of type array and passes the `n` right-most arguments to that function.
 

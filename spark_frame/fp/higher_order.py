@@ -98,7 +98,7 @@ def transform_values(transformation: PrintableFunction) -> PrintableFunction:
     )
 
 
-def _partial_box_right(func: Callable, args: Any):
+def _partial_box_right(func: Callable, args: Any) -> Callable:
     """Given a function and an array of arguments, return a new function that takes an argument, add it to the
     array, and pass it to the original function."""
     if isinstance(args, str):

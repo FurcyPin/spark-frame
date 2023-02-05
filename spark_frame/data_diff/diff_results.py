@@ -20,7 +20,7 @@ from spark_frame.data_diff.schema_diff import SchemaDiffResult
 from spark_frame.utils import quote, quote_columns
 
 
-def _unpivot(diff_df: DataFrame, join_cols: List[str]):
+def _unpivot(diff_df: DataFrame, join_cols: List[str]) -> DataFrame:
     """Given a diff_df, builds an unpivoted version of it.
     All the values must be cast to STRING to make sure everything fits in the same column.
 
