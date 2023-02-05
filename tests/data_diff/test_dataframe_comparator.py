@@ -153,8 +153,7 @@ def test_compare_df_with_structs(spark: SparkSession, df_comparator: DataframeCo
     diff_result.display()
     diff_result.export_to_html()
     analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
-    top_per_col_state_df = DiffResultAnalyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
-    diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
+    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     # We make sure that the displayed column name is 'a.c' and not 'a__DOT__c'
     assert diff_per_col_df.collect()[3].asDict().get("column_name") == "a.c"
 
@@ -289,8 +288,7 @@ def test_compare_df_with_missing_empty_and_null_arrays(spark: SparkSession, df_c
     diff_result.display()
     diff_result.export_to_html()
     analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
-    top_per_col_state_df = DiffResultAnalyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
-    diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
+    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert diff_per_col_df.count() == 2
 
 
@@ -449,6 +447,5 @@ def test_compare_df_with_sharded_array_of_struct(spark: SparkSession, df_compara
     diff_result.display()
     diff_result.export_to_html()
     analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
-    top_per_col_state_df = DiffResultAnalyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
-    diff_per_col_df = analyzer._get_diff_per_col_df(top_per_col_state_df, diff_result)
+    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert diff_per_col_df.count() == 2
