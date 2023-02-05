@@ -231,7 +231,7 @@ def _ascending_forest_traversal(
 
     df_done = df.where(status_col.isin([done_status_col, cycle_status_col]))
     # df_done.show()
-    df_incomplete = df.where(~status_col.isin([done_status_col, cycle_status_col])).persist()
+    df_incomplete = df.where(~status_col.isin([done_status_col, cycle_status_col])).localCheckpoint()
     # df_incomplete.show()
 
     # Algorithm loop:
@@ -276,7 +276,7 @@ def _ascending_forest_traversal(
         # 4. Go back to 1. until all nodes are "done".
 
         joined_df = joined_df.select(new_node_id_col, new_parent_id_col, new_highest_parent_id, new_status)
-        joined_df = joined_df.persist()
+        joined_df = joined_df.localCheckpoint()
         new_df_incomplete = joined_df.where(~status_col.isin([done_status_col, cycle_status_col]))
         do_continue = new_df_incomplete.count() > 0
         new_df_done = joined_df.where(status_col.isin([done_status_col, cycle_status_col]))
