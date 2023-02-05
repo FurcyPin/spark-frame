@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql.types import DataType
@@ -6,7 +6,7 @@ from pyspark.sql.types import DataType
 from spark_frame.nested_impl.package import build_transformation_from_schema
 
 
-def transform_all_fields(df: DataFrame, transformation: Callable[[Column, DataType], Column]) -> DataFrame:
+def transform_all_fields(df: DataFrame, transformation: Callable[[Column, DataType], Optional[Column]]) -> DataFrame:
     """Apply a transformation to all nested fields of a DataFrame.
 
     !!! info

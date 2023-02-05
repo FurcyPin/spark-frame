@@ -1,4 +1,4 @@
-from typing import Callable, cast
+from typing import Any, Callable, cast
 
 from spark_frame.fp.printable_function import PrintableFunction
 
@@ -32,7 +32,7 @@ def __compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction
         h(h)
     """
 
-    def f1f2(s):
+    def f1f2(s: Any) -> Any:
         return f1.func(f2.func(s))
 
     if callable(f1.alias) and callable(f2.alias):

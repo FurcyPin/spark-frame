@@ -3,7 +3,7 @@ from pyspark.sql import functions as f
 from pyspark.sql.types import StructField
 
 
-def _to_string(col: Column):
+def _to_string(col: Column) -> Column:
     return col.cast("STRING")
 
 

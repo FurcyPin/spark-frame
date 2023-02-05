@@ -133,7 +133,7 @@ class DataframeComparator:
         return cols_with_duplicates
 
     @staticmethod
-    def _merge_growth_estimate_dicts(left_dict: Dict[str, float], right_dict: Dict[str, float]):
+    def _merge_growth_estimate_dicts(left_dict: Dict[str, float], right_dict: Dict[str, float]) -> Dict[str, float]:
         """Merge together two dicts giving for each column name the corresponding growth_estimate
 
         >>> DataframeComparator._merge_growth_estimate_dicts({"a": 10.0, "b": 1.0}, {"a": 1.0, "c": 1.0})
@@ -380,14 +380,14 @@ class DataframeComparator:
         right_flat: DataFrame,
         common_column_shard: List[Tuple[str, Optional[str]]],
         skip_make_dataframes_comparable: bool,
-    ):
+    ) -> Tuple[DataFrame, DataFrame]:
         if not skip_make_dataframes_comparable:
             left_flat, right_flat = harmonize_dataframes(left_flat, right_flat, common_column_shard)
         left_flat = sort_all_arrays(left_flat)
         right_flat = sort_all_arrays(right_flat)
         return left_flat, right_flat
 
-    def compare_df(self, left_df: DataFrame, right_df: DataFrame, join_cols: List[str] = None) -> DiffResult:
+    def compare_df(self, left_df: DataFrame, right_df: DataFrame, join_cols: Optional[List[str]] = None) -> DiffResult:
         """Compares two DataFrames and print out the differences.
 
         We first compare the DataFrame schemas. If the schemas are different, we adapt the DataFrames to make them

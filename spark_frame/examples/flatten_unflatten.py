@@ -1,4 +1,7 @@
-def transform_nested_fields():
+from pyspark.sql import DataFrame
+
+
+def transform_nested_fields() -> None:
     """
     This example demonstrates how the [`spark_frame.transformations.flatten`]
     [spark_frame.transformations_impl.flatten.flatten]
@@ -140,7 +143,7 @@ def transform_nested_fields():
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 
 
-def _get_sample_pokemon_data():
+def _get_sample_pokemon_data() -> DataFrame:
     from pyspark.sql import SparkSession
 
     from spark_frame.transformations import parse_json_columns

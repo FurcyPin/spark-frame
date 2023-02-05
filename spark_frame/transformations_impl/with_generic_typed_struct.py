@@ -63,7 +63,7 @@ def _get_nested_col_type_from_schema(col_name: str, schema: StructType) -> DataT
         struct = cast(StructType, struct)
         struct = get_col(col_part, struct.fields).dataType
     assert_true(isinstance(struct, DataType))
-    return cast(DataType, struct)
+    return struct
 
 
 def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:

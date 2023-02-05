@@ -15,7 +15,7 @@ def _ascending_forest_traversal(
     incomplete_status: Union[str, int] = 0,
     done_status: Union[str, int] = 1,
     cycle_status: Union[str, int] = -1,
-):
+) -> DataFrame:
     """Perform an ascending forest traversal on a DataFrame with fixed column names.
     Columns names may be customized using extra parameters.
 

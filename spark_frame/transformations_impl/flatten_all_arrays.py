@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 from pyspark.sql.types import ArrayType, DataType
@@ -54,8 +56,10 @@ def flatten_all_arrays(df: DataFrame) -> DataFrame:
         <BLANKLINE>
     """
 
-    def flatten_array(col: Column, data_type: DataType):
+    def flatten_array(col: Column, data_type: DataType) -> Optional[Column]:
         if isinstance(data_type, ArrayType) and isinstance(data_type.elementType, ArrayType):
             return f.flatten(col)
+        else:
+            return None
 
     return transform_all_fields(df, flatten_array)

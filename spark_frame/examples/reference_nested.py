@@ -1,4 +1,7 @@
-def fields():
+from pyspark.sql import DataFrame
+
+
+def fields() -> None:
     """First, let's distinguish the notion of `Column` and `Field`.
     Both terms are already used in Spark, but we chose here to make the following distinction:
 
@@ -84,7 +87,7 @@ def fields():
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 
 
-def _get_sample_data():
+def _get_sample_data() -> DataFrame:
     from pyspark.sql import SparkSession
 
     spark = SparkSession.builder.appName("doctest").getOrCreate()

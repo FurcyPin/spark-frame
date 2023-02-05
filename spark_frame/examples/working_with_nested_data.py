@@ -1,4 +1,7 @@
-def transform_nested_fields():
+from pyspark.sql import DataFrame
+
+
+def transform_nested_fields() -> None:
     """
 
     Examples: Let's take a sample DataFrame with a deeply nested schema
@@ -198,7 +201,7 @@ def transform_nested_fields():
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 
 
-def select_nested_fields():
+def select_nested_fields() -> None:
     """
     Examples: In this example, we will see how to select and rename specific elements in a nested data structure
 
@@ -302,7 +305,7 @@ def select_nested_fields():
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 
 
-def _get_sample_employee_data():
+def _get_sample_employee_data() -> DataFrame:
     from pyspark.sql import SparkSession
     from pyspark.sql import functions as f
 

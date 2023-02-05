@@ -1,4 +1,7 @@
-def extracting_json_values():
+from pyspark.sql import DataFrame
+
+
+def extracting_json_values() -> None:
     """Sometimes, a column in a data source contains raw json strings, and you want to extract this value before
     starting to understand it.
 
@@ -112,7 +115,7 @@ def extracting_json_values():
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 
 
-def _get_sample_data():
+def _get_sample_data() -> DataFrame:
     from pyspark.sql import SparkSession
 
     spark = SparkSession.builder.appName("doctest").getOrCreate()

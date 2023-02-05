@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Tuple, cast
+from typing import Optional, Sequence, Tuple
 
 from pyspark.sql import DataFrame
 
@@ -62,7 +62,7 @@ def harmonize_dataframes(
     def build_col(col_name: str, col_type: Optional[str]) -> PrintableFunction:
         parent_structs = _deepest_granularity(col_name)
         if col_type is not None:
-            tpe = cast(str, col_type)
+            tpe = col_type
             f1 = PrintableFunction(lambda s: s.cast(tpe), lambda s: f"{s}.cast({tpe})")
         else:
             f1 = higher_order.identity

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pyspark.sql import Column, SparkSession
 from pyspark.sql.types import DataType, IntegerType
 
@@ -49,7 +51,7 @@ def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
         |"""
     )
 
-    def cast_int_as_double(col: Column, data_type: DataType):
+    def cast_int_as_double(col: Column, data_type: DataType) -> Optional[Column]:
         if isinstance(data_type, IntegerType):
             return col.cast("DOUBLE")
 
@@ -118,7 +120,7 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
         |"""
     )
 
-    def cast_int_as_double(col: Column, data_type: DataType):
+    def cast_int_as_double(col: Column, data_type: DataType) -> Optional[Column]:
         if isinstance(data_type, IntegerType):
             return col.cast("DOUBLE")
 

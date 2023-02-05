@@ -43,7 +43,7 @@ class DiffStats:
         return round(self.only_in_right * 100.0 / self.total, 2)
 
 
-def print_diff_stats(diff_stats: DiffStats, left_df_alias: str, right_df_alias: str):
+def print_diff_stats(diff_stats: DiffStats, left_df_alias: str, right_df_alias: str) -> None:
     if diff_stats.total == diff_stats.no_change:
         print("\ndiff ok!\n")
     else:

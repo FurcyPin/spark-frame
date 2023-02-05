@@ -1,4 +1,4 @@
-from typing import List, cast
+from typing import List
 
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as f
@@ -70,7 +70,7 @@ def flatten(df: DataFrame, struct_separator: str = ".") -> DataFrame:
     def expand_struct(struct: StructType, col_stack: List[str]) -> None:
         for field in struct:
             if type(field.dataType) == StructType:
-                struct_field = cast(StructType, field.dataType)
+                struct_field = field.dataType
                 expand_struct(struct_field, col_stack + [field.name])
             else:
                 column = f.col(".".join(quote_columns(col_stack + [field.name])))

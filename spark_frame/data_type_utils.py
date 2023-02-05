@@ -1,4 +1,4 @@
-from typing import Dict, Generator, List, Optional, Tuple, cast
+from typing import Dict, Generator, List, Optional, Tuple
 
 from pyspark.sql.types import ArrayType, DataType, MapType, StructField, StructType
 
@@ -39,7 +39,7 @@ def is_nullable(schema_field: StructField) -> bool:
     return schema_field.nullable
 
 
-def find_common_type_for_fields(left_field: StructField, right_field: StructField):
+def find_common_type_for_fields(left_field: StructField, right_field: StructField) -> Optional[str]:
     if is_repeated(right_field) != is_repeated(left_field):
         return None
     elif right_field.dataType == left_field.dataType:
@@ -73,7 +73,7 @@ def get_common_columns(left_schema: StructType, right_schema: StructType) -> Lis
     left_fields = {field.name: field for field in left_schema}
     right_fields = {field.name: field for field in right_schema}
 
-    def get_columns():
+    def get_columns() -> Generator[Tuple[str, Optional[str]], None, None]:
         for name, left_field in left_fields.items():
             if name in right_fields:
                 right_field: StructField = right_fields[name]
@@ -114,14 +114,11 @@ def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:
         'bigint'
         >>> find_wider_type_for_two(ArrayType(IntegerType()), IntegerType())
     """
-    from pyspark.sql import SparkSession
-
     spark = get_instantiated_spark_session()
     assert_true(spark is not None)
-    spark = cast(SparkSession, spark)
     sc = spark.sparkContext
 
-    def _to_java_type(t: DataType):
+    def _to_java_type(t: DataType) -> object:
         return getattr(spark, "_jsparkSession").parseDataType(t.json())
 
     jt1 = _to_java_type(t1)

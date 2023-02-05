@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Union
+from typing import Callable, Generator, List, Optional, Union
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
@@ -18,8 +18,8 @@ def _split_field_name(field_name: str) -> List[str]:
     ['projects', '!', '.', 'tasks', '!', '.', 'estimate']
     """
 
-    def aux():
-        current_alias = field_name
+    def aux() -> Generator[str, None, None]:
+        current_alias: Optional[str] = field_name
         while current_alias is not None and len(current_alias) > 0:
             node_col, child_col = _split_string_and_keep_separator(current_alias, STRUCT_SEPARATOR, REPETITION_MARKER)
             if child_col is not None and node_col == "":
@@ -145,7 +145,7 @@ def aggregate(
 
     field_parts = _split_field_name(field_name)
 
-    def recurse_item(parts: List[str], prefix=""):
+    def recurse_item(parts: List[str], prefix: str = "") -> PrintableFunction:
         key = parts[0]
         is_struct = key == STRUCT_SEPARATOR
         is_repeated = key == REPETITION_MARKER
@@ -167,7 +167,7 @@ def aggregate(
     return root_transformation(starting_level)
 
 
-def _get_sample_data():
+def _get_sample_data() -> DataFrame:
     from pyspark.sql import SparkSession
     from pyspark.sql import functions as f
 
