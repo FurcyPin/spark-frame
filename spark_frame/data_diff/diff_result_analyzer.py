@@ -1,6 +1,6 @@
 from typing import List, Optional, cast
 
-from pyspark.sql import Column, DataFrame, Window
+from pyspark.sql import DataFrame, Window
 from pyspark.sql import functions as f
 from pyspark.sql.types import StructType
 
@@ -24,7 +24,8 @@ class DiffResultAnalyzer:
     def __init__(self, diff_format_options: DiffFormatOptions = DiffFormatOptions()):
         self.diff_format_options = diff_format_options
 
-    def _unpivot(self, diff_df: DataFrame, join_cols: List[str]):
+    @staticmethod
+    def _unpivot(diff_df: DataFrame, join_cols: List[str]):
         """Given a diff_df, builds an unpivoted version of it.
         All the values must be cast to STRING to make sure everything fits in the same column.
 
@@ -39,8 +40,7 @@ class DiffResultAnalyzer:
             |  2|{b, a, false}|{2, 4, false}|
             +---+-------------+-------------+
             <BLANKLINE>
-            >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
-            >>> analyzer._unpivot(diff_df, join_cols=['id']).orderBy('id', 'column_name').show()
+            >>> DiffResultAnalyzer._unpivot(diff_df, join_cols=['id']).orderBy('id', 'column_name').show()
             +---+-----------+-------------+
             | id|column_name|         diff|
             +---+-----------+-------------+
@@ -52,26 +52,16 @@ class DiffResultAnalyzer:
             <BLANKLINE>
         """
 
-        def truncate_string(col: Column) -> Column:
-            return f.when(
-                f.length(col) > f.lit(self.diff_format_options.max_string_length),
-                f.concat(f.substring(col, 0, self.diff_format_options.max_string_length - 3), f.lit("...")),
-            ).otherwise(col)
-
         diff_df = diff_df.select(
             *quote_columns(join_cols),
             *[
                 f.struct(
-                    truncate_string(
-                        canonize_col(
-                            diff_df[field.name + ".left_value"], cast(StructType, field.dataType).fields[0]
-                        ).cast("STRING")
-                    ).alias("left_value"),
-                    truncate_string(
-                        canonize_col(
-                            diff_df[field.name + ".right_value"], cast(StructType, field.dataType).fields[0]
-                        ).cast("STRING")
-                    ).alias("right_value"),
+                    canonize_col(diff_df[field.name + ".left_value"], cast(StructType, field.dataType).fields[0])
+                    .cast("STRING")
+                    .alias("left_value"),
+                    canonize_col(diff_df[field.name + ".right_value"], cast(StructType, field.dataType).fields[0])
+                    .cast("STRING")
+                    .alias("right_value"),
                     diff_df[quote(field.name) + ".is_equal"].alias("is_equal"),
                 ).alias(field.name)
                 for field in diff_df.schema.fields
@@ -161,7 +151,8 @@ class DiffResultAnalyzer:
                 self.diff_format_options.nb_diffed_rows
             )
 
-    def _get_top_per_col_state_df(self, diff_df: DataFrame, join_cols: List[str]) -> DataFrame:
+    @staticmethod
+    def _get_top_per_col_state_df(diff_df: DataFrame, join_cols: List[str]) -> DataFrame:
         """Given a diff_df and its list of join_cols, return a DataFrame with the following properties:
 
         - One row per tuple (column_name, state, left_value, right_value)
@@ -193,8 +184,7 @@ class DiffResultAnalyzer:
             |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
             +---+----------------+----------------+-------------+------------+
             <BLANKLINE>
-            >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
-            >>> (analyzer._get_top_per_col_state_df(_diff_df, join_cols = ['id'])
+            >>> (DiffResultAnalyzer._get_top_per_col_state_df(_diff_df, join_cols = ['id'])
             ...  .orderBy("column_name", "state", "left_value")
             ... ).show()
             +-----------+-------------+----------+-----------+---+---------------+-------+
@@ -219,7 +209,7 @@ class DiffResultAnalyzer:
             <BLANKLINE>
 
             *With `max_nb_rows_per_col_state=1`*
-            >>> (analyzer._get_top_per_col_state_df(_diff_df, join_cols = ['id'])
+            >>> (DiffResultAnalyzer._get_top_per_col_state_df(_diff_df, join_cols = ['id'])
             ...  .orderBy("column_name", "state", "left_value")
             ... ).show()
             +-----------+-------------+----------+-----------+---+---------------+-------+
@@ -270,7 +260,7 @@ class DiffResultAnalyzer:
                     )
                 ),
             )
-        unpivoted_diff_df = self._unpivot(diff_df.drop(IS_EQUAL_COL_NAME), [EXISTS_COL_NAME])
+        unpivoted_diff_df = DiffResultAnalyzer._unpivot(diff_df.drop(IS_EQUAL_COL_NAME), [EXISTS_COL_NAME])
         df_2 = unpivoted_diff_df.select(
             "column_name",
             f.when(PREDICATES.only_in_left, f.lit("only_in_left"))
@@ -618,7 +608,9 @@ class DiffResultAnalyzer:
 
     def display_diff_results(self, diff_result: DiffResult, show_examples: bool):
         join_cols = diff_result.join_cols
-        top_per_col_state_df = self._get_top_per_col_state_df(diff_result.diff_df, join_cols).localCheckpoint()
+        top_per_col_state_df = DiffResultAnalyzer._get_top_per_col_state_df(
+            diff_result.diff_df, join_cols
+        ).localCheckpoint()
         diff_per_col_df = self._get_diff_per_col_df(top_per_col_state_df, diff_result).localCheckpoint()
 
         left_df_alias = self.diff_format_options.left_df_alias
@@ -643,7 +635,9 @@ class DiffResultAnalyzer:
 
     def get_diff_result_summary(self, diff_result: DiffResult) -> DiffResultSummary:
         join_cols = diff_result.join_cols
-        top_per_col_state_df = self._get_top_per_col_state_df(diff_result.diff_df, join_cols).localCheckpoint()
+        top_per_col_state_df = DiffResultAnalyzer._get_top_per_col_state_df(
+            diff_result.diff_df, join_cols
+        ).localCheckpoint()
         diff_per_col_df = self._get_diff_per_col_df(top_per_col_state_df.orderBy("nb"), diff_result).localCheckpoint()
         summary = DiffResultSummary(
             left_df_alias=self.diff_format_options.left_df_alias,
@@ -690,6 +684,6 @@ def _get_test_diff_per_col_df() -> DataFrame:
 
     diff_result = _get_test_diff_result()
     analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
-    top_per_col_state_df = analyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
+    top_per_col_state_df = DiffResultAnalyzer._get_top_per_col_state_df(diff_result.diff_df, join_cols=["id"])
     df = analyzer._get_diff_per_col_df(top_per_col_state_df.orderBy("nb"), diff_result)
     return df
