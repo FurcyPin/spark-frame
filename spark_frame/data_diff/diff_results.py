@@ -8,7 +8,11 @@ from pyspark.sql.types import StructType
 from spark_frame import transformations as df_transformations
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_stats import DiffStats
-from spark_frame.data_diff.export import export_html_diff_report
+from spark_frame.data_diff.export import (
+    DEFAULT_HTML_REPORT_ENCODING,
+    DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
+    export_html_diff_report,
+)
 from spark_frame.data_diff.package import (
     EXISTS_COL_NAME,
     IS_EQUAL_COL_NAME,
@@ -296,17 +300,27 @@ class DiffResult:
         analyzer = DiffResultAnalyzer(self.diff_format_options)
         analyzer.display_diff_results(self, show_examples)
 
-    def export_to_html(self) -> None:
+    def export_to_html(
+        self,
+        title: Optional[str] = None,
+        output_file_path: str = DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
+        encoding: str = DEFAULT_HTML_REPORT_ENCODING,
+    ) -> None:
         """Generate an HTML report of this diff result.
 
         This generates a file named diff_report.html in the current working directory.
         It can be open directly with a web browser.
+
+        Args:
+            title: The title of the report
+            encoding: Encoding used when writing the html report
+            output_file_path: Path of the file to write to
         """
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
         analyzer = DiffResultAnalyzer(self.diff_format_options)
         diff_result_summary = analyzer.get_diff_result_summary(self)
-        export_html_diff_report(diff_result_summary)
+        export_html_diff_report(diff_result_summary, title=title, output_file_path=output_file_path, encoding=encoding)
 
 
 def _get_test_diff_result() -> "DiffResult":

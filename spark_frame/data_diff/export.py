@@ -5,8 +5,16 @@ import pkg_resources
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.utils import load_external_module
 
+DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH = "report.html"
+DEFAULT_HTML_REPORT_ENCODING = "utf-8"
 
-def export_html_diff_report(diff_result_summary: DiffResultSummary, title: Optional[str] = None) -> None:
+
+def export_html_diff_report(
+    diff_result_summary: DiffResultSummary,
+    title: Optional[str] = None,
+    output_file_path: str = DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
+    encoding: str = DEFAULT_HTML_REPORT_ENCODING,
+) -> None:
     """Generate an HTML report of the diff.
 
     This generates a file named diff_report.html in the current working directory.
@@ -15,6 +23,8 @@ def export_html_diff_report(diff_result_summary: DiffResultSummary, title: Optio
     Args:
         diff_result_summary: A summary of the diff.
         title: The title of the report
+        encoding: Encoding used when writing the html report
+        output_file_path: Path of the file to write to
     """
     jinja2 = load_external_module("jinja2")
 
@@ -34,7 +44,7 @@ def export_html_diff_report(diff_result_summary: DiffResultSummary, title: Optio
     )
 
     # Save the rendered HTML to a file
-    with open("diff_report.html", "w") as f:
+    with open(output_file_path, "w", encoding=encoding) as f:
         f.write(html)
 
     print("Report exported as diff_report.html")
