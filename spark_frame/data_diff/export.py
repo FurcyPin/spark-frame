@@ -5,7 +5,7 @@ import pkg_resources
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.utils import load_external_module
 
-DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH = "report.html"
+DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH = "diff_report.html"
 DEFAULT_HTML_REPORT_ENCODING = "utf-8"
 
 
