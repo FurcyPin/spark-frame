@@ -47,4 +47,4 @@ def export_html_diff_report(
     with open(output_file_path, "w", encoding=encoding) as f:
         f.write(html)
 
-    print("Report exported as diff_report.html")
+    print(f"Report exported as {output_file_path}")
