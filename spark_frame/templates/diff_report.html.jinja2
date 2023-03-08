@@ -70,6 +70,36 @@
         border-collapse: collapse;
       }
 
+      .chart_bar_row {
+        width: 100%; 
+        height: 20px;
+      }
+
+      .chart_bar_table_tooltip {
+        cursor: pointer;
+      }
+
+      .chart_bar_table_tooltip_text {
+        visibility: hidden;
+        flex: auto;
+        background-color: #ddd;
+        color: #333;
+        text-align: left;
+        border-radius: 6px;
+        padding: 5px 5px;
+
+        /* Position the tooltip */
+        position: absolute;
+        left: 1000px;
+      }
+
+      .chart_bar_table_tooltip:hover .chart_bar_table_tooltip_text {
+        visibility: visible;
+        transition: .25s all ease;
+        transition-delay: .75s;
+
+      }
+
 
       /* Define the style for the column name */
       .column_name {
@@ -216,8 +246,7 @@
             <td class="column_name">{{ col_diff.column_name }}</td>
             <!-- Create a container element to hold the bar charts -->
             <td class="chart_bar_container">
-              {% set elements =
-                [
+              {% set no_change_element =
                   {
                     'type': 'no_change',
                     'name': 'Not changed',
@@ -227,7 +256,9 @@
                     'top_title': 'Most frequent identical values',
                     'pct': (col_diff.counts.no_change / col_diff.counts.total * 100) | round(2),
                     'color': 'green'
-                  },
+                  }
+              %}
+              {% set changed_element =
                   {
                     'type': 'changed',
                     'name': 'Changed',
@@ -237,7 +268,9 @@
                     'top_title': 'Most frequent changes',
                     'pct': (col_diff.counts.changed / col_diff.counts.total * 100) | round(2),
                     'color': 'red'
-                  },
+                  }
+              %}
+              {% set only_in_left_element =
                   {
                     'type': 'only_in_left',
                     'name': 'Only in ' + diff_result_summary.left_df_alias,
@@ -247,7 +280,9 @@
                     'top_title': 'Most frequent values in ' + diff_result_summary.left_df_alias,
                     'pct': (col_diff.counts.only_in_left / col_diff.counts.total * 100) | round(2),
                     'color': 'blue'
-                  },
+                  }
+              %}
+              {% set only_in_right_element =
                   {
                     'type': 'only_in_right',
                     'name': 'Only in ' + diff_result_summary.right_df_alias,
@@ -258,28 +293,45 @@
                     'pct': (col_diff.counts.only_in_right / col_diff.counts.total * 100) | round(2),
                     'color': 'purple'
                   }
-                ]
+              %}
+              {% set elements = [no_change_element, changed_element, only_in_left_element, only_in_right_element] %}
+              {% set title = 
+                no_change_element.name + ": " + (no_change_element.count | string) + " (" + (no_change_element.pct | string) + "%)\n" + 
+                changed_element.name + ": " + (changed_element.count | string) + " (" + (changed_element.pct | string) + "%)\n" + 
+                only_in_left_element.name + ": " + (only_in_left_element.count | string) + " (" + (only_in_left_element.pct | string) + "%)\n" + 
+                only_in_right_element.name + ": " + (only_in_right_element.count | string) + " (" + (only_in_right_element.pct | string) + "%)"
               %}
 
-              <table class="chart_bar_table">
-                <tr style="width: 100%; height: 20px;">
 
-                  {% for element in elements %}
-                    <td
-                      style="
-                        background-color: {{ element.color }};
-                        width: {% if element.count > 0 %} {{ [element.pct, 2.5] | max }}% {% else %} 0% {% endif %};
-                        height: 100%;
-                        padding: 0
-                      "
-                      title="{{ element.name }}: {{ element.count }} ({{ element.pct }}%)"
-                      onclick="toggleColumnDetails('{{ col_diff.column_name }}')"
-                    >
-                    </td>
-                  {% endfor %}
-
-                </tr>
-              </table>
+              <div class="chart_bar_table_tooltip">
+                <table class="chart_bar_table">
+                  <tr class="chart_bar_row">
+                    {% for element in elements %}
+                      <td
+                        style="
+                          background-color: {{ element.color }};
+                          width: {% if element.count > 0 %} {{ [element.pct, 2.5] | max }}% {% else %} 0% {% endif %};
+                          height: 100%;
+                          padding: 0
+                        "
+                        onclick="toggleColumnDetails('{{ col_diff.column_name }}')"
+                      >
+                      </td>
+                    {% endfor %}
+                  </tr>
+                </table>
+                <span class="chart_bar_table_tooltip_text"> 
+                  <table>
+                    {% for element in elements %}
+                      <tr>
+                        <td style="color: {{ element.color }};">
+                          {{ element.name }}: {{ element.count }} ({{ element.pct }}%)
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </table>
+                </span> 
+              </div>
 
             </td>
           </tr>
