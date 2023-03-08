@@ -319,15 +319,45 @@
                         %}
                         <tr>
                           {% if element.type == "no_change" %}
-                            <td class="top_col_table_div">{{ difference.left_value }}</td>
+                            <td class="top_col_table_div">
+                              {% if difference.left_value == None %}
+                                <i>NULL</i>
+                              {% else %}
+                                {{ difference.left_value }}
+                              {% endif %}
+                            </td>
                           {% elif element.type == "changed" %}
-                            <td class="top_col_table_div">{{ difference.left_value }}</td>
+                            <td class="top_col_table_div">
+                              {% if difference.left_value == None %}
+                                <i>NULL</i>
+                              {% else %}
+                                {{ difference.left_value }}
+                              {% endif %}
+                            </td>
                             <td class="top_col_table_div"> &#10132; <difference>
-                            <td class="top_col_table_div">{{ difference.right_value }}</td>
+                            <td class="top_col_table_div">
+                              {% if difference.right_value == None %}
+                                <i>NULL</i>
+                              {% else %}
+                                {{ difference.right_value }}
+                              {% endif %}
+                            </td>
                           {% elif element.type == "only_in_left" %}
-                            <td class="top_col_table_div">{{ difference.left_value }}</td>
+                            <td class="top_col_table_div">
+                              {% if difference.left_value == None %}
+                                <i>NULL</i>
+                              {% else %}
+                                {{ difference.left_value }}
+                              {% endif %}
+                            </td>
                           {% elif element.type == "only_in_right" %}
-                            <td class="top_col_table_div">{{ difference.right_value }}</td>
+                            <td class="top_col_table_div">
+                              {% if difference.right_value == None %}
+                                <i>NULL</i>
+                              {% else %}
+                                {{ difference.right_value }}
+                              {% endif %}
+                            </td>
                           {% endif %}
                           <td class="top_col_table_div">{{ difference.nb }}</td>
                           <td class="top_col_table_div">
