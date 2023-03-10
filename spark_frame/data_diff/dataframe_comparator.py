@@ -38,31 +38,52 @@ class DataframeComparator:
 
     @staticmethod
     def _get_self_join_growth_estimate(df: DataFrame, cols: Union[str, List[str]]) -> float:
-        """Computes how much time bigger a DataFrame will be if we self-join it using the provided columns,
-        rounded to 2 decimals
+        """Computes how much time bigger a DataFrame will be if we self-join it using the provided columns, rounded
+        to 2 decimals
 
-        Example: If a DataFrame with 6 rows has one value present on 2 rows and another value present on 3 rows,
-        the growth factor will be (1*1 + 2*2 + 3*3) / 6 ~= 2.33.
-        If a column unique on each row, it's number of duplicates will be 0.
+        Args:
+            df: A Spark DataFrame
+            cols: A list of column names
 
-        >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> df = spark.sql('''SELECT INLINE(ARRAY(
-        ...     STRUCT(1 as id, "a" as name),
-        ...     STRUCT(2 as id, "b" as name),
-        ...     STRUCT(3 as id, "b" as name),
-        ...     STRUCT(4 as id, "c" as name),
-        ...     STRUCT(5 as id, "c" as name),
-        ...     STRUCT(6 as id, "c" as name)
-        ... ))''')
-        >>> DataframeComparator._get_self_join_growth_estimate(df, "id")
-        1.0
-        >>> DataframeComparator._get_self_join_growth_estimate(df, "name")
-        2.33
+        Returns:
+            The estimated ratio of duplicates
 
-        :param df: a DataFrame
-        :param cols: a list of column names
-        :return: number of duplicate rows
+        Examples:
+            If a DataFrame with 6 rows has one value present on 2 rows and another value present on 3 rows,
+            the growth factor will be (1*1 + 2*2 + 3*3) / 6 ~= 2.33.
+            If a column unique on each row, it's number of duplicates will be 0.
+
+            >>> from pyspark.sql import SparkSession
+            >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+            >>> df = spark.sql('''SELECT INLINE(ARRAY(
+            ...     STRUCT(1 as id, "a" as name),
+            ...     STRUCT(2 as id, "b" as name),
+            ...     STRUCT(3 as id, "b" as name),
+            ...     STRUCT(4 as id, "c" as name),
+            ...     STRUCT(5 as id, "c" as name),
+            ...     STRUCT(6 as id, "c" as name)
+            ... ))''')
+            >>> DataframeComparator._get_self_join_growth_estimate(df, "id")
+            1.0
+            >>> DataframeComparator._get_self_join_growth_estimate(df, "name")
+            2.33
+
+        Tests:
+            It should work with NULL values too.
+
+            >>> df = spark.sql('''SELECT INLINE(ARRAY(
+            ...     STRUCT(1 as id, "a" as name),
+            ...     STRUCT(2 as id, "b" as name),
+            ...     STRUCT(3 as id, "b" as name),
+            ...     STRUCT(4 as id, NULL as name),
+            ...     STRUCT(5 as id, NULL as name),
+            ...     STRUCT(NULL as id, NULL as name)
+            ... ))''')
+            >>> DataframeComparator._get_self_join_growth_estimate(df, "id")
+            1.0
+            >>> DataframeComparator._get_self_join_growth_estimate(df, "name")
+            2.33
+
         """
         if isinstance(cols, str):
             cols = [cols]
@@ -278,6 +299,19 @@ class DataframeComparator:
             )
 
     @staticmethod
+    def _build_null_safe_join_clause(left_df: DataFrame, right_df: DataFrame, join_cols: List[str]) -> Column:
+        """Generates a join clause that matches NULL values for the given join_cols"""
+
+        def join_clause_for_single_column(column: str) -> Column:
+            return left_df[column].eqNullSafe(right_df[column])
+
+        first_column: str = join_cols[0]
+        join_clause: Column = join_clause_for_single_column(first_column)
+        for col in join_cols[1:]:
+            join_clause &= join_clause_for_single_column(col)
+        return join_clause
+
+    @staticmethod
     def _build_diff_dataframe(left_df: DataFrame, right_df: DataFrame, join_cols: List[str]) -> DataFrame:
         """Perform a column-by-column comparison between two DataFrames.
         The two DataFrames must have the same columns with the same ordering.
@@ -340,7 +374,8 @@ class DataframeComparator:
         left_df = left_df.withColumn(EXISTS_COL_NAME, f.lit(True))
         right_df = right_df.withColumn(EXISTS_COL_NAME, f.lit(True))
 
-        diff = left_df.join(right_df, join_cols, "full")
+        null_safe_join_clause = DataframeComparator._build_null_safe_join_clause(left_df, right_df, join_cols)
+        diff = left_df.join(right_df, null_safe_join_clause, "full")
 
         compared_fields = [
             field for field in left_df.schema if field.name not in join_cols and field.name != EXISTS_COL_NAME
