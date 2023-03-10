@@ -449,3 +449,43 @@ def test_compare_df_with_sharded_array_of_struct(spark: SparkSession, df_compara
     analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
     diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert diff_per_col_df.count() == 2
+
+
+def test_compare_df_with_null_join_cols(spark: SparkSession, df_comparator: DataframeComparator):
+    """
+    GIVEN two DataFrames
+    WHEN we diff them using join_cols that are sometimes null
+    THEN the null values should correctly be matched together
+    """
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id1, 1 as id2, "a" as name),
+            STRUCT(2 as id1, 2 as id2, "b" as name),
+            STRUCT(NULL as id1, 3 as id2, "c" as name),
+            STRUCT(4 as id1, NULL as id2, "d" as name),
+            STRUCT(NULL as id1, NULL as id2, "e1" as name)
+        ))
+        """
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id1, 1 as id2, "a" as name),
+            STRUCT(2 as id1, 2 as id2, "b" as name),
+            STRUCT(NULL as id1, 3 as id2, "c" as name),
+            STRUCT(4 as id1, NULL as id2, "d" as name),
+            STRUCT(NULL as id1, NULL as id2, "e2" as name)
+        ))
+        """
+    )
+    diff_result: DiffResult = df_comparator.compare_df(df_1, df_2, join_cols=["id1", "id2"])
+    expected_diff_stats = DiffStats(
+        total=5, no_change=4, changed=1, in_left=5, in_right=5, only_in_left=0, only_in_right=0
+    )
+    print(diff_result.diff_stats)
+    assert diff_result.same_schema is True
+    assert diff_result.is_ok is False
+    assert diff_result.diff_stats == expected_diff_stats
+    diff_result.display()
+    diff_result.export_to_html()
