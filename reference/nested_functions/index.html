@@ -1011,7 +1011,7 @@ result.</p></td>
 
     <span class="n">field_parts</span> <span class="o">=</span> <span class="n">_split_field_name</span><span class="p">(</span><span class="n">field_name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">recurse_item</span><span class="p">(</span><span class="n">parts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">recurse_item</span><span class="p">(</span><span class="n">parts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrintableFunction</span><span class="p">:</span>
         <span class="n">key</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">is_struct</span> <span class="o">=</span> <span class="n">key</span> <span class="o">==</span> <span class="n">STRUCT_SEPARATOR</span>
         <span class="n">is_repeated</span> <span class="o">=</span> <span class="n">key</span> <span class="o">==</span> <span class="n">REPETITION_MARKER</span>

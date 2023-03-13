@@ -625,14 +625,63 @@ and <a href="https://furcypin.github.io/spark-frame/reference/functions/">refere
 </code></pre>
 <h2 id="compatibilities-and-requirements">Compatibilities and requirements</h2>
 <p>This library does not depend on any other library.
-Pyspark must be installed separately to use it.
+<strong>Pyspark must be installed separately to use it.</strong>
 It is compatible with the following versions:</p>
 <ul>
 <li>Python: requires 3.8.1 or higher (tested against Python 3.9, 3.10 and 3.11)</li>
 <li>pyspark: requires 3.3.0 or higher</li>
 </ul>
-<p>This library is tested against Mac and Linux.</p>
+<p>This library is tested against Windows, Mac and Linux.</p>
+<p><strong>Some features require extra libraries to be installed alongside this project.</strong>
+<strong>We chose to not include them as direct dependencies for security and flexibility reasons.</strong>
+<strong>This way, users who are not using these features don't need to worry about these dependencies.</strong></p>
+<table>
+<thead>
+<tr>
+<th>feature</th>
+<th>Method</th>
+<th align="right">module required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generating HTML reports for data diff</td>
+<td><code>DiffResult.export_to_html</code></td>
+<td align="right">jinja2</td>
+</tr>
+</tbody>
+</table>
 <h1 id="release-notes">Release notes</h1>
+<h1 id="v031">v0.3.1</h1>
+<p>Fixes and improvements on data_diff</p>
+<ul>
+<li>The <code>export_html_diff_report</code> method now accepts arguments to specify the path and encoding of the output html report. </li>
+<li>Data-diff join now works correctly with null values</li>
+<li>Visual improvements to HTML diff report</li>
+</ul>
+<h1 id="v030">v0.3.0</h1>
+<p>Fixes and improvements on data_diff</p>
+<ul>
+<li>Fixed incorrect diff results</li>
+<li>Column values are not truncated at all, this was causing incorrect results. The possibility to limit the size 
+  of the column values will be added back in a later version</li>
+<li>Made sure that the most frequent values per column are now displayed by decreasing order of frequency</li>
+</ul>
+<h1 id="v020">v0.2.0</h1>
+<p>Two new exciting features: <em>analyze</em> and <em>data_diff</em>. 
+They are still in experimental stage and will be improved in future releases.</p>
+<ul>
+<li>Added a new transformation <code>spark_frame.transformations.analyze</code>.</li>
+<li>Added new <em>data_diff</em> feature. Example:</li>
+</ul>
+<pre><code class="language-python">from pyspark.sql import DataFrame
+from spark_frame.data_diff import DataframeComparator
+df1: DataFrame = ...
+df2: DataFrame = ...
+diff_result = DataframeComparator().compare_df(df1, df2) # Produces a DiffResult object
+diff_result.display() # Print a diff report in the terminal
+diff_result.export_to_html() # Generates a html diff report file named diff_report.html
+</code></pre>
 <h1 id="v011">v0.1.1</h1>
 <ul>
 <li>Added a new transformation <code>spark_frame.transformations.flatten_all_arrays</code>.</li>
