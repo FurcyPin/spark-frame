@@ -64,6 +64,14 @@ This library is tested against Windows, Mac and Linux.
 
 # Release notes
 
+# v0.3.1
+
+Fixes and improvements on data_diff
+
+- The `export_html_diff_report` method now accepts arguments to specify the path and encoding of the output html report. 
+- Data-diff join now works correctly with null values
+- Visual improvements to HTML diff report
+
 
 # v0.3.0
 
