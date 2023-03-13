@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spark-frame"
-version = "0.3.0"
+version = "0.3.1"
 description = "A library containing various utility functions for playing with PySpark DataFrames"
 authors = ["FurcyPin"]
 license = "Apache-2.0"
