@@ -268,6 +268,7 @@ class DiffResultAnalyzer:
             left_df_alias=self.diff_format_options.left_df_alias,
             right_df_alias=self.diff_format_options.right_df_alias,
             diff_per_col_df=diff_per_col_df,
+            diff_stats=diff_result.diff_stats,
             schema_diff_result=diff_result.schema_diff_result,
             join_cols=diff_result.join_cols,
             same_schema=diff_result.same_schema,
