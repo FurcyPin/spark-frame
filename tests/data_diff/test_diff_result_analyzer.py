@@ -46,10 +46,6 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession, df_com
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
 
-    from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
-
-    analyzer = DiffResultAnalyzer(DiffFormatOptions(nb_diffed_rows=1))
-    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
         |+-----------+---------+----------+-----------+---+---------------+-------+
@@ -64,12 +60,16 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession, df_com
         |+-----------+---------+----------+-----------+---+---------------+-------+
         |"""
     )
+    from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
+
+    analyzer = DiffResultAnalyzer(DiffFormatOptions(nb_diffed_rows=1))
+    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert show_string(diff_per_col_df, truncate=False) == strip_margin(
         """
         |+-------------+-----------+---------------+--------------------------+
         ||column_number|column_name|counts         |diff                      |
         |+-------------+-----------+---------------+--------------------------+
-        ||0            |id         |{3, 0, 3, 0, 0}|{[], [{1, 1, 1}], [], []} |
+        ||0            |id         |{3, 0, 3, 0, 0}|{[], [{1, 1}], [], []}    |
         ||1            |col1       |{3, 3, 0, 0, 0}|{[{a, a1, 1}], [], [], []}|
         |+-------------+-----------+---------------+--------------------------+
         |"""
@@ -136,7 +136,7 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(
         |+-------------+-----------------------------------------------------------------------------+
         ||column_number|diff                                                                         |
         |+-------------+-----------------------------------------------------------------------------+
-        ||0            |{[], [{1, 1, 1}, {2, 2, 1}, {3, 3, 1}], [], []}                              |
+        ||0            |{[], [{1, 1}, {2, 1}, {3, 1}], [], []}                                       |
         ||1            |{[{aaxxxx, AAXXXX, 1}, {aayyyy, AAYYYY, 1}, {aazzzz, AAZZZZ, 1}], [], [], []}|
         |+-------------+-----------------------------------------------------------------------------+
         |"""
