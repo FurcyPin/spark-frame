@@ -372,10 +372,10 @@
                         <tr>
                           {% if element.type == "no_change" %}
                             <td class="top_col_table_div">
-                              {% if difference.left_value == None %}
+                              {% if difference.value == None %}
                                 <i>NULL</i>
                               {% else %}
-                                {{ difference.left_value }}
+                                {{ difference.value }}
                               {% endif %}
                             </td>
                           {% elif element.type == "changed" %}
@@ -396,18 +396,18 @@
                             </td>
                           {% elif element.type == "only_in_left" %}
                             <td class="top_col_table_div">
-                              {% if difference.left_value == None %}
+                              {% if difference.value == None %}
                                 <i>NULL</i>
                               {% else %}
-                                {{ difference.left_value }}
+                                {{ difference.value }}
                               {% endif %}
                             </td>
                           {% elif element.type == "only_in_right" %}
                             <td class="top_col_table_div">
-                              {% if difference.right_value == None %}
+                              {% if difference.value == None %}
                                 <i>NULL</i>
                               {% else %}
-                                {{ difference.right_value }}
+                                {{ difference.value }}
                               {% endif %}
                             </td>
                           {% endif %}
