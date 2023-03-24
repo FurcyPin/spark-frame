@@ -45,7 +45,7 @@ class DiffStats:
 
 def print_diff_stats(diff_stats: DiffStats, left_df_alias: str, right_df_alias: str) -> None:
     if diff_stats.total == diff_stats.no_change:
-        print("\ndiff ok!\n")
+        print(f"\ndiff ok! ({diff_stats.total} rows)\n")
     else:
         print("\ndiff NOT ok\n")
         print("Summary:")

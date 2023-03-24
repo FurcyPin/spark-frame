@@ -227,7 +227,7 @@
 
 
     {% if diff_result_summary.same_data %}
-      <div class="box green">DATA: OK</div>
+      <div class="box green">DATA: OK ({{diff_result_summary.diff_stats.total}} rows)</div>
     {% else %}
       <div class="box red">DATA: CHANGES DETECTED</div>
     {% endif %}
@@ -241,7 +241,7 @@
     </div>
     <!-- Create a table to display the information -->
     <table style="border-spacing: 0; width: auto; display: inline-block">
-      {% if diff_per_col[0].counts.no_change == 0 %}
+      {% if diff_result_summary.diff_stats.total == 0 %}
         <div class="box orange">Both DataFrames are empty</div>
       {% else %}
         {% for col_diff in diff_per_col %}
