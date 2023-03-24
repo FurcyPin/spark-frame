@@ -215,11 +215,11 @@ class DataframeComparator:
         :return: The name of the column with the least duplicates in both DataFrames if it has less than 10% duplicates.
         """
         left_col_dict = DataframeComparator._get_eligible_columns_for_join(left_df)
-        right_col_dict = DataframeComparator._get_eligible_columns_for_join(left_df)
+        right_col_dict = DataframeComparator._get_eligible_columns_for_join(right_df)
         merged_col_dict = DataframeComparator._merge_growth_estimate_dicts(left_col_dict, right_col_dict)
 
         if len(merged_col_dict) > 0:
-            col, self_join_growth_estimate = sorted(merged_col_dict.items(), key=lambda x: -x[1])[0]
+            col, self_join_growth_estimate = sorted(merged_col_dict.items(), key=lambda x: x[1])[0]
             return col, self_join_growth_estimate
         else:
             return None, None

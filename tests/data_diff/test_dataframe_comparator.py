@@ -489,3 +489,35 @@ def test_compare_df_with_null_join_cols(spark: SparkSession, df_comparator: Data
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
     diff_result.export_to_html()
+
+
+def test_automatically_infer_join_col(spark: SparkSession):
+    """
+    - GIVEN two DataFrames with two columns each
+    - WHEN one column is unique in both DataFrames and the other is almost unique
+    - THEN the unique column should be selected
+    """
+    left_df = spark.sql(
+        """
+        WITH T AS (SELECT EXPLODE(SEQUENCE(1, 20)) as id)
+        SELECT id as unique_id, id as non_unique_col FROM T
+        UNION ALL
+        SELECT "101" as unique_id, "101" as non_unique_col
+    """
+    )
+    right_df = spark.sql(
+        """
+        WITH T AS (SELECT EXPLODE(SEQUENCE(1, 20)) as id)
+        SELECT id as unique_id, id as non_unique_col FROM T
+        UNION ALL
+        SELECT "101" as unique_id, "1" as non_unique_col
+    """
+    )
+    join_cols, self_join_growth_estimate = DataframeComparator._automatically_infer_join_col(left_df, right_df)
+    assert join_cols == "unique_id"
+    assert self_join_growth_estimate == 1.0
+
+    # The result should be the same if we exchange left and right
+    join_cols, self_join_growth_estimate = DataframeComparator._automatically_infer_join_col(right_df, left_df)
+    assert join_cols == "unique_id"
+    assert self_join_growth_estimate == 1.0
