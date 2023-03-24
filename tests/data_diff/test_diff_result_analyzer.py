@@ -1,3 +1,4 @@
+import pytest
 from pyspark.sql import SparkSession
 
 from spark_frame.data_diff import DataframeComparator
@@ -7,13 +8,17 @@ from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.utils import show_string, strip_margin
 
 
-def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
+@pytest.fixture(autouse=True, scope="module")
+def df_comparator():
+    return DataframeComparator()
+
+
+def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession, df_comparator: DataframeComparator):
     """
     GIVEN two DataFrames differing with more lines than `DiffFormatOptions.nb_diffed_rows`
     WHEN we compare them
     THEN the stats should be correct
     """
-    df_comparator = DataframeComparator(DiffFormatOptions(nb_diffed_rows=1))
     df1 = spark.sql(
         """
         SELECT INLINE(ARRAY(
@@ -43,7 +48,7 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
 
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
-    analyzer = DiffResultAnalyzer(diff_result.diff_format_options)
+    analyzer = DiffResultAnalyzer(DiffFormatOptions(nb_diffed_rows=1))
     diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
@@ -71,14 +76,16 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
     )
 
 
-def test_when_we_have_values_that_are_longer_than_max_string_length(spark: SparkSession):
+def test_when_we_have_values_that_are_longer_than_max_string_length(
+    spark: SparkSession, df_comparator: DataframeComparator
+):
     """
     GIVEN two DataFrames differing with column values that are longer than max_string_length
           but are identical on the first "max_string_length" characters
     WHEN we compare them
     THEN the stats should be correct
     """
-    df_comparator = DataframeComparator(DiffFormatOptions(max_string_length=5))
+    df_comparator = DataframeComparator()
     df1 = spark.sql(
         """
         SELECT INLINE(ARRAY(
@@ -108,7 +115,7 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(spark: Spark
 
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
-    analyzer = DiffResultAnalyzer(diff_result.diff_format_options)
+    analyzer = DiffResultAnalyzer(DiffFormatOptions(max_string_length=5))
     diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
