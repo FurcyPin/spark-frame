@@ -108,6 +108,10 @@
         width: 20%;
       }
 
+      .join_column_name {
+        font-weight: bold;
+      }
+
       /* Define the style for columns with no change */
       .no_change {
         display: 'table-row';
@@ -243,7 +247,12 @@
         {% for col_diff in diff_per_col %}
           <tr {% if col_diff.counts.changed == 0 %}class="no_change"{% endif %}>
             <!-- Display the column name -->
-            <td class="column_name">{{ col_diff.column_name }}</td>
+            {% if col_diff.column_name in diff_result_summary.join_cols %}
+              <td class="column_name join_column_name">{{ col_diff.column_name }}</td>
+            {% else %}
+              <td class="column_name">{{ col_diff.column_name }}</td>
+            {% endif %}
+
             <!-- Create a container element to hold the bar charts -->
             <td class="chart_bar_container">
               {% set no_change_element =
