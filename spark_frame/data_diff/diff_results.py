@@ -83,7 +83,6 @@ class DiffResult:
         schema_diff_result: SchemaDiffResult,
         diff_df: DataFrame,
         join_cols: List[str],
-        diff_format_options: DiffFormatOptions = DiffFormatOptions(),
     ) -> None:
         """Class containing the results of a diff between two DataFrames"""
         self.schema_diff_result = schema_diff_result
@@ -98,7 +97,6 @@ class DiffResult:
         """
         self.join_cols = join_cols
         """The list of column names to join"""
-        self.diff_format_options = diff_format_options
         self._changed_df_shards: Optional[List[DataFrame]] = None
 
     @property
@@ -293,11 +291,19 @@ class DiffResult:
         )
         return df
 
-    def display(self, show_examples: bool = False) -> None:
+    def display(
+        self, show_examples: bool = False, diff_format_options: DiffFormatOptions = DiffFormatOptions()
+    ) -> None:
+        """Print a summary of the results in the standard output
+
+        Args:
+            show_examples: If true, display example of rows for each type of change
+            diff_format_options: Formatting options
+        """
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
         self.schema_diff_result.display()
-        analyzer = DiffResultAnalyzer(self.diff_format_options)
+        analyzer = DiffResultAnalyzer(diff_format_options)
         analyzer.display_diff_results(self, show_examples)
 
     def export_to_html(
@@ -305,6 +311,7 @@ class DiffResult:
         title: Optional[str] = None,
         output_file_path: str = DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
         encoding: str = DEFAULT_HTML_REPORT_ENCODING,
+        diff_format_options: DiffFormatOptions = DiffFormatOptions(),
     ) -> None:
         """Generate an HTML report of this diff result.
 
@@ -315,10 +322,11 @@ class DiffResult:
             title: The title of the report
             encoding: Encoding used when writing the html report
             output_file_path: Path of the file to write to
+            diff_format_options: Formatting options
         """
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
-        analyzer = DiffResultAnalyzer(self.diff_format_options)
+        analyzer = DiffResultAnalyzer(diff_format_options)
         diff_result_summary = analyzer.get_diff_result_summary(self)
         export_html_diff_report(diff_result_summary, title=title, output_file_path=output_file_path, encoding=encoding)
 

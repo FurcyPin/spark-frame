@@ -152,7 +152,7 @@ def test_compare_df_with_structs(spark: SparkSession, df_comparator: DataframeCo
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
     diff_result.export_to_html()
-    analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
+    analyzer = DiffResultAnalyzer()
     diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     # We make sure that the displayed column name is 'a.c' and not 'a__DOT__c'
     assert diff_per_col_df.collect()[3].asDict().get("column_name") == "a.c"
@@ -287,7 +287,7 @@ def test_compare_df_with_missing_empty_and_null_arrays(spark: SparkSession, df_c
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
     diff_result.export_to_html()
-    analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
+    analyzer = DiffResultAnalyzer()
     diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert diff_per_col_df.count() == 2
 
@@ -409,46 +409,6 @@ def test_compare_df_when_flattened_column_name_collision(spark: SparkSession, df
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
     diff_result.export_to_html()
-
-
-def test_compare_df_with_sharded_array_of_struct(spark: SparkSession, df_comparator: DataframeComparator):
-    """
-    GIVEN a DataFrame with a struct split across multiple shards
-    WHEN we run a diff on it
-    THEN it should not crash
-    """
-    df1 = spark.sql(
-        """
-        SELECT INLINE(ARRAY(
-            STRUCT(1 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array),
-            STRUCT(2 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array),
-            STRUCT(3 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array)
-        ))
-        """
-    )
-    df2 = spark.sql(
-        """
-        SELECT INLINE(ARRAY(
-            STRUCT(1 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array),
-            STRUCT(2 as id, ARRAY(STRUCT(2 as a, 2 as b, 3 as c, 4 as d)) as my_array),
-            STRUCT(4 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array)
-        ))
-        """
-    )
-    df_comparator = DataframeComparator(_shard_size=1)
-    diff_result: DiffResult = df_comparator.compare_df(df1, df2, join_cols=["id"])
-    expected_diff_stats = DiffStats(
-        total=4, no_change=1, changed=1, in_left=3, in_right=3, only_in_left=1, only_in_right=1
-    )
-    assert diff_result.same_schema is True
-    assert diff_result.same_data is False
-    assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
-    diff_result.display()
-    diff_result.export_to_html()
-    analyzer = DiffResultAnalyzer(df_comparator.diff_format_options)
-    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
-    assert diff_per_col_df.count() == 2
 
 
 def test_compare_df_with_null_join_cols(spark: SparkSession, df_comparator: DataframeComparator):

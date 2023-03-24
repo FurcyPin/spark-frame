@@ -4,7 +4,6 @@ from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 from pyspark.sql.types import IntegerType, LongType, StringType, StructField
 
-from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.package import EXISTS_COL_NAME, IS_EQUAL_COL_NAME, STRUCT_SEPARATOR_REPLACEMENT, canonize_col
 from spark_frame.data_diff.schema_diff import diff_dataframe_schemas
@@ -28,14 +27,6 @@ A = TypeVar("A")
 
 
 class DataframeComparator:
-    def __init__(
-        self,
-        diff_format_options: DiffFormatOptions = DiffFormatOptions(),
-        _shard_size: int = 100,
-    ):
-        self.diff_format_options = diff_format_options
-        self._shard_size = _shard_size
-
     @staticmethod
     def _get_self_join_growth_estimate(df: DataFrame, cols: Union[str, List[str]]) -> float:
         """Computes how much time bigger a DataFrame will be if we self-join it using the provided columns, rounded
@@ -543,7 +534,7 @@ class DataframeComparator:
         )
         diff_df = self._build_diff_dataframe(left_flat, right_flat, join_cols)
 
-        return DiffResult(schema_diff_result, diff_df, join_cols, self.diff_format_options)
+        return DiffResult(schema_diff_result, diff_df, join_cols)
 
 
 def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:
