@@ -64,6 +64,16 @@ This library is tested against Windows, Mac and Linux.
 
 # Release notes
 
+# v0.3.2
+
+Fixes and improvements on data_diff
+
+- Fix: automatic detection of join_col was sometimes selecting the wrong column
+- Visual improvements to HTML diff report:
+  - Name of columns used for join are now displayed in bold
+  - Total number of column is now displayed when the diff is ok
+  - Fix incorrect HTML diff display when one of the DataFrames is empty
+
 # v0.3.1
 
 Fixes and improvements on data_diff
