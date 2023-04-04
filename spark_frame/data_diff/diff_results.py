@@ -82,6 +82,7 @@ class DiffResult:
         self,
         schema_diff_result: SchemaDiffResult,
         diff_df: DataFrame,
+        common_cols: List[str],
         join_cols: List[str],
     ) -> None:
         """Class containing the results of a diff between two DataFrames"""
@@ -95,6 +96,8 @@ class DiffResult:
         - A Column `__EXISTS__: STRUCT<left_value, right_value>`
         - A Column `__IS_EQUAL__: BOOLEAN`
         """
+        self.common_cols = common_cols
+        """The list of columns present in both DataFrames"""
         self.join_cols = join_cols
         """The list of column names to join"""
         self._changed_df_shards: Optional[List[DataFrame]] = None
@@ -255,7 +258,8 @@ class DiffResult:
         <BLANKLINE>
         >>> schema_diff_result = SchemaDiffResult(same_schema=True, diff_str="",
         ...                                       nb_cols=0, left_schema_str="", right_schema_str="")
-        >>> DiffResult(schema_diff_result, diff_df=_diff_df, join_cols=['id'])._compute_diff_stats()
+        >>> DiffResult(schema_diff_result, diff_df=_diff_df,
+        ...            common_cols=["id", "c1", "c2"] , join_cols=['id'])._compute_diff_stats()
         DiffStats(total=6, no_change=1, changed=3, in_left=5, in_right=5, only_in_left=1, only_in_right=1)
         """
         res_df = self.diff_df.select(
@@ -448,7 +452,7 @@ def _get_test_diff_result() -> "DiffResult":
     schema_diff_result = SchemaDiffResult(
         same_schema=True, diff_str="", nb_cols=0, left_schema_str="", right_schema_str=""
     )
-    return DiffResult(schema_diff_result, diff_df=_diff_df, join_cols=["id"])
+    return DiffResult(schema_diff_result, diff_df=_diff_df, common_cols=["id", "c1", "c2"], join_cols=["id"])
 
 
 def _get_test_intersection_diff_df() -> DataFrame:

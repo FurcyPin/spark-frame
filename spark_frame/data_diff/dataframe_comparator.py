@@ -26,6 +26,40 @@ class CombinatorialExplosionError(DataframeComparatorException):
 A = TypeVar("A")
 
 
+def _deduplicate_list_while_conserving_ordering(a_list: List[A]) -> List[A]:
+    """Deduplicate a list while conserving its ordering.
+    The implementation uses the fact that unlike sets, dict keys preserve ordering.
+
+    Args:
+        a_list: A list
+
+    Returns: A deduplicated list
+
+    Examples:
+        >>> _deduplicate_list_while_conserving_ordering([1, 3, 2, 1, 2, 3, 1, 4])
+        [1, 3, 2, 4]
+
+    """
+    return list({elem: 0 for elem in a_list}.keys())
+
+
+def _get_common_root_column_names(common_fields: Dict[str, Optional[str]]) -> List[str]:
+    """Given common_columns, compute the ordered list of names of common root columns.
+
+    Args:
+        common_fields: the list of common fields
+
+    Returns:
+
+    Examples:
+        >>> _get_common_root_column_names({"id": None, "array!.c1": None, "array!.c2": None})
+        ['id', 'array']
+
+    """
+    root_columns = [col.split("!")[0] for col in common_fields.keys()]
+    return _deduplicate_list_while_conserving_ordering(root_columns)
+
+
 class DataframeComparator:
     @staticmethod
     def _get_self_join_growth_estimate(df: DataFrame, cols: Union[str, List[str]]) -> float:
@@ -534,7 +568,8 @@ class DataframeComparator:
         )
         diff_df = self._build_diff_dataframe(left_flat, right_flat, join_cols)
 
-        return DiffResult(schema_diff_result, diff_df, join_cols)
+        common_column_names = _get_common_root_column_names(common_columns)
+        return DiffResult(schema_diff_result, diff_df, common_column_names, join_cols)
 
 
 def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:

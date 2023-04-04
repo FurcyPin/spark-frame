@@ -5,6 +5,7 @@ from spark_frame.data_diff.dataframe_comparator import DataframeComparator
 from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.diff_stats import DiffStats
+from spark_frame.utils import show_string, strip_margin
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -113,7 +114,6 @@ def test_compare_df_with_different_keys(spark: SparkSession, df_comparator: Data
         """
     )
     diff_result: DiffResult = df_comparator.compare_df(df_1, df_2, join_cols=["id"])
-    print(diff_result.diff_stats)
     expected_diff_stats = DiffStats(
         total=4, no_change=2, changed=0, in_left=3, in_right=3, only_in_left=1, only_in_right=1
     )
@@ -215,6 +215,20 @@ def test_compare_df_with_arrays(spark: SparkSession, df_comparator: DataframeCom
     assert diff_result.same_schema is True
     assert diff_result.is_ok is True
     assert diff_result.diff_stats == expected_diff_stats
+
+    diff_per_col_df = diff_result.get_diff_per_col_df(100)
+    columns = diff_per_col_df.select("column_number", "column_name").sort("column_number")
+    # The columns should be displayed in the same order as in the original DataFrames, join_cols should not come first.
+    assert show_string(columns) == strip_margin(
+        """
+        |+-------------+-----------+
+        ||column_number|column_name|
+        |+-------------+-----------+
+        ||            0|         id|
+        ||            1|          a|
+        |+-------------+-----------+
+        |"""
+    )
     diff_result.display()
     diff_result.export_to_html()
 
@@ -443,7 +457,6 @@ def test_compare_df_with_null_join_cols(spark: SparkSession, df_comparator: Data
     expected_diff_stats = DiffStats(
         total=5, no_change=4, changed=1, in_left=5, in_right=5, only_in_left=0, only_in_right=0
     )
-    print(diff_result.diff_stats)
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
@@ -481,3 +494,47 @@ def test_automatically_infer_join_col(spark: SparkSession):
     join_cols, self_join_growth_estimate = DataframeComparator._automatically_infer_join_col(right_df, left_df)
     assert join_cols == "unique_id"
     assert self_join_growth_estimate == 1.0
+
+
+def test_join_cols_should_not_be_displayed_first(spark: SparkSession, df_comparator: DataframeComparator):
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT("a" as name, 1 as id),
+            STRUCT("b" as name, 2 as id),
+            STRUCT("c" as name, 3 as id)
+        ))
+        """
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT("a" as name, 1 as id),
+            STRUCT("b" as name, 2 as id),
+            STRUCT("d" as name, 3 as id)
+        ))
+        """
+    )
+    diff_result: DiffResult = df_comparator.compare_df(df_1, df_2, join_cols=["id"])
+    expected_diff_stats = DiffStats(
+        total=3, no_change=2, changed=1, in_left=3, in_right=3, only_in_left=0, only_in_right=0
+    )
+    assert diff_result.same_schema is True
+    assert diff_result.is_ok is False
+    assert diff_result.diff_stats == expected_diff_stats
+
+    diff_per_col_df = diff_result.get_diff_per_col_df(100)
+    columns = diff_per_col_df.select("column_number", "column_name").sort("column_number")
+    # The columns should be displayed in the same order as in the original DataFrames, join_cols should not come first.
+    assert show_string(columns) == strip_margin(
+        """
+        |+-------------+-----------+
+        ||column_number|column_name|
+        |+-------------+-----------+
+        ||            0|       name|
+        ||            1|         id|
+        |+-------------+-----------+
+        |"""
+    )
+    diff_result.display()
+    diff_result.export_to_html()
