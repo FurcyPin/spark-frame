@@ -1,19 +1,13 @@
-import pytest
 from pyspark.sql import SparkSession
 
-from spark_frame.data_diff import DataframeComparator
+from spark_frame.data_diff import compare_dataframes
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.utils import show_string, strip_margin
 
 
-@pytest.fixture(autouse=True, scope="module")
-def df_comparator():
-    return DataframeComparator()
-
-
-def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession, df_comparator: DataframeComparator):
+def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
     """
     GIVEN two DataFrames differing with more lines than `DiffFormatOptions.nb_diffed_rows`
     WHEN we compare them
@@ -38,7 +32,7 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession, df_com
         """
     )
     join_cols = ["id"]
-    diff_result: DiffResult = df_comparator.compare_df(df1, df2, join_cols)
+    diff_result: DiffResult = compare_dataframes(df1, df2, join_cols)
     expected_diff_stats = DiffStats(
         total=3, no_change=0, changed=3, in_left=3, in_right=3, only_in_left=0, only_in_right=0
     )
@@ -76,16 +70,13 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession, df_com
     )
 
 
-def test_when_we_have_values_that_are_longer_than_max_string_length(
-    spark: SparkSession, df_comparator: DataframeComparator
-):
+def test_when_we_have_values_that_are_longer_than_max_string_length(spark: SparkSession):
     """
     GIVEN two DataFrames differing with column values that are longer than max_string_length
           but are identical on the first "max_string_length" characters
     WHEN we compare them
     THEN the stats should be correct
     """
-    df_comparator = DataframeComparator()
     df1 = spark.sql(
         """
         SELECT INLINE(ARRAY(
@@ -105,7 +96,7 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(
         """
     )
     join_cols = ["id"]
-    diff_result: DiffResult = df_comparator.compare_df(df1, df2, join_cols)
+    diff_result: DiffResult = compare_dataframes(df1, df2, join_cols)
     expected_diff_stats = DiffStats(
         total=3, no_change=0, changed=3, in_left=3, in_right=3, only_in_left=0, only_in_right=0
     )
