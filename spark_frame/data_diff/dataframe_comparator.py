@@ -404,11 +404,11 @@ class DataframeComparator:
         self,
         left_flat: DataFrame,
         right_flat: DataFrame,
-        common_column_shard: List[Tuple[str, Optional[str]]],
+        common_columns: List[Tuple[str, Optional[str]]],
         skip_make_dataframes_comparable: bool,
     ) -> Tuple[DataFrame, DataFrame]:
         if not skip_make_dataframes_comparable:
-            left_flat, right_flat = harmonize_dataframes(left_flat, right_flat, common_column_shard)
+            left_flat, right_flat = harmonize_dataframes(left_flat, right_flat, common_columns)
         left_flat = sort_all_arrays(left_flat)
         right_flat = sort_all_arrays(right_flat)
         return left_flat, right_flat
