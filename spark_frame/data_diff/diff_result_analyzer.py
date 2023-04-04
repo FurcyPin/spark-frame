@@ -4,7 +4,7 @@ from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
-from spark_frame.data_diff.diff_per_col import get_diff_per_col_df
+from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.diff_stats import print_diff_stats
@@ -102,7 +102,7 @@ class DiffResultAnalyzer:
         self,
         diff_result: DiffResult,
     ) -> DataFrame:
-        return get_diff_per_col_df(diff_result, self.diff_format_options.nb_diffed_rows)
+        return diff_result.get_diff_per_col_df(self.diff_format_options.nb_diffed_rows)
 
     @staticmethod
     def _display_changed(diff_per_col_df: DataFrame) -> None:
@@ -236,9 +236,9 @@ class DiffResultAnalyzer:
 
     def display_diff_results(self, diff_result: DiffResult, show_examples: bool) -> None:
         join_cols = diff_result.join_cols
-        diff_per_col_df = get_diff_per_col_df(
-            diff_result, max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows
-        ).localCheckpoint()
+        diff_per_col_df = diff_result.get_diff_per_col_df(
+            max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows
+        )
 
         left_df_alias = self.diff_format_options.left_df_alias
         right_df_alias = self.diff_format_options.right_df_alias
@@ -261,9 +261,9 @@ class DiffResultAnalyzer:
             self._display_only_in_left_or_right(diff_per_col_df, "right")
 
     def get_diff_result_summary(self, diff_result: DiffResult) -> DiffResultSummary:
-        diff_per_col_df = get_diff_per_col_df(
-            diff_result, max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows
-        ).localCheckpoint()
+        diff_per_col_df = diff_result.get_diff_per_col_df(
+            max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows
+        )
         summary = DiffResultSummary(
             left_df_alias=self.diff_format_options.left_df_alias,
             right_df_alias=self.diff_format_options.right_df_alias,
@@ -286,7 +286,7 @@ def _get_test_diff_per_col_df() -> DataFrame:
     from spark_frame.data_diff.diff_results import _get_test_diff_result
 
     diff_result = _get_test_diff_result()
-    df = get_diff_per_col_df(
+    df = _get_diff_per_col_df(
         diff_result, max_nb_rows_per_col_state=10, top_per_col_state_df=diff_result.top_per_col_state_df.orderBy("nb")
     )
     return df
