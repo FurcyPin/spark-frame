@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Tuple
+from typing import Dict, Optional, Tuple
 
 from pyspark.sql import DataFrame
 
@@ -14,7 +14,7 @@ from spark_frame.nested_impl.package import (
 
 
 def harmonize_dataframes(
-    left_df: DataFrame, right_df: DataFrame, common_columns: Optional[Sequence[Tuple[str, Optional[str]]]] = None
+    left_df: DataFrame, right_df: DataFrame, common_columns: Optional[Dict[str, Optional[str]]] = None
 ) -> Tuple[DataFrame, DataFrame]:
     """Given two DataFrames, returns two new corresponding DataFrames with the same schemas by applying the following
     changes:
@@ -29,7 +29,7 @@ def harmonize_dataframes(
     Args:
         left_df: A Spark DataFrame
         right_df: A Spark DataFrame
-        common_columns: A list of (column name, type) tuples.
+        common_columns: A dict of (column name, type).
             Column names must appear in both DataFrames, and each column will be cast into the corresponding type.
 
     Returns:
@@ -69,7 +69,7 @@ def harmonize_dataframes(
         f2 = higher_order.recursive_struct_get(parent_structs)
         return fp.compose(f1, f2)
 
-    common_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in common_columns}
+    common_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in common_columns.items()}
     tree = _build_nested_struct_tree(common_columns_dict)
     root_transformation = _build_transformation_from_tree(tree)
     return left_df.select(*root_transformation([left_df])), right_df.select(*root_transformation([right_df]))
