@@ -404,7 +404,7 @@ class DataframeComparator:
         self,
         left_flat: DataFrame,
         right_flat: DataFrame,
-        common_columns: List[Tuple[str, Optional[str]]],
+        common_columns: Dict[str, Optional[str]],
         skip_make_dataframes_comparable: bool,
     ) -> Tuple[DataFrame, DataFrame]:
         if not skip_make_dataframes_comparable:
@@ -527,7 +527,7 @@ class DataframeComparator:
             right_schema_flat = flatten_schema(right_flat.schema, explode=True)
             common_columns = get_common_columns(left_schema_flat, right_schema_flat)
         else:
-            common_columns = [(field.name, None) for field in left_schema_flat]
+            common_columns = {field.name: None for field in left_schema_flat}
 
         left_flat, right_flat = self._harmonize_and_normalize_dataframes(
             left_flat, right_flat, common_columns, skip_make_dataframes_comparable=schema_diff_result.same_schema

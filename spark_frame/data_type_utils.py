@@ -1,4 +1,4 @@
-from typing import Dict, Generator, List, Optional, Tuple
+from typing import Dict, Generator, Optional, Tuple
 
 from pyspark.sql.types import ArrayType, DataType, MapType, StructField, StructType
 
@@ -48,7 +48,7 @@ def find_common_type_for_fields(left_field: StructField, right_field: StructFiel
         return find_wider_type_for_two(left_field.dataType, right_field.dataType)
 
 
-def get_common_columns(left_schema: StructType, right_schema: StructType) -> List[Tuple[str, Optional[str]]]:
+def get_common_columns(left_schema: StructType, right_schema: StructType) -> Dict[str, Optional[str]]:
     """Return a list of common Columns between two DataFrame schemas, along with the widest common type for the
     two columns.
 
@@ -59,7 +59,7 @@ def get_common_columns(left_schema: StructType, right_schema: StructType) -> Lis
         right_schema: Another DataFrame schema with common columns
 
     Returns:
-        A list of Columns
+        A dict of column names with their closest common type when they don't have the same type
 
     Examples:
         >>> from pyspark.sql import SparkSession
@@ -68,7 +68,7 @@ def get_common_columns(left_schema: StructType, right_schema: StructType) -> Lis
         >>> df2 = spark.sql('''SELECT 'A' as id, CAST(1 as DOUBLE) as a, ARRAY('a') as b, NULL as d''')
         >>> common_cols = get_common_columns(df1.schema, df2.schema)
         >>> common_cols
-        [('id', None), ('a', 'double'), ('b', None)]
+        {'id': None, 'a': 'double', 'b': None}
     """
     left_fields = {field.name: field for field in left_schema}
     right_fields = {field.name: field for field in right_schema}
@@ -79,7 +79,7 @@ def get_common_columns(left_schema: StructType, right_schema: StructType) -> Lis
                 right_field: StructField = right_fields[name]
                 yield name, find_common_type_for_fields(left_field, right_field)
 
-    return list(get_columns())
+    return dict(get_columns())
 
 
 def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:
