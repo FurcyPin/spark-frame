@@ -328,7 +328,7 @@ def _get_diff_per_col_df(
     else:
         _top_per_col_state_df = top_per_col_state_df
     spark = _top_per_col_state_df.sparkSession
-    columns = diff_result.diff_df.columns[:-2]
+    columns = diff_result.common_cols
     pivoted_df = _get_pivoted_df(_top_per_col_state_df, max_nb_rows_per_col_state)
     col_df = _get_col_df(columns, spark)
     df = _format_diff_per_col_df(pivoted_df, col_df, diff_stats)
