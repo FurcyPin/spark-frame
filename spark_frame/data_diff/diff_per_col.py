@@ -199,12 +199,12 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame, diff_stats
     return formatted_df
 
 
-def get_diff_per_col_df(
+def _get_diff_per_col_df(
     diff_result: DiffResult,
     max_nb_rows_per_col_state: int,
     top_per_col_state_df: Optional[DataFrame] = None,
 ) -> DataFrame:
-    """Given a top_per_col_state_df, return a Dict[str, int] that gives for each column and each
+    """Given a DiffResult, return a DataFrame that gives for each column and each
     column state (changed, no_change, only_in_left, only_in_right) the total number of occurences
     and the most frequent occurrences.
 
@@ -276,7 +276,7 @@ def get_diff_per_col_df(
         +-----------+-------------+----------+-----------+---+---------------+-------+
         <BLANKLINE>
 
-        >>> diff_per_col_df = get_diff_per_col_df(diff_result, max_nb_rows_per_col_state=10)
+        >>> diff_per_col_df = _get_diff_per_col_df(diff_result, max_nb_rows_per_col_state=10)
         >>> from spark_frame import nested
         >>> nested.print_schema(diff_per_col_df)
         root
@@ -309,7 +309,7 @@ def get_diff_per_col_df(
 
         The following test demonstrates that the arrays in `diff`
         are not guaranteed to be sorted by decreasing frequency
-        >>> get_diff_per_col_df(diff_result,
+        >>> _get_diff_per_col_df(diff_result,
         ...     max_nb_rows_per_col_state=10,
         ...     top_per_col_state_df=diff_result.top_per_col_state_df.orderBy("nb")
         ... ).show(truncate=False)  # noqa: E501

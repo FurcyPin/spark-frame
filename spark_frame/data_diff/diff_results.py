@@ -1,4 +1,4 @@
-from functools import cached_property
+from functools import cached_property, lru_cache
 from typing import List, Optional, cast
 
 from pyspark.sql import DataFrame, Window
@@ -125,6 +125,116 @@ class DiffResult:
         return self.diff_df.filter(PREDICATES.present_in_both & PREDICATES.row_changed).drop(
             EXISTS_COL_NAME, IS_EQUAL_COL_NAME
         )
+
+    @lru_cache()
+    def get_diff_per_col_df(self, max_nb_rows_per_col_state: int) -> DataFrame:
+        """Return a Dict[str, int] that gives for each column and each column state (changed, no_change, only_in_left,
+        only_in_right) the total number of occurences and the most frequent occurrences.
+
+        The results returned by this method are cached to avoid unecessary recomputations.
+
+        !!! warning
+            The arrays contained in the field `diff` are NOT guaranteed to be sorted,
+            and Spark currently does not provide any way to perform a sort_by on an ARRAY<STRUCT>.
+
+        Args:
+            max_nb_rows_per_col_state: The maximal size of the arrays in `diff`
+
+        Returns:
+            A DataFrame with the following schema:
+
+                root
+                 |-- column_number: integer (nullable = true)
+                 |-- column_name: string (nullable = true)
+                 |-- counts.total: integer (nullable = false)
+                 |-- counts.changed: long (nullable = false)
+                 |-- counts.no_change: long (nullable = false)
+                 |-- counts.only_in_left: long (nullable = false)
+                 |-- counts.only_in_right: long (nullable = false)
+                 |-- diff.changed!.left_value: string (nullable = true)
+                 |-- diff.changed!.right_value: string (nullable = true)
+                 |-- diff.changed!.nb: long (nullable = false)
+                 |-- diff.no_change!.value: string (nullable = true)
+                 |-- diff.no_change!.nb: long (nullable = false)
+                 |-- diff.only_in_left!.value: string (nullable = true)
+                 |-- diff.only_in_left!.nb: long (nullable = false)
+                 |-- diff.only_in_right!.value: string (nullable = true)
+                 |-- diff.only_in_right!.nb: long (nullable = false)
+                <BLANKLINE>
+
+        Examples:
+            >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+            >>> diff_result = _get_test_diff_result()
+            >>> diff_result.diff_df.show()
+            +---+----------------+----------------+-------------+------------+
+            | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
+            +---+----------------+----------------+-------------+------------+
+            |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
+            |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
+            |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+            |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
+            |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
+            |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
+            +---+----------------+----------------+-------------+------------+
+            <BLANKLINE>
+            >>> diff_result.top_per_col_state_df.show()
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            |         c1|    no_change|         b|          b|  3|              4|      1|
+            |         c1|    no_change|         a|          a|  1|              4|      2|
+            |         c1| only_in_left|         c|       null|  1|              1|      1|
+            |         c1|only_in_right|      null|          f|  1|              1|      1|
+            |         c2|      changed|         2|          4|  2|              3|      1|
+            |         c2|      changed|         2|          3|  1|              3|      2|
+            |         c2|    no_change|         1|          1|  1|              1|      1|
+            |         c2| only_in_left|         3|       null|  1|              1|      1|
+            |         c2|only_in_right|      null|          3|  1|              1|      1|
+            |         id|    no_change|         1|          1|  1|              4|      1|
+            |         id|    no_change|         2|          2|  1|              4|      2|
+            |         id|    no_change|         3|          3|  1|              4|      3|
+            |         id|    no_change|         4|          4|  1|              4|      4|
+            |         id| only_in_left|         5|       null|  1|              1|      1|
+            |         id|only_in_right|      null|          6|  1|              1|      1|
+            +-----------+-------------+----------+-----------+---+---------------+-------+
+            <BLANKLINE>
+
+            >>> diff_per_col_df = diff_result.get_diff_per_col_df(max_nb_rows_per_col_state=10)
+            >>> from spark_frame import nested
+            >>> nested.print_schema(diff_per_col_df)
+            root
+             |-- column_number: integer (nullable = true)
+             |-- column_name: string (nullable = true)
+             |-- counts.total: integer (nullable = false)
+             |-- counts.changed: long (nullable = false)
+             |-- counts.no_change: long (nullable = false)
+             |-- counts.only_in_left: long (nullable = false)
+             |-- counts.only_in_right: long (nullable = false)
+             |-- diff.changed!.left_value: string (nullable = true)
+             |-- diff.changed!.right_value: string (nullable = true)
+             |-- diff.changed!.nb: long (nullable = false)
+             |-- diff.no_change!.value: string (nullable = true)
+             |-- diff.no_change!.nb: long (nullable = false)
+             |-- diff.only_in_left!.value: string (nullable = true)
+             |-- diff.only_in_left!.nb: long (nullable = false)
+             |-- diff.only_in_right!.value: string (nullable = true)
+             |-- diff.only_in_right!.nb: long (nullable = false)
+            <BLANKLINE>
+            >>> diff_per_col_df.show(truncate=False)  # noqa: E501
+            +-------------+-----------+---------------+----------------------------------------------------------+
+            |column_number|column_name|counts         |diff                                                      |
+            +-------------+-----------+---------------+----------------------------------------------------------+
+            |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1}, {2, 1}, {3, 1}, {4, 1}], [{5, 1}], [{6, 1}]}|
+            |1            |c1         |{6, 0, 4, 1, 1}|{[], [{b, 3}, {a, 1}], [{c, 1}], [{f, 1}]}                |
+            |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 4, 2}, {2, 3, 1}], [{1, 1}], [{3, 1}], [{3, 1}]}    |
+            +-------------+-----------+---------------+----------------------------------------------------------+
+            <BLANKLINE>
+        """
+        from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
+
+        return _get_diff_per_col_df(
+            self, max_nb_rows_per_col_state=max_nb_rows_per_col_state, top_per_col_state_df=None
+        ).localCheckpoint()
 
     def _compute_diff_stats(self) -> DiffStats:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
