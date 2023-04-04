@@ -18,7 +18,7 @@ bumpversion minor
 - [ ] add release notes to README
 - [ ] bumpversion
 - [ ] `git push`
-- [ ] `check build`
+- [ ] check build
 - [ ] `git push --tags`
 - [ ] Check docs with `poetry run mkdocs serve`
 - [ ] `poetry run mkdocs gh-deploy`
