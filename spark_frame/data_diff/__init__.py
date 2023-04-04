@@ -1,3 +1,3 @@
-from spark_frame.data_diff.dataframe_comparator import DataframeComparator
+from spark_frame.data_diff.compare_dataframes_impl import compare_dataframes
 
-DataframeComparator = DataframeComparator
+compare_dataframes = compare_dataframes
