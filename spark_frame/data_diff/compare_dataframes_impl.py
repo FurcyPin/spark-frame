@@ -2,11 +2,11 @@ from typing import Dict, List, Optional, Tuple, TypeVar, Union
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
-from pyspark.sql.types import IntegerType, LongType, StringType, StructField
+from pyspark.sql.types import IntegerType, LongType, StringType
 
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.package import EXISTS_COL_NAME, IS_EQUAL_COL_NAME, STRUCT_SEPARATOR_REPLACEMENT, canonize_col
-from spark_frame.data_diff.schema_diff import diff_dataframe_schemas
+from spark_frame.data_diff.schema_diff import DiffPrefix, diff_dataframe_schemas
 from spark_frame.data_type_utils import flatten_schema, get_common_columns, is_repeated
 from spark_frame.transformations import flatten
 from spark_frame.transformations_impl.convert_all_maps_to_arrays import convert_all_maps_to_arrays
@@ -329,7 +329,9 @@ def _build_null_safe_join_clause(left_df: DataFrame, right_df: DataFrame, join_c
     return join_clause
 
 
-def _build_diff_dataframe(left_df: DataFrame, right_df: DataFrame, join_cols: List[str]) -> DataFrame:
+def _build_diff_dataframe(
+    left_df: DataFrame, right_df: DataFrame, column_names_diff: Dict[str, DiffPrefix], join_cols: List[str]
+) -> DataFrame:
     """Perform a column-by-column comparison between two DataFrames.
     The two DataFrames must have the same columns with the same ordering.
     The column `join_col` will be used to join the two DataFrames together.
@@ -338,83 +340,114 @@ def _build_diff_dataframe(left_df: DataFrame, right_df: DataFrame, join_cols: Li
     - `right_value`: the value coming from the `right_df`
     - `is_equal`: True if both values have the same hash, False otherwise.
 
-    Example:
+    Args:
+        left_df: A DataFrame
+        right_df: Another DataFrame
+        join_cols: The names of the columns to use to perform the join.
 
-    >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-    >>> left_df = spark.sql('''SELECT INLINE(ARRAY(
-    ...     STRUCT(1 as id, "a" as c1, 1 as c2),
-    ...     STRUCT(2 as id, "b" as c1, 2 as c2),
-    ...     STRUCT(3 as id, "c" as c1, 3 as c2)
-    ... ))''')
-    >>> right_df = spark.sql('''SELECT INLINE(ARRAY(
-    ...     STRUCT(1 as id, "a" as c1, 1 as c2),
-    ...     STRUCT(2 as id, "b" as c1, 4 as c2),
-    ...     STRUCT(4 as id, "f" as c1, 3 as c2)
-    ... ))''')
-    >>> left_df.show()
-    +---+---+---+
-    | id| c1| c2|
-    +---+---+---+
-    |  1|  a|  1|
-    |  2|  b|  2|
-    |  3|  c|  3|
-    +---+---+---+
-    <BLANKLINE>
-    >>> right_df.show()
-    +---+---+---+
-    | id| c1| c2|
-    +---+---+---+
-    |  1|  a|  1|
-    |  2|  b|  4|
-    |  4|  f|  3|
-    +---+---+---+
-    <BLANKLINE>
-    >>> _build_diff_dataframe(left_df, right_df, ['id']).orderBy('id').show()  # noqa: E501
-    +---+----------------+----------------+-------------+------------+
-    | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
-    +---+----------------+----------------+-------------+------------+
-    |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-    |  2|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-    |  3|{c, null, false}|{3, null, false}|{true, false}|       false|
-    |  4|{null, f, false}|{null, 3, false}|{false, true}|       false|
-    +---+----------------+----------------+-------------+------------+
-    <BLANKLINE>
-
-
-    :param left_df: a DataFrame
-    :param right_df: a DataFrame with the same columns
-    :param join_cols: the columns to use to perform the join.
-    :return: a DataFrame containing all the columns that differ, and a dictionary that gives the number of
+    Returns:
+        A DataFrame containing all the columns that differ, and a dictionary that gives the number of
         differing rows for each column
+
+    Examples:
+
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> left_df = spark.sql('''SELECT INLINE(ARRAY(
+        ...     STRUCT(1 as id, "a" as c1, 1 as c2, 2 as c3),
+        ...     STRUCT(2 as id, "b" as c1, 2 as c2, 3 as c3),
+        ...     STRUCT(3 as id, "c" as c1, 3 as c2, 4 as c3)
+        ... ))''')
+        >>> right_df = spark.sql('''SELECT INLINE(ARRAY(
+        ...     STRUCT(1 as id, "a" as c1, 1 as c2, 3 as c4),
+        ...     STRUCT(2 as id, "b" as c1, 4 as c2, 4 as c4),
+        ...     STRUCT(4 as id, "f" as c1, 3 as c2, 5 as c4)
+        ... ))''')
+        >>> left_df.show()
+        +---+---+---+---+
+        | id| c1| c2| c3|
+        +---+---+---+---+
+        |  1|  a|  1|  2|
+        |  2|  b|  2|  3|
+        |  3|  c|  3|  4|
+        +---+---+---+---+
+        <BLANKLINE>
+        >>> right_df.show()
+        +---+---+---+---+
+        | id| c1| c2| c4|
+        +---+---+---+---+
+        |  1|  a|  1|  3|
+        |  2|  b|  4|  4|
+        |  4|  f|  3|  5|
+        +---+---+---+---+
+        <BLANKLINE>
+        >>> from spark_frame.data_diff.schema_diff import _diff_dataframe_column_names
+        >>> column_names_diff = _diff_dataframe_column_names(left_df.columns, right_df.columns)
+        >>> column_names_diff
+        {'id': ' ', 'c1': ' ', 'c2': ' ', 'c3': '-', 'c4': '+'}
+        >>> (_build_diff_dataframe(left_df, right_df, column_names_diff, ['id'])
+        ...     .withColumn('coalesced_id', f.expr('coalesce(id.left_value, id.right_value)'))
+        ...     .orderBy('coalesced_id').drop('coalesced_id').show(truncate=False)
+        ... ) # noqa: E501
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+        |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+        |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{2, null, false, true, false}    |{null, 3, false, false, true}    |{true, true} |true        |
+        |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{3, null, false, true, false}    |{null, 4, false, false, true}    |{true, true} |false       |
+        |{3, null, false, true, false}|{c, null, false, true, false}|{3, null, false, true, false}|{4, null, false, true, false}    |{null, null, false, false, false}|{true, false}|false       |
+        |{null, 4, false, false, true}|{null, f, false, false, true}|{null, 3, false, false, true}|{null, null, false, false, false}|{null, 5, false, false, true}    |{false, true}|false       |
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+        <BLANKLINE>
     """
+    column_names_diff = {
+        col_name.replace(".", STRUCT_SEPARATOR_REPLACEMENT): diff for col_name, diff in column_names_diff.items()
+    }
+
     left_df = left_df.withColumn(EXISTS_COL_NAME, f.lit(True))
     right_df = right_df.withColumn(EXISTS_COL_NAME, f.lit(True))
 
     null_safe_join_clause = _build_null_safe_join_clause(left_df, right_df, join_cols)
     diff = left_df.join(right_df, null_safe_join_clause, "full")
 
-    compared_fields = [
-        field for field in left_df.schema if field.name not in join_cols and field.name != EXISTS_COL_NAME
-    ]
+    left_df_fields = {field.name: field for field in left_df.schema.fields}
+    right_df_fields = {field.name: field for field in right_df.schema.fields}
 
-    def comparison_struct(field: StructField) -> Column:
-        left_col: Column = left_df[field.name]
-        right_col: Column = right_df[field.name]
-        left_col_str: Column = canonize_col(left_col, field)
-        right_col_str: Column = canonize_col(right_col, field)
+    def comparison_struct(col_name: str, diff_prefix: str) -> Column:
+        if diff_prefix == DiffPrefix.ADDED:
+            left_col = f.lit(None)
+            left_col_str = left_col
+            exists_left = f.lit(False)
+        else:
+            left_col = left_df[col_name]
+            left_col_str = canonize_col(left_col, left_df_fields[col_name])
+            exists_left = f.coalesce(left_df[EXISTS_COL_NAME], f.lit(False))
+
+        if diff_prefix == DiffPrefix.REMOVED:
+            right_col = f.lit(None)
+            right_col_str = right_col
+            exists_right = f.lit(False)
+        else:
+            right_col = right_df[col_name]
+            right_col_str = canonize_col(right_col, right_df_fields[col_name])
+            exists_right = f.coalesce(right_df[EXISTS_COL_NAME], f.lit(False))
+
+        if diff_prefix == DiffPrefix.UNCHANGED:
+            is_equal_col = (left_col_str.isNull() & right_col_str.isNull()) | (
+                left_col_str.isNotNull() & right_col_str.isNotNull() & (left_col_str == right_col_str)
+            )
+        else:
+            is_equal_col = f.lit(False)
+
         return f.struct(
             left_col.alias("left_value"),
             right_col.alias("right_value"),
-            (
-                (left_col_str.isNull() & right_col_str.isNull())
-                | (left_col_str.isNotNull() & right_col_str.isNotNull() & (left_col_str == right_col_str))
-            ).alias("is_equal"),
-        ).alias(field.name)
+            is_equal_col.alias("is_equal"),
+            exists_left.alias("exists_left"),
+            exists_right.alias("exists_right"),
+        ).alias(col_name)
 
     diff_df = diff.select(
-        *[f.coalesce(left_df[col], right_df[col]).alias(col) for col in join_cols],
-        *[comparison_struct(field) for field in compared_fields],
+        *[comparison_struct(col_name, diff_prefix) for col_name, diff_prefix in column_names_diff.items()],
         f.struct(
             f.coalesce(left_df[EXISTS_COL_NAME], f.lit(False)).alias("left_value"),
             f.coalesce(right_df[EXISTS_COL_NAME], f.lit(False)).alias("right_value"),
@@ -422,8 +455,9 @@ def _build_diff_dataframe(left_df: DataFrame, right_df: DataFrame, join_cols: Li
     )
 
     row_is_equal = f.lit(True)
-    for field in compared_fields:
-        row_is_equal = row_is_equal & f.col(f"{field.name}.is_equal")
+    for col_name, diff_prefix in column_names_diff.items():
+        if diff_prefix == DiffPrefix.UNCHANGED:
+            row_is_equal = row_is_equal & f.col(f"{col_name}.is_equal")
     return diff_df.withColumn(IS_EQUAL_COL_NAME, row_is_equal)
 
 
@@ -434,7 +468,7 @@ def _harmonize_and_normalize_dataframes(
     skip_make_dataframes_comparable: bool,
 ) -> Tuple[DataFrame, DataFrame]:
     if not skip_make_dataframes_comparable:
-        left_flat, right_flat = harmonize_dataframes(left_flat, right_flat, common_columns)
+        left_flat, right_flat = harmonize_dataframes(left_flat, right_flat, common_columns, keep_missing_columns=True)
     left_flat = sort_all_arrays(left_flat)
     right_flat = sort_all_arrays(right_flat)
     return left_flat, right_flat
@@ -560,10 +594,10 @@ def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optio
     left_flat, right_flat = _harmonize_and_normalize_dataframes(
         left_flat, right_flat, common_columns, skip_make_dataframes_comparable=schema_diff_result.same_schema
     )
-    diff_df = _build_diff_dataframe(left_flat, right_flat, join_cols)
 
-    common_column_names = _get_common_root_column_names(common_columns)
-    return DiffResult(schema_diff_result, diff_df, common_column_names, join_cols)
+    diff_df = _build_diff_dataframe(left_flat, right_flat, schema_diff_result.column_names_diff, join_cols)
+
+    return DiffResult(schema_diff_result, diff_df, join_cols)
 
 
 def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:

@@ -103,7 +103,8 @@
 
       /* Define the style for the column name */
       .column_name {
-        font-size: 1.5em;
+        font-family: monospace;
+        font-size: 1.4em;
         padding-right: 5px;
         width: 20%;
       }
@@ -247,10 +248,16 @@
         {% for col_diff in diff_per_col %}
           <tr {% if col_diff.counts.changed == 0 %}class="no_change"{% endif %}>
             <!-- Display the column name -->
+            {% set column_names_diff = diff_result_summary.schema_diff_result.column_names_diff %}
+            {% set column_name = column_names_diff[col_diff.column_name] + " " + col_diff.column_name %}
             {% if col_diff.column_name in diff_result_summary.join_cols %}
-              <td class="column_name join_column_name">{{ col_diff.column_name }}</td>
+              <td class="column_name join_column_name">
+                <pre>{{ column_name }}</pre>
+                </td>
             {% else %}
-              <td class="column_name">{{ col_diff.column_name }}</td>
+              <td class="column_name">
+                <pre>{{ column_name }}</pre>
+              </td>
             {% endif %}
 
             <!-- Create a container element to hold the bar charts -->

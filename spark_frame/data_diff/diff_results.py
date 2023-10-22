@@ -20,39 +20,38 @@ from spark_frame.data_diff.package import (
     STRUCT_SEPARATOR_REPLACEMENT,
     canonize_col,
 )
-from spark_frame.data_diff.schema_diff import SchemaDiffResult
-from spark_frame.utils import quote, quote_columns
+from spark_frame.data_diff.schema_diff import DiffPrefix, SchemaDiffResult
+from spark_frame.utils import quote
 
 
-def _unpivot(diff_df: DataFrame, join_cols: List[str]) -> DataFrame:
+def _unpivot(diff_df: DataFrame) -> DataFrame:
     """Given a diff_df, builds an unpivoted version of it.
     All the values must be cast to STRING to make sure everything fits in the same column.
 
     Examples:
         >>> from spark_frame.data_diff.diff_results import _get_test_intersection_diff_df
         >>> diff_df = _get_test_intersection_diff_df()
-        >>> diff_df.show()
-        +---+-------------+-------------+
-        | id|           c1|           c2|
-        +---+-------------+-------------+
-        |  1|{a, d, false}| {1, 1, true}|
-        |  2|{b, a, false}|{2, 4, false}|
-        +---+-------------+-------------+
+        >>> diff_df.show(truncate=False)
+        +-------------------------+-------------------------+
+        |c1                       |c2                       |
+        +-------------------------+-------------------------+
+        |{a, d, false, true, true}|{1, 1, true, true, true} |
+        |{b, a, false, true, true}|{2, 4, false, true, true}|
+        +-------------------------+-------------------------+
         <BLANKLINE>
-        >>> _unpivot(diff_df, join_cols=['id']).orderBy('id', 'column_name').show()
-        +---+-----------+-------------+
-        | id|column_name|         diff|
-        +---+-----------+-------------+
-        |  1|         c1|{a, d, false}|
-        |  1|         c2| {1, 1, true}|
-        |  2|         c1|{b, a, false}|
-        |  2|         c2|{2, 4, false}|
-        +---+-----------+-------------+
+        >>> _unpivot(diff_df).orderBy('column_name').show(truncate=False)
+        +-----------+-------------------------+
+        |column_name|diff                     |
+        +-----------+-------------------------+
+        |c1         |{a, d, false, true, true}|
+        |c1         |{b, a, false, true, true}|
+        |c2         |{1, 1, true, true, true} |
+        |c2         |{2, 4, false, true, true}|
+        +-----------+-------------------------+
         <BLANKLINE>
     """
 
     diff_df = diff_df.select(
-        *quote_columns(join_cols),
         *[
             f.struct(
                 canonize_col(diff_df[field.name + ".left_value"], cast(StructType, field.dataType).fields[0])
@@ -62,15 +61,14 @@ def _unpivot(diff_df: DataFrame, join_cols: List[str]) -> DataFrame:
                 .cast("STRING")
                 .alias("right_value"),
                 diff_df[quote(field.name) + ".is_equal"].alias("is_equal"),
+                diff_df[quote(field.name) + ".exists_left"].alias("exists_left"),
+                diff_df[quote(field.name) + ".exists_right"].alias("exists_right"),
             ).alias(field.name)
             for field in diff_df.schema.fields
-            if field.name not in join_cols
         ],
     )
 
-    unpivoted_df = df_transformations.unpivot(
-        diff_df, pivot_columns=join_cols, key_alias="column_name", value_alias="diff"
-    )
+    unpivoted_df = df_transformations.unpivot(diff_df, pivot_columns=[], key_alias="column_name", value_alias="diff")
     unpivoted_df = unpivoted_df.withColumn(
         "column_name", f.regexp_replace(f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, ".")
     )
@@ -82,7 +80,6 @@ class DiffResult:
         self,
         schema_diff_result: SchemaDiffResult,
         diff_df: DataFrame,
-        common_cols: List[str],
         join_cols: List[str],
     ) -> None:
         """Class containing the results of a diff between two DataFrames"""
@@ -96,8 +93,6 @@ class DiffResult:
         - A Column `__EXISTS__: STRUCT<left_value, right_value>`
         - A Column `__IS_EQUAL__: BOOLEAN`
         """
-        self.common_cols = common_cols
-        """The list of columns present in both DataFrames"""
         self.join_cols = join_cols
         """The list of column names to join"""
         self._changed_df_shards: Optional[List[DataFrame]] = None
@@ -149,7 +144,7 @@ class DiffResult:
                 root
                  |-- column_number: integer (nullable = true)
                  |-- column_name: string (nullable = true)
-                 |-- counts.total: integer (nullable = false)
+                 |-- counts.total: long (nullable = false)
                  |-- counts.changed: long (nullable = false)
                  |-- counts.no_change: long (nullable = false)
                  |-- counts.only_in_left: long (nullable = false)
@@ -168,19 +163,19 @@ class DiffResult:
         Examples:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
             >>> diff_result = _get_test_diff_result()
-            >>> diff_result.diff_df.show()
-            +---+----------------+----------------+-------------+------------+
-            | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
-            +---+----------------+----------------+-------------+------------+
-            |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-            |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
-            |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-            |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-            |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
-            |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
-            +---+----------------+----------------+-------------+------------+
+            >>> diff_result.diff_df.show(truncate=False)  # noqa: E501
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+            |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+            |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, null, false, true, false}    |{null, 1, false, false, true}    |{true, true} |true        |
+            |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, null, false, true, false}    |{null, 1, false, false, true}    |{true, true} |false       |
+            |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, null, false, true, false}    |{null, 2, false, false, true}    |{true, true} |false       |
+            |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, null, false, true, false}    |{null, 2, false, false, true}    |{true, true} |false       |
+            |{5, null, false, true, false}|{c, null, false, true, false}|{3, null, false, true, false}|{3, null, false, true, false}    |{null, null, false, false, false}|{true, false}|false       |
+            |{null, 6, false, false, true}|{null, f, false, false, true}|{null, 3, false, false, true}|{null, null, false, false, false}|{null, 3, false, false, true}    |{false, true}|false       |
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
             <BLANKLINE>
-            >>> diff_result.top_per_col_state_df.show()
+            >>> diff_result.top_per_col_state_df.show(100)
             +-----------+-------------+----------+-----------+---+---------------+-------+
             |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
             +-----------+-------------+----------+-----------+---+---------------+-------+
@@ -193,6 +188,12 @@ class DiffResult:
             |         c2|    no_change|         1|          1|  1|              1|      1|
             |         c2| only_in_left|         3|       null|  1|              1|      1|
             |         c2|only_in_right|      null|          3|  1|              1|      1|
+            |         c3| only_in_left|         1|       null|  2|              5|      1|
+            |         c3| only_in_left|         2|       null|  2|              5|      2|
+            |         c3| only_in_left|         3|       null|  1|              5|      3|
+            |         c4|only_in_right|      null|          1|  2|              5|      1|
+            |         c4|only_in_right|      null|          2|  2|              5|      2|
+            |         c4|only_in_right|      null|          3|  1|              5|      3|
             |         id|    no_change|         1|          1|  1|              4|      1|
             |         id|    no_change|         2|          2|  1|              4|      2|
             |         id|    no_change|         3|          3|  1|              4|      3|
@@ -208,7 +209,7 @@ class DiffResult:
             root
              |-- column_number: integer (nullable = true)
              |-- column_name: string (nullable = true)
-             |-- counts.total: integer (nullable = false)
+             |-- counts.total: long (nullable = false)
              |-- counts.changed: long (nullable = false)
              |-- counts.no_change: long (nullable = false)
              |-- counts.only_in_left: long (nullable = false)
@@ -223,13 +224,15 @@ class DiffResult:
              |-- diff.only_in_right!.value: string (nullable = true)
              |-- diff.only_in_right!.nb: long (nullable = false)
             <BLANKLINE>
-            >>> diff_per_col_df.show(truncate=False)  # noqa: E501
+            >>> diff_per_col_df.show(truncate=False)
             +-------------+-----------+---------------+----------------------------------------------------------+
             |column_number|column_name|counts         |diff                                                      |
             +-------------+-----------+---------------+----------------------------------------------------------+
             |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1}, {2, 1}, {3, 1}, {4, 1}], [{5, 1}], [{6, 1}]}|
             |1            |c1         |{6, 0, 4, 1, 1}|{[], [{b, 3}, {a, 1}], [{c, 1}], [{f, 1}]}                |
             |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 4, 2}, {2, 3, 1}], [{1, 1}], [{3, 1}], [{3, 1}]}    |
+            |3            |c3         |{5, 0, 0, 5, 0}|{[], [], [{1, 2}, {2, 2}, {3, 1}], []}                    |
+            |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{1, 2}, {2, 2}, {3, 1}]}                    |
             +-------------+-----------+---------------+----------------------------------------------------------+
             <BLANKLINE>
         """
@@ -242,24 +245,21 @@ class DiffResult:
     def _compute_diff_stats(self) -> DiffStats:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
 
-        >>> from spark_frame.data_diff.package import _get_test_diff_df
-        >>> _diff_df = _get_test_diff_df()
-        >>> _diff_df.show()
-        +---+----------------+----------------+-------------+------------+
-        | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
-        +---+----------------+----------------+-------------+------------+
-        |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-        |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
-        |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-        |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-        |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
-        |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
-        +---+----------------+----------------+-------------+------------+
+        >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+        >>> diff_result = _get_test_diff_result()
+        >>> diff_result.diff_df.select('__EXISTS__', '__IS_EQUAL__').show()
+        +-------------+------------+
+        |   __EXISTS__|__IS_EQUAL__|
+        +-------------+------------+
+        | {true, true}|        true|
+        | {true, true}|       false|
+        | {true, true}|       false|
+        | {true, true}|       false|
+        |{true, false}|       false|
+        |{false, true}|       false|
+        +-------------+------------+
         <BLANKLINE>
-        >>> schema_diff_result = SchemaDiffResult(same_schema=True, diff_str="",
-        ...                                       nb_cols=0, left_schema_str="", right_schema_str="")
-        >>> DiffResult(schema_diff_result, diff_df=_diff_df,
-        ...            common_cols=["id", "c1", "c2"] , join_cols=['id'])._compute_diff_stats()
+        >>> diff_result._compute_diff_stats()
         DiffStats(total=6, no_change=1, changed=3, in_left=5, in_right=5, only_in_left=1, only_in_right=1)
         """
         res_df = self.diff_df.select(
@@ -294,21 +294,21 @@ class DiffResult:
         Examples:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
             >>> _diff_result = _get_test_diff_result()
-            >>> _diff_result.diff_df.show()
-            +---+----------------+----------------+-------------+------------+
-            | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
-            +---+----------------+----------------+-------------+------------+
-            |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-            |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
-            |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-            |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-            |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
-            |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
-            +---+----------------+----------------+-------------+------------+
+            >>> _diff_result.diff_df.show(truncate=False)  # noqa: E501
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+            |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+            |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, null, false, true, false}    |{null, 1, false, false, true}    |{true, true} |true        |
+            |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, null, false, true, false}    |{null, 1, false, false, true}    |{true, true} |false       |
+            |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, null, false, true, false}    |{null, 2, false, false, true}    |{true, true} |false       |
+            |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, null, false, true, false}    |{null, 2, false, false, true}    |{true, true} |false       |
+            |{5, null, false, true, false}|{c, null, false, true, false}|{3, null, false, true, false}|{3, null, false, true, false}    |{null, null, false, false, false}|{true, false}|false       |
+            |{null, 6, false, false, true}|{null, f, false, false, true}|{null, 3, false, false, true}|{null, null, false, false, false}|{null, 3, false, false, true}    |{false, true}|false       |
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
             <BLANKLINE>
             >>> (_diff_result._compute_top_per_col_state_df()
-            ...  .orderBy("column_name", "state", "left_value")
-            ... ).show()
+            ...  .orderBy("column_name", "state", "left_value", "right_value")
+            ... ).show(100)
             +-----------+-------------+----------+-----------+---+---------------+-------+
             |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
             +-----------+-------------+----------+-----------+---+---------------+-------+
@@ -316,36 +316,17 @@ class DiffResult:
             |         c1|    no_change|         b|          b|  3|              4|      1|
             |         c1| only_in_left|         c|       null|  1|              1|      1|
             |         c1|only_in_right|      null|          f|  1|              1|      1|
-            |         c2|      changed|         2|          4|  2|              3|      1|
             |         c2|      changed|         2|          3|  1|              3|      2|
+            |         c2|      changed|         2|          4|  2|              3|      1|
             |         c2|    no_change|         1|          1|  1|              1|      1|
             |         c2| only_in_left|         3|       null|  1|              1|      1|
             |         c2|only_in_right|      null|          3|  1|              1|      1|
-            |         id|    no_change|         1|          1|  1|              4|      1|
-            |         id|    no_change|         2|          2|  1|              4|      2|
-            |         id|    no_change|         3|          3|  1|              4|      3|
-            |         id|    no_change|         4|          4|  1|              4|      4|
-            |         id| only_in_left|         5|       null|  1|              1|      1|
-            |         id|only_in_right|      null|          6|  1|              1|      1|
-            +-----------+-------------+----------+-----------+---+---------------+-------+
-            <BLANKLINE>
-
-            *With `max_nb_rows_per_col_state=1`*
-            >>> (_diff_result._compute_top_per_col_state_df()
-            ...  .orderBy("column_name", "state", "left_value")
-            ... ).show()
-            +-----------+-------------+----------+-----------+---+---------------+-------+
-            |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
-            +-----------+-------------+----------+-----------+---+---------------+-------+
-            |         c1|    no_change|         a|          a|  1|              4|      2|
-            |         c1|    no_change|         b|          b|  3|              4|      1|
-            |         c1| only_in_left|         c|       null|  1|              1|      1|
-            |         c1|only_in_right|      null|          f|  1|              1|      1|
-            |         c2|      changed|         2|          4|  2|              3|      1|
-            |         c2|      changed|         2|          3|  1|              3|      2|
-            |         c2|    no_change|         1|          1|  1|              1|      1|
-            |         c2| only_in_left|         3|       null|  1|              1|      1|
-            |         c2|only_in_right|      null|          3|  1|              1|      1|
+            |         c3| only_in_left|         1|       null|  2|              5|      1|
+            |         c3| only_in_left|         2|       null|  2|              5|      2|
+            |         c3| only_in_left|         3|       null|  1|              5|      3|
+            |         c4|only_in_right|      null|          1|  2|              5|      1|
+            |         c4|only_in_right|      null|          2|  2|              5|      2|
+            |         c4|only_in_right|      null|          3|  1|              5|      3|
             |         id|    no_change|         1|          1|  1|              4|      1|
             |         id|    no_change|         2|          2|  1|              4|      2|
             |         id|    no_change|         3|          3|  1|              4|      3|
@@ -356,44 +337,22 @@ class DiffResult:
             <BLANKLINE>
         """
         diff_df = self.diff_df
-        for join_col in self.join_cols:
-            diff_df = diff_df.withColumn(
-                join_col,
-                f.when(
-                    PREDICATES.only_in_left,
-                    f.struct(
-                        f.col(join_col).alias("left_value"),
-                        f.lit(None).alias("right_value"),
-                        f.lit(False).alias("is_equal"),
-                    ),
-                )
-                .when(
-                    PREDICATES.only_in_right,
-                    f.struct(
-                        f.lit(None).alias("left_value"),
-                        f.col(join_col).alias("right_value"),
-                        f.lit(False).alias("is_equal"),
-                    ),
-                )
-                .otherwise(
-                    f.struct(
-                        f.col(join_col).alias("left_value"),
-                        f.col(join_col).alias("right_value"),
-                        f.lit(True).alias("is_equal"),
-                    )
-                ),
-            )
-        unpivoted_diff_df = _unpivot(diff_df.drop(IS_EQUAL_COL_NAME), [EXISTS_COL_NAME])
+        unpivoted_diff_df = _unpivot(diff_df.drop(IS_EQUAL_COL_NAME, EXISTS_COL_NAME))
+
+        only_in_left = f.col("diff")["exists_left"] & ~f.col("diff")["exists_right"]
+        only_in_right = ~f.col("diff")["exists_left"] & f.col("diff")["exists_right"]
+        exists_in_left_or_right = f.col("diff")["exists_left"] | f.col("diff")["exists_right"]
+
         df_2 = unpivoted_diff_df.select(
             "column_name",
-            f.when(PREDICATES.only_in_left, f.lit("only_in_left"))
-            .when(PREDICATES.only_in_right, f.lit("only_in_right"))
+            f.when(only_in_left, f.lit("only_in_left"))
+            .when(only_in_right, f.lit("only_in_right"))
             .when(f.col("diff")["is_equal"], f.lit("no_change"))
             .otherwise(f.lit("changed"))
             .alias("state"),
             "diff.left_value",
             "diff.right_value",
-        )
+        ).where(exists_in_left_or_right)
         window = Window.partitionBy("column_name", "state").orderBy(
             f.col("nb").desc(), f.col("left_value"), f.col("right_value")
         )
@@ -449,10 +408,22 @@ def _get_test_diff_result() -> "DiffResult":
     from spark_frame.data_diff.package import _get_test_diff_df
 
     _diff_df = _get_test_diff_df()
+    column_names_diff = {
+        "id": DiffPrefix.UNCHANGED,
+        "c1": DiffPrefix.UNCHANGED,
+        "c2": DiffPrefix.UNCHANGED,
+        "c3": DiffPrefix.REMOVED,
+        "c4": DiffPrefix.ADDED,
+    }
     schema_diff_result = SchemaDiffResult(
-        same_schema=True, diff_str="", nb_cols=0, left_schema_str="", right_schema_str=""
+        same_schema=True,
+        diff_str="",
+        nb_cols=0,
+        left_schema_str="",
+        right_schema_str="",
+        column_names_diff=column_names_diff,
     )
-    return DiffResult(schema_diff_result, diff_df=_diff_df, common_cols=["id", "c1", "c2"], join_cols=["id"])
+    return DiffResult(schema_diff_result, diff_df=_diff_df, join_cols=["id"])
 
 
 def _get_test_intersection_diff_df() -> DataFrame:
@@ -463,14 +434,20 @@ def _get_test_intersection_diff_df() -> DataFrame:
         """
         SELECT INLINE(ARRAY(
             STRUCT(
-                1 as id,
-                STRUCT("a" as left_value, "d" as right_value, False as is_equal) as c1,
-                STRUCT(1 as left_value, 1 as right_value, True as is_equal) as c2
+                STRUCT("a" as left_value, "d" as right_value, False as is_equal,
+                       True as exists_left, True as exists_right
+                ) as c1,
+                STRUCT(1 as left_value, 1 as right_value, True as is_equal,
+                       True as exists_left, True as exists_right
+                ) as c2
             ),
             STRUCT(
-                2 as id,
-                STRUCT("b" as left_value, "a" as right_value, False as is_equal) as c1,
-                STRUCT(2 as left_value, 4 as right_value, False as is_equal) as c2
+                STRUCT("b" as left_value, "a" as right_value, False as is_equal,
+                       True as exists_left, True as exists_right
+                ) as c1,
+                STRUCT(2 as left_value, 4 as right_value, False as is_equal,
+                       True as exists_left, True as exists_right
+                ) as c2
             )
         ))
     """

@@ -14,7 +14,10 @@ from spark_frame.nested_impl.package import (
 
 
 def harmonize_dataframes(
-    left_df: DataFrame, right_df: DataFrame, common_columns: Optional[Dict[str, Optional[str]]] = None
+    left_df: DataFrame,
+    right_df: DataFrame,
+    common_columns: Optional[Dict[str, Optional[str]]] = None,
+    keep_missing_columns: bool = False,
 ) -> Tuple[DataFrame, DataFrame]:
     """Given two DataFrames, returns two new corresponding DataFrames with the same schemas by applying the following
     changes:
@@ -31,6 +34,8 @@ def harmonize_dataframes(
         right_df: A Spark DataFrame
         common_columns: A dict of (column name, type).
             Column names must appear in both DataFrames, and each column will be cast into the corresponding type.
+        keep_missing_columns: If set to true, the root columns of each DataFrames that do not exists in the other
+            one are kept.
 
     Returns:
         Two new Spark DataFrames with the same schema
@@ -59,6 +64,14 @@ def harmonize_dataframes(
         right_schema_flat = flatten_schema(right_df.schema, explode=True)
         common_columns = get_common_columns(left_schema_flat, right_schema_flat)
 
+    left_only_columns = []
+    right_only_columns = []
+    if keep_missing_columns:
+        left_cols = set(left_df.columns)
+        right_cols = set(right_df.columns)
+        left_only_columns = [col for col in left_df.columns if col not in right_cols]
+        right_only_columns = [col for col in right_df.columns if col not in left_cols]
+
     def build_col(col_name: str, col_type: Optional[str]) -> PrintableFunction:
         parent_structs = _deepest_granularity(col_name)
         if col_type is not None:
@@ -72,4 +85,7 @@ def harmonize_dataframes(
     common_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in common_columns.items()}
     tree = _build_nested_struct_tree(common_columns_dict)
     root_transformation = _build_transformation_from_tree(tree)
-    return left_df.select(*root_transformation([left_df])), right_df.select(*root_transformation([right_df]))
+    return (
+        left_df.select(*root_transformation([left_df]), *left_only_columns),
+        right_df.select(*root_transformation([right_df]), *right_only_columns),
+    )

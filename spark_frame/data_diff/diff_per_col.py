@@ -45,7 +45,7 @@ def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: 
 
         >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
-        >>> diff_result.top_per_col_state_df.show()
+        >>> diff_result.top_per_col_state_df.show(100)
         +-----------+-------------+----------+-----------+---+---------------+-------+
         |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
         +-----------+-------------+----------+-----------+---+---------------+-------+
@@ -58,6 +58,12 @@ def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: 
         |         c2|    no_change|         1|          1|  1|              1|      1|
         |         c2| only_in_left|         3|       null|  1|              1|      1|
         |         c2|only_in_right|      null|          3|  1|              1|      1|
+        |         c3| only_in_left|         1|       null|  2|              5|      1|
+        |         c3| only_in_left|         2|       null|  2|              5|      2|
+        |         c3| only_in_left|         3|       null|  1|              5|      3|
+        |         c4|only_in_right|      null|          1|  2|              5|      1|
+        |         c4|only_in_right|      null|          2|  2|              5|      2|
+        |         c4|only_in_right|      null|          3|  1|              5|      3|
         |         id|    no_change|         1|          1|  1|              4|      1|
         |         id|    no_change|         2|          2|  1|              4|      2|
         |         id|    no_change|         3|          3|  1|              4|      3|
@@ -68,13 +74,15 @@ def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: 
         <BLANKLINE>
 
         >>> _get_pivoted_df(diff_result.top_per_col_state_df, max_nb_rows_per_col_state=10).show(truncate=False)  # noqa: E501
-        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+-----------------+----------------+------------------+
-        |column_name|changed_nb|changed_diff          |no_change_nb|no_change_diff                              |only_in_left_nb|only_in_left_diff|only_in_right_nb|only_in_right_diff|
-        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+-----------------+----------------+------------------+
-        |c1         |null      |[]                    |4           |[{b, b, 3}, {a, a, 1}]                      |1              |[{c, null, 1}]   |1               |[{null, f, 1}]    |
-        |c2         |3         |[{2, 4, 2}, {2, 3, 1}]|1           |[{1, 1, 1}]                                 |1              |[{3, null, 1}]   |1               |[{null, 3, 1}]    |
-        |id         |null      |[]                    |4           |[{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}]|1              |[{5, null, 1}]   |1               |[{null, 6, 1}]    |
-        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+-----------------+----------------+------------------+
+        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
+        |column_name|changed_nb|changed_diff          |no_change_nb|no_change_diff                              |only_in_left_nb|only_in_left_diff                         |only_in_right_nb|only_in_right_diff                        |
+        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
+        |c1         |null      |[]                    |4           |[{b, b, 3}, {a, a, 1}]                      |1              |[{c, null, 1}]                            |1               |[{null, f, 1}]                            |
+        |c4         |null      |[]                    |null        |[]                                          |null           |[]                                        |5               |[{null, 1, 2}, {null, 2, 2}, {null, 3, 1}]|
+        |c3         |null      |[]                    |null        |[]                                          |5              |[{1, null, 2}, {2, null, 2}, {3, null, 1}]|null            |[]                                        |
+        |c2         |3         |[{2, 4, 2}, {2, 3, 1}]|1           |[{1, 1, 1}]                                 |1              |[{3, null, 1}]                            |1               |[{null, 3, 1}]                            |
+        |id         |null      |[]                    |4           |[{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}]|1              |[{5, null, 1}]                            |1               |[{null, 6, 1}]                            |
+        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         <BLANKLINE>
     """
     pivoted_df = (
@@ -111,23 +119,27 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame, diff_stats
         |            0|         id|
         |            1|         c1|
         |            2|         c2|
+        |            3|         c3|
+        |            4|         c4|
         +-------------+-----------+
         <BLANKLINE>
-        >>> pivoted_df.show()  # noqa: E501
-        +-----------+----------+--------------------+------------+--------------------+---------------+-----------------+----------------+------------------+
-        |column_name|changed_nb|        changed_diff|no_change_nb|      no_change_diff|only_in_left_nb|only_in_left_diff|only_in_right_nb|only_in_right_diff|
-        +-----------+----------+--------------------+------------+--------------------+---------------+-----------------+----------------+------------------+
-        |         c1|      null|                  []|           4|[{b, b, 3}, {a, a...|              1|   [{c, null, 1}]|               1|    [{null, f, 1}]|
-        |         c2|         3|[{2, 4, 2}, {2, 3...|           1|         [{1, 1, 1}]|              1|   [{3, null, 1}]|               1|    [{null, 3, 1}]|
-        |         id|      null|                  []|           4|[{1, 1, 1}, {2, 2...|              1|   [{5, null, 1}]|               1|    [{null, 6, 1}]|
-        +-----------+----------+--------------------+------------+--------------------+---------------+-----------------+----------------+------------------+
+        >>> pivoted_df.show(truncate=False)  # noqa: E501
+        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
+        |column_name|changed_nb|changed_diff          |no_change_nb|no_change_diff                              |only_in_left_nb|only_in_left_diff                         |only_in_right_nb|only_in_right_diff                        |
+        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
+        |c1         |null      |[]                    |4           |[{b, b, 3}, {a, a, 1}]                      |1              |[{c, null, 1}]                            |1               |[{null, f, 1}]                            |
+        |c4         |null      |[]                    |null        |[]                                          |null           |[]                                        |5               |[{null, 1, 2}, {null, 2, 2}, {null, 3, 1}]|
+        |c3         |null      |[]                    |null        |[]                                          |5              |[{1, null, 2}, {2, null, 2}, {3, null, 1}]|null            |[]                                        |
+        |c2         |3         |[{2, 4, 2}, {2, 3, 1}]|1           |[{1, 1, 1}]                                 |1              |[{3, null, 1}]                            |1               |[{null, 3, 1}]                            |
+        |id         |null      |[]                    |4           |[{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}]|1              |[{5, null, 1}]                            |1               |[{null, 6, 1}]                            |
+        +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         <BLANKLINE>
         >>> diff_per_col_df = _format_diff_per_col_df(pivoted_df, col_df, diff_result.diff_stats)
         >>> nested.print_schema(diff_per_col_df)
         root
          |-- column_number: integer (nullable = true)
          |-- column_name: string (nullable = true)
-         |-- counts.total: integer (nullable = false)
+         |-- counts.total: long (nullable = false)
          |-- counts.changed: long (nullable = false)
          |-- counts.no_change: long (nullable = false)
          |-- counts.only_in_left: long (nullable = false)
@@ -149,9 +161,10 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame, diff_stats
         |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1}, {2, 1}, {3, 1}, {4, 1}], [{5, 1}], [{6, 1}]}|
         |1            |c1         |{6, 0, 4, 1, 1}|{[], [{b, 3}, {a, 1}], [{c, 1}], [{f, 1}]}                |
         |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 4, 2}, {2, 3, 1}], [{1, 1}], [{3, 1}], [{3, 1}]}    |
+        |3            |c3         |{5, 0, 0, 5, 0}|{[], [], [{1, 2}, {2, 2}, {3, 1}], []}                    |
+        |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{1, 2}, {2, 2}, {3, 1}]}                    |
         +-------------+-----------+---------------+----------------------------------------------------------+
         <BLANKLINE>
-
     """
     coalesced_df = (
         col_df.join(pivoted_df, "column_name", "left")
@@ -164,11 +177,12 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame, diff_stats
         .withColumn("only_in_left_diff", f.coalesce(f.col("only_in_left_diff"), f.array()))
         .withColumn("only_in_right_diff", f.coalesce(f.col("only_in_right_diff"), f.array()))
     )
+    total_col = f.col("changed_nb") + f.col("no_change_nb") + f.col("only_in_left_nb") + f.col("only_in_right_nb")
     renamed_df = coalesced_df.select(
         f.col("column_number"),
         f.col("column_name"),
         f.struct(
-            f.lit(diff_stats.total).alias("total"),
+            total_col.alias("total"),
             f.col("changed_nb").alias("changed"),
             f.col("no_change_nb").alias("no_change"),
             f.col("only_in_left_nb").alias("only_in_left"),
@@ -223,7 +237,7 @@ def _get_diff_per_col_df(
             root
              |-- column_number: integer (nullable = true)
              |-- column_name: string (nullable = true)
-             |-- counts.total: integer (nullable = false)
+             |-- counts.total: long (nullable = false)
              |-- counts.changed: long (nullable = false)
              |-- counts.no_change: long (nullable = false)
              |-- counts.only_in_left: long (nullable = false)
@@ -242,19 +256,19 @@ def _get_diff_per_col_df(
     Examples:
         >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
-        >>> diff_result.diff_df.show()
-        +---+----------------+----------------+-------------+------------+
-        | id|              c1|              c2|   __EXISTS__|__IS_EQUAL__|
-        +---+----------------+----------------+-------------+------------+
-        |  1|    {a, a, true}|    {1, 1, true}| {true, true}|        true|
-        |  2|    {b, b, true}|   {2, 3, false}| {true, true}|       false|
-        |  3|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-        |  4|    {b, b, true}|   {2, 4, false}| {true, true}|       false|
-        |  5|{c, null, false}|{3, null, false}|{true, false}|       false|
-        |  6|{null, f, false}|{null, 3, false}|{false, true}|       false|
-        +---+----------------+----------------+-------------+------------+
+        >>> diff_result.diff_df.show(truncate=False)  # noqa: E501
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+        |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+        |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, null, false, true, false}    |{null, 1, false, false, true}    |{true, true} |true        |
+        |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, null, false, true, false}    |{null, 1, false, false, true}    |{true, true} |false       |
+        |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, null, false, true, false}    |{null, 2, false, false, true}    |{true, true} |false       |
+        |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, null, false, true, false}    |{null, 2, false, false, true}    |{true, true} |false       |
+        |{5, null, false, true, false}|{c, null, false, true, false}|{3, null, false, true, false}|{3, null, false, true, false}    |{null, null, false, false, false}|{true, false}|false       |
+        |{null, 6, false, false, true}|{null, f, false, false, true}|{null, 3, false, false, true}|{null, null, false, false, false}|{null, 3, false, false, true}    |{false, true}|false       |
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         <BLANKLINE>
-        >>> diff_result.top_per_col_state_df.show()
+        >>> diff_result.top_per_col_state_df.show(100)
         +-----------+-------------+----------+-----------+---+---------------+-------+
         |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
         +-----------+-------------+----------+-----------+---+---------------+-------+
@@ -267,6 +281,12 @@ def _get_diff_per_col_df(
         |         c2|    no_change|         1|          1|  1|              1|      1|
         |         c2| only_in_left|         3|       null|  1|              1|      1|
         |         c2|only_in_right|      null|          3|  1|              1|      1|
+        |         c3| only_in_left|         1|       null|  2|              5|      1|
+        |         c3| only_in_left|         2|       null|  2|              5|      2|
+        |         c3| only_in_left|         3|       null|  1|              5|      3|
+        |         c4|only_in_right|      null|          1|  2|              5|      1|
+        |         c4|only_in_right|      null|          2|  2|              5|      2|
+        |         c4|only_in_right|      null|          3|  1|              5|      3|
         |         id|    no_change|         1|          1|  1|              4|      1|
         |         id|    no_change|         2|          2|  1|              4|      2|
         |         id|    no_change|         3|          3|  1|              4|      3|
@@ -282,7 +302,7 @@ def _get_diff_per_col_df(
         root
          |-- column_number: integer (nullable = true)
          |-- column_name: string (nullable = true)
-         |-- counts.total: integer (nullable = false)
+         |-- counts.total: long (nullable = false)
          |-- counts.changed: long (nullable = false)
          |-- counts.no_change: long (nullable = false)
          |-- counts.only_in_left: long (nullable = false)
@@ -304,6 +324,8 @@ def _get_diff_per_col_df(
         |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1}, {2, 1}, {3, 1}, {4, 1}], [{5, 1}], [{6, 1}]}|
         |1            |c1         |{6, 0, 4, 1, 1}|{[], [{b, 3}, {a, 1}], [{c, 1}], [{f, 1}]}                |
         |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 4, 2}, {2, 3, 1}], [{1, 1}], [{3, 1}], [{3, 1}]}    |
+        |3            |c3         |{5, 0, 0, 5, 0}|{[], [], [{1, 2}, {2, 2}, {3, 1}], []}                    |
+        |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{1, 2}, {2, 2}, {3, 1}]}                    |
         +-------------+-----------+---------------+----------------------------------------------------------+
         <BLANKLINE>
 
@@ -319,6 +341,8 @@ def _get_diff_per_col_df(
         |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1}, {2, 1}, {3, 1}, {4, 1}], [{5, 1}], [{6, 1}]}|
         |1            |c1         |{6, 0, 4, 1, 1}|{[], [{a, 1}, {b, 3}], [{c, 1}], [{f, 1}]}                |
         |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 3, 1}, {2, 4, 2}], [{1, 1}], [{3, 1}], [{3, 1}]}    |
+        |3            |c3         |{5, 0, 0, 5, 0}|{[], [], [{3, 1}, {1, 2}, {2, 2}], []}                    |
+        |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{3, 1}, {1, 2}, {2, 2}]}                    |
         +-------------+-----------+---------------+----------------------------------------------------------+
         <BLANKLINE>
     """
@@ -328,7 +352,7 @@ def _get_diff_per_col_df(
     else:
         _top_per_col_state_df = top_per_col_state_df
     spark = _top_per_col_state_df.sparkSession
-    columns = diff_result.common_cols
+    columns = list(diff_result.schema_diff_result.column_names_diff.keys())
     pivoted_df = _get_pivoted_df(_top_per_col_state_df, max_nb_rows_per_col_state)
     col_df = _get_col_df(columns, spark)
     df = _format_diff_per_col_df(pivoted_df, col_df, diff_stats)

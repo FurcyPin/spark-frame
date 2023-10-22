@@ -64,6 +64,12 @@ This library is tested against Windows, Mac and Linux.
 
 # Release notes
 
+# v0.4.0
+
+Fixes and improvements on data_diff
+
+- Improvement: When columns are removed or renamed, they are now still displayed in the per-column diff report
+
 # v0.3.2
 
 Fixes and improvements on data_diff
