@@ -1,11 +1,18 @@
 import difflib
 from dataclasses import dataclass
-from typing import List
+from enum import Enum
+from typing import Dict, List, cast
 
 from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
 
 from spark_frame.data_type_utils import flatten_schema, is_nullable
+
+
+class DiffPrefix(str, Enum):
+    ADDED = "+"
+    REMOVED = "-"
+    UNCHANGED = " "
 
 
 @dataclass
@@ -15,6 +22,9 @@ class SchemaDiffResult:
     nb_cols: int
     left_schema_str: str
     right_schema_str: str
+    column_names_diff: Dict[str, DiffPrefix]
+    """The diff per column names.
+    Used to determine which columns appeared or disappeared and the order in which the columns shall be displayed"""
 
     def display(self) -> None:
         if not self.same_schema:
@@ -73,45 +83,53 @@ def _schema_to_string(schema: StructType, include_nullable: bool = False, includ
 
 def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame) -> SchemaDiffResult:
     """Compares two DataFrames schemas and print out the differences.
-    Ignore the nullable and comment attributes.
+        Ignore the nullable and comment attributes.
 
-    Args:
-        left_df: A Spark DataFrame
-        right_df: Another DataFrame
+        Args:
+            left_df: A Spark DataFrame
+            right_df: Another DataFrame
+    {'id': ' ', 'c1': ' ', 'c2': '-', 'c3': '+', 'c4!.a': ' ', 'c4!.b': '-', 'c4!.d': '+'}
+        Returns:
+            A SchemaDiffResult object
 
-    Returns:
-        A SchemaDiffResult object
+        Examples:
 
-    Examples:
-
-        >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> left_df = spark.sql('''SELECT 1 as id, "" as c1, "" as c2, ARRAY(STRUCT(2 as a, "" as b)) as c4''')
-        >>> right_df = spark.sql('''SELECT 1 as id, 2 as c1, "" as c3, ARRAY(STRUCT(3 as a, "" as d)) as c4''')
-        >>> schema_diff_result = diff_dataframe_schemas(left_df, right_df)
-        >>> schema_diff_result.display()
-        Schema has changed:
-        @@ -1,5 +1,5 @@
-        <BLANKLINE>
-         id INT
-        -c1 STRING
-        -c2 STRING
-        +c1 INT
-        +c3 STRING
-         c4!.a INT
-        -c4!.b STRING
-        +c4!.d STRING
-        WARNING: columns that do not match both sides will be ignored
-        >>> schema_diff_result.same_schema
-        False
+            >>> from pyspark.sql import SparkSession
+            >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+            >>> left_df = spark.sql('''SELECT 1 as id, "" as c1, "" as c2, ARRAY(STRUCT(2 as a, "" as b)) as c4''')
+            >>> right_df = spark.sql('''SELECT 1 as id, 2 as c1, "" as c3, ARRAY(STRUCT(3 as a, "" as d)) as c4''')
+            >>> schema_diff_result = diff_dataframe_schemas(left_df, right_df)
+            >>> schema_diff_result.display()
+            Schema has changed:
+            @@ -1,5 +1,5 @@
+            <BLANKLINE>
+             id INT
+            -c1 STRING
+            -c2 STRING
+            +c1 INT
+            +c3 STRING
+             c4!.a INT
+            -c4!.b STRING
+            +c4!.d STRING
+            WARNING: columns that do not match both sides will be ignored
+            >>> schema_diff_result.same_schema
+            False
+            >>> schema_diff_result.column_names_diff
+            {'id': ' ', 'c1': ' ', 'c2': '-', 'c3': '+', 'c4': ' '}
 
     """
-    left_schema_flat = flatten_schema(left_df.schema, explode=True)
-    right_schema_flat = flatten_schema(right_df.schema, explode=True)
-    left_schema: List[str] = _schema_to_string(left_schema_flat)
-    right_schema: List[str] = _schema_to_string(right_schema_flat)
+    left_schema_flat_exploded = flatten_schema(left_df.schema, explode=True)
+    right_schema_flat_exploded = flatten_schema(right_df.schema, explode=True)
+    left_schema: List[str] = _schema_to_string(left_schema_flat_exploded)
+    right_schema: List[str] = _schema_to_string(right_schema_flat_exploded)
+
+    left_schema_flat = flatten_schema(left_df.schema, explode=False)
+    right_schema_flat = flatten_schema(right_df.schema, explode=False)
+    left_columns_flat: List[str] = [field.name for field in left_schema_flat.fields]
+    right_columns_flat: List[str] = [field.name for field in right_schema_flat.fields]
 
     diff_str = list(difflib.unified_diff(left_schema, right_schema, n=10000))[2:]
+    column_names_diff = _diff_dataframe_column_names(left_columns_flat, right_columns_flat)
     same_schema = len(diff_str) == 0
     if same_schema:
         diff_str = left_schema
@@ -121,4 +139,66 @@ def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame) -> SchemaDif
         nb_cols=len(left_df.columns),
         left_schema_str="\n".join(left_schema),
         right_schema_str="\n".join(right_schema),
+        column_names_diff=column_names_diff,
     )
+
+
+def _remove_potential_duplicates_from_diff(diff: List[str]) -> List[str]:
+    """In some cases (e.g. swapping the order of two columns), the difflib.unified_diff produces results
+    where a column is added and then removed. This method replaces such duplicates with a single occurrence
+    of the column marked as unchanged. We keep the column ordering of the left side.
+
+    Examples:
+        >>> _remove_potential_duplicates_from_diff([' id', ' col1', '+col4', '+col3', ' col2', '-col3', '-col4'])
+        [' id', ' col1', ' col2', ' col3', ' col4']
+
+    """
+    plus = set([row[1:] for row in diff if row[0] == DiffPrefix.ADDED])
+    minus = set([row[1:] for row in diff if row[0] == DiffPrefix.REMOVED])
+    both = plus.intersection(minus)
+    return [
+        DiffPrefix.UNCHANGED + row[1:] if row[1:] in both else row
+        for row in diff
+        if (row[1:] not in both) or (row[0] == DiffPrefix.REMOVED)
+    ]
+
+
+def _diff_dataframe_column_names(left_col_names: List[str], right_col_names: List[str]) -> Dict[str, DiffPrefix]:
+    """Compares the column names of two DataFrames.
+
+    Returns a list of column names that preserves the ordering of the left DataFrame when possible.
+    The columns names are prefixed by a character according to the following convention:
+
+    - ' ' if the column exists in both DataFrame
+    - '-' if it only exists in the left DataFrame
+    - '+' if it only exists in the right DataFrame
+
+    Args:
+        left_col_names: A list
+        right_col_names: Another DataFrame
+
+    Returns:
+        A list of column names prefixed with a character: ' ', '+' or '-'
+
+    Examples:
+
+        >>> left_cols = ["id", "col1", "col2", "col3"]
+        >>> right_cols = ["id", "col1", "col4", "col3"]
+        >>> _diff_dataframe_column_names(left_cols, right_cols)
+        {'id': ' ', 'col1': ' ', 'col2': '-', 'col4': '+', 'col3': ' '}
+        >>> _diff_dataframe_column_names(left_cols, left_cols)
+        {'id': ' ', 'col1': ' ', 'col2': ' ', 'col3': ' '}
+
+        >>> left_cols = ["id", "col1", "col2", "col3", "col4"]
+        >>> right_cols = ["id", "col1", "col4", "col3", "col2"]
+        >>> _diff_dataframe_column_names(left_cols, right_cols)
+        {'id': ' ', 'col1': ' ', 'col2': ' ', 'col3': ' ', 'col4': ' '}
+
+    """
+    diff = list(difflib.unified_diff(left_col_names, right_col_names, n=10000))[2:]
+    same_schema = len(diff) == 0
+    if same_schema:
+        list_result = [DiffPrefix.UNCHANGED + s for s in left_col_names]
+    else:
+        list_result = _remove_potential_duplicates_from_diff(diff[1:])
+    return {s[1:]: cast(DiffPrefix, s[0]) for s in list_result}

@@ -70,7 +70,7 @@ exclude = ['tests']
 [tool.pytest.ini_options]
 addopts = [
     "-ra",
-    "--cov=spark_frame",
+    #"--cov=spark_frame",
     "--doctest-modules"
 ]
 

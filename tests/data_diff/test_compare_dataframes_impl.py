@@ -148,7 +148,7 @@ def test_compare_df_with_structs(spark: SparkSession):
     diff_result.export_to_html()
     analyzer = DiffResultAnalyzer()
     diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
-    # We make sure that the displayed column name is 'a.c' and not 'a__DOT__c'
+    # We make sure that the displayed column name is 'a.c' and not 'a__STRUCT__c'
     assert diff_per_col_df.collect()[3].asDict().get("column_name") == "a.c"
 
 
@@ -452,6 +452,130 @@ def test_compare_df_with_null_join_cols(spark: SparkSession):
         total=5, no_change=4, changed=1, in_left=5, in_right=5, only_in_left=0, only_in_right=0
     )
     assert diff_result.same_schema is True
+    assert diff_result.is_ok is False
+    assert diff_result.diff_stats == expected_diff_stats
+    diff_result.display()
+    diff_result.export_to_html()
+
+
+def test_compare_df_with_disappearing_columns(spark: SparkSession):
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id, "a" as col1, "a" as disappearing_col),
+            STRUCT(2 as id, "b" as col1, "b" as disappearing_col),
+            STRUCT(3 as id, "c" as col1, "c" as disappearing_col)
+        ))
+        """
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id, "a" as col1),
+            STRUCT(2 as id, "b" as col1),
+            STRUCT(3 as id, "c" as col1)
+        ))
+        """
+    )
+    diff_result: DiffResult = compare_dataframes(df_1, df_2)
+    expected_diff_stats = DiffStats(
+        total=3, no_change=3, changed=0, in_left=3, in_right=3, only_in_left=0, only_in_right=0
+    )
+    assert diff_result.same_schema is False
+    assert diff_result.is_ok is False
+    assert diff_result.diff_stats == expected_diff_stats
+    diff_result.display()
+    diff_result.export_to_html()
+
+
+def test_compare_df_with_appearing_columns(spark: SparkSession):
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id, "a" as col1),
+            STRUCT(2 as id, "b" as col1),
+            STRUCT(3 as id, "c" as col1)
+        ))
+        """
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id, "a" as col1, "a" as appearing_col),
+            STRUCT(2 as id, "b" as col1, "b" as appearing_col),
+            STRUCT(3 as id, "c" as col1, "c" as appearing_col)
+        ))
+        """
+    )
+    diff_result: DiffResult = compare_dataframes(df_1, df_2)
+    expected_diff_stats = DiffStats(
+        total=3, no_change=3, changed=0, in_left=3, in_right=3, only_in_left=0, only_in_right=0
+    )
+    assert diff_result.same_schema is False
+    assert diff_result.is_ok is False
+    assert diff_result.diff_stats == expected_diff_stats
+    diff_result.display()
+    diff_result.export_to_html()
+
+
+def test_compare_df_with_renamed_columns(spark: SparkSession):
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id, "a" as col1, "a" as renamed_col_1),
+            STRUCT(2 as id, "b" as col1, "b" as renamed_col_1),
+            STRUCT(3 as id, "b" as col1, "b" as renamed_col_1),
+            STRUCT(4 as id, "c" as col1, "c" as renamed_col_1)
+        ))
+        """
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id, "a" as col1, "a" as renamed_col_2),
+            STRUCT(2 as id, "b" as col1, "b" as renamed_col_2),
+            STRUCT(3 as id, "b" as col1, "b" as renamed_col_2),
+            STRUCT(5 as id, "c" as col1, "c" as renamed_col_2)
+        ))
+        """
+    )
+    diff_result: DiffResult = compare_dataframes(df_1, df_2)
+    expected_diff_stats = DiffStats(
+        total=5, no_change=3, changed=0, in_left=4, in_right=4, only_in_left=1, only_in_right=1
+    )
+    assert diff_result.same_schema is False
+    assert diff_result.is_ok is False
+    assert diff_result.diff_stats == expected_diff_stats
+    diff_result.display()
+    diff_result.export_to_html()
+
+
+def test_compare_df_with_renamed_columns_inside_structs(spark: SparkSession):
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id, STRUCT("a" as col1, "a" as renamed_col_1) as s),
+            STRUCT(2 as id, STRUCT("b" as col1, "b" as renamed_col_1) as s),
+            STRUCT(3 as id, STRUCT("b" as col1, "b" as renamed_col_1) as s),
+            STRUCT(4 as id, STRUCT("c" as col1, "c" as renamed_col_1) as s)
+        ))
+        """
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(1 as id, STRUCT("a" as col1, "a" as renamed_col_2) as s),
+            STRUCT(2 as id, STRUCT("b" as col1, "b" as renamed_col_2) as s),
+            STRUCT(3 as id, STRUCT("b" as col1, "b" as renamed_col_2) as s),
+            STRUCT(5 as id, STRUCT("c" as col1, "c" as renamed_col_2) as s)
+        ))
+        """
+    )
+    diff_result: DiffResult = compare_dataframes(df_1, df_2)
+    expected_diff_stats = DiffStats(
+        total=5, no_change=3, changed=0, in_left=4, in_right=4, only_in_left=1, only_in_right=1
+    )
+    assert diff_result.same_schema is False
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
