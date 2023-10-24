@@ -69,7 +69,7 @@ def flatten(df: DataFrame, struct_separator: str = ".") -> DataFrame:
 
     def expand_struct(struct: StructType, col_stack: List[str]) -> None:
         for field in struct:
-            if field.dataType is StructType:
+            if isinstance(field.dataType, StructType):
                 struct_field = field.dataType
                 expand_struct(struct_field, col_stack + [field.name])
             else:
