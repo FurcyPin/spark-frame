@@ -1,3 +1,5 @@
+import inspect
+
 from pyspark.sql import SparkSession
 
 from spark_frame.data_diff.compare_dataframes_impl import _automatically_infer_join_col, compare_dataframes
@@ -5,6 +7,12 @@ from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.utils import show_string, strip_margin
+
+
+def export_diff_result_to_html(diff_result: DiffResult):
+    test_method_name = inspect.stack()[1][3]
+    export_path = "test_working_dir/" + test_method_name + ".html"
+    diff_result.export_to_html(title=test_method_name, output_file_path=export_path)
 
 
 def test_compare_df_with_simplest(spark: SparkSession):
@@ -25,7 +33,7 @@ def test_compare_df_with_simplest(spark: SparkSession):
     assert diff_result.is_ok is True
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_ordering(spark: SparkSession):
@@ -55,7 +63,7 @@ def test_compare_df_with_ordering(spark: SparkSession):
     assert diff_result.is_ok is True
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_empty_dataframes(spark: SparkSession):
@@ -85,7 +93,7 @@ def test_compare_df_with_empty_dataframes(spark: SparkSession):
     assert diff_result.is_ok is True
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_different_keys(spark: SparkSession):
@@ -115,7 +123,7 @@ def test_compare_df_with_different_keys(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_structs(spark: SparkSession):
@@ -145,7 +153,7 @@ def test_compare_df_with_structs(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
     analyzer = DiffResultAnalyzer()
     diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     # We make sure that the displayed column name is 'a.c' and not 'a__STRUCT__c'
@@ -180,7 +188,7 @@ def test_compare_df_with_struct_and_different_schemas(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_arrays(spark: SparkSession):
@@ -224,7 +232,7 @@ def test_compare_df_with_arrays(spark: SparkSession):
         |"""
     )
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_empty_and_null_arrays(spark: SparkSession):
@@ -258,7 +266,7 @@ def test_compare_df_with_empty_and_null_arrays(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_missing_empty_and_null_arrays(spark: SparkSession):
@@ -294,7 +302,7 @@ def test_compare_df_with_missing_empty_and_null_arrays(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
     analyzer = DiffResultAnalyzer()
     diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
     assert diff_per_col_df.count() == 2
@@ -328,7 +336,7 @@ def test_compare_df_with_arrays_of_structs_ok(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_arrays_of_structs_not_ok(spark: SparkSession):
@@ -359,7 +367,7 @@ def test_compare_df_with_arrays_of_structs_not_ok(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_differing_types(spark: SparkSession):
@@ -389,7 +397,7 @@ def test_compare_df_with_differing_types(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_when_flattened_column_name_collision(spark: SparkSession):
@@ -416,7 +424,7 @@ def test_compare_df_when_flattened_column_name_collision(spark: SparkSession):
     assert diff_result.is_ok is True
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_null_join_cols(spark: SparkSession):
@@ -455,7 +463,7 @@ def test_compare_df_with_null_join_cols(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_disappearing_columns(spark: SparkSession):
@@ -485,7 +493,7 @@ def test_compare_df_with_disappearing_columns(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_appearing_columns(spark: SparkSession):
@@ -515,7 +523,7 @@ def test_compare_df_with_appearing_columns(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_renamed_columns(spark: SparkSession):
@@ -547,7 +555,7 @@ def test_compare_df_with_renamed_columns(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_compare_df_with_renamed_columns_inside_structs(spark: SparkSession):
@@ -579,7 +587,7 @@ def test_compare_df_with_renamed_columns_inside_structs(spark: SparkSession):
     assert diff_result.is_ok is False
     assert diff_result.diff_stats == expected_diff_stats
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
 
 
 def test_automatically_infer_join_col(spark: SparkSession):
@@ -655,4 +663,4 @@ def test_join_cols_should_not_be_displayed_first(spark: SparkSession):
         |"""
     )
     diff_result.display()
-    diff_result.export_to_html()
+    export_diff_result_to_html(diff_result)
