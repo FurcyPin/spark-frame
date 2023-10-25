@@ -66,9 +66,13 @@ This library is tested against Windows, Mac and Linux.
 
 # v0.4.0
 
-Fixes and improvements on data_diff
 
-- Improvement: When columns are removed or renamed, they are now still displayed in the per-column diff report
+Improvements:
+- Data diff: When columns are removed or renamed, they are now still displayed in the per-column diff report
+
+QA:
+- Spark: Added tests to ensure compatibility with Pyspark versions 3.3, 3.4 and 3.5
+
 
 # v0.3.2
 
