@@ -165,16 +165,17 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
         +-------------+-----------+---------------+----------------------------------------------------------+
         <BLANKLINE>
     """
-    coalesced_df = (
-        col_df.join(pivoted_df, "column_name", "left")
-        .withColumn("changed_nb", f.coalesce(f.col("changed_nb"), f.lit(0)))
-        .withColumn("no_change_nb", f.coalesce(f.col("no_change_nb"), f.lit(0)))
-        .withColumn("only_in_left_nb", f.coalesce(f.col("only_in_left_nb"), f.lit(0)))
-        .withColumn("only_in_right_nb", f.coalesce(f.col("only_in_right_nb"), f.lit(0)))
-        .withColumn("changed_diff", f.coalesce(f.col("changed_diff"), f.array()))
-        .withColumn("no_change_diff", f.coalesce(f.col("no_change_diff"), f.array()))
-        .withColumn("only_in_left_diff", f.coalesce(f.col("only_in_left_diff"), f.array()))
-        .withColumn("only_in_right_diff", f.coalesce(f.col("only_in_right_diff"), f.array()))
+    coalesced_df = col_df.join(pivoted_df, "column_name", "left").withColumns(
+        {
+            "changed_nb": f.coalesce(f.col("changed_nb"), f.lit(0)),
+            "no_change_nb": f.coalesce(f.col("no_change_nb"), f.lit(0)),
+            "only_in_left_nb": f.coalesce(f.col("only_in_left_nb"), f.lit(0)),
+            "only_in_right_nb": f.coalesce(f.col("only_in_right_nb"), f.lit(0)),
+            "changed_diff": f.coalesce(f.col("changed_diff"), f.array()),
+            "no_change_diff": f.coalesce(f.col("no_change_diff"), f.array()),
+            "only_in_left_diff": f.coalesce(f.col("only_in_left_diff"), f.array()),
+            "only_in_right_diff": f.coalesce(f.col("only_in_right_diff"), f.array()),
+        }
     )
     total_col = f.col("changed_nb") + f.col("no_change_nb") + f.col("only_in_left_nb") + f.col("only_in_right_nb")
     renamed_df = coalesced_df.select(
