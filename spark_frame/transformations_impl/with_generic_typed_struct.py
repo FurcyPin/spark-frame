@@ -141,9 +141,9 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
         +---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
         |id |person.struct                                                                                                                                                                                  |
         +---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-        |1  |[{first.name, string, {null, null, null, null, null, Jacques, null}}, {age, int, {null, null, null, null, 25, null, null}}, {is.an.adult, boolean, {true, null, null, null, null, null, null}}]|
-        |2  |[{first.name, string, {null, null, null, null, null, Michel, null}}, {age, int, {null, null, null, null, 12, null, null}}, {is.an.adult, boolean, {false, null, null, null, null, null, null}}]|
-        |3  |[{first.name, string, {null, null, null, null, null, Marie, null}}, {age, int, {null, null, null, null, 36, null, null}}, {is.an.adult, boolean, {true, null, null, null, null, null, null}}]  |
+        |1  |[{first.name, string, {NULL, NULL, NULL, NULL, NULL, Jacques, NULL}}, {age, int, {NULL, NULL, NULL, NULL, 25, NULL, NULL}}, {is.an.adult, boolean, {true, NULL, NULL, NULL, NULL, NULL, NULL}}]|
+        |2  |[{first.name, string, {NULL, NULL, NULL, NULL, NULL, Michel, NULL}}, {age, int, {NULL, NULL, NULL, NULL, 12, NULL, NULL}}, {is.an.adult, boolean, {false, NULL, NULL, NULL, NULL, NULL, NULL}}]|
+        |3  |[{first.name, string, {NULL, NULL, NULL, NULL, NULL, Marie, NULL}}, {age, int, {NULL, NULL, NULL, NULL, 36, NULL, NULL}}, {is.an.adult, boolean, {true, NULL, NULL, NULL, NULL, NULL, NULL}}]  |
         +---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
         <BLANKLINE>
     """

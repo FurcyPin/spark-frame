@@ -119,7 +119,7 @@ def unflatten(df: DataFrame, separator: str = ".") -> DataFrame:
         <BLANKLINE>
     """
     # The idea is to recursively write a "SELECT struct(a, struct(s.b.c, s.b.d)) as s" for each nested column.
-    # There is a little twist as we don't want to rebuild the struct if all its fields are null, so we add a CASE WHEN
+    # There is a little twist as we don't want to rebuild the struct if all its fields are NULL, so we add a CASE WHEN
 
     def has_structs(df: DataFrame) -> bool:
         struct_fields = [field for field in df.schema if is_struct(field)]

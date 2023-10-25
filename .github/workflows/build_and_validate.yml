@@ -82,3 +82,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
+
+      - name: Run Tests against older spark versions
+        run: poetry run tox
+        if: matrix.os == 'ubuntu-latest'

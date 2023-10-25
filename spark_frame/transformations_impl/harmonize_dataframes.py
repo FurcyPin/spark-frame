@@ -45,10 +45,10 @@ def harmonize_dataframes(
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df1 = spark.sql('SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3 as b, 4 as c)) as s2) as s1')
         >>> df2 = spark.sql('SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3.0 as b, "4" as c, 5 as d)) as s2) as s1')
-        >>> df1.union(df2).show(truncate=False) # doctest: +ELLIPSIS
+        >>> df1.union(df2).show(truncate=False) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-          ...
-        pyspark.sql.utils.AnalysisException: Union can only be performed on tables with the compatible column types. ...
+            ...
+        AnalysisException: ... UNION can only be performed on tables with compatible column types.
         >>> df1, df2 = harmonize_dataframes(df1, df2)
         >>> df1.union(df2).show()
         +---+---------------+

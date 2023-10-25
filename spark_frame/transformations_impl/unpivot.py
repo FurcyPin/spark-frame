@@ -39,44 +39,44 @@ def unpivot(df: DataFrame, pivot_columns: List[str], key_alias: str = "key", val
         +----+-------+------+-----+------+
         |year|product|Canada|China|Mexico|
         +----+-------+------+-----+------+
-        |2018| Orange|  null| 4000|  null|
-        |2018|  Beans|  null| 1500|  2000|
-        |2018| Banana|  2000|  400|  null|
-        |2018|Carrots|  2000| 1200|  null|
-        |2019| Orange|  5000| null|  5000|
-        |2019|  Beans|  null| 1500|  2000|
-        |2019| Banana|  null| 1400|   400|
-        |2019|Carrots|  null|  200|  null|
+        |2018| Orange|  NULL| 4000|  NULL|
+        |2018|  Beans|  NULL| 1500|  2000|
+        |2018| Banana|  2000|  400|  NULL|
+        |2018|Carrots|  2000| 1200|  NULL|
+        |2019| Orange|  5000| NULL|  5000|
+        |2019|  Beans|  NULL| 1500|  2000|
+        |2019| Banana|  NULL| 1400|   400|
+        |2019|Carrots|  NULL|  200|  NULL|
         +----+-------+------+-----+------+
         <BLANKLINE>
         >>> unpivot(df, ['year', 'product'], key_alias='country', value_alias='total').show(100)
         +----+-------+-------+-----+
         |year|product|country|total|
         +----+-------+-------+-----+
-        |2018| Orange| Canada| null|
+        |2018| Orange| Canada| NULL|
         |2018| Orange|  China| 4000|
-        |2018| Orange| Mexico| null|
-        |2018|  Beans| Canada| null|
+        |2018| Orange| Mexico| NULL|
+        |2018|  Beans| Canada| NULL|
         |2018|  Beans|  China| 1500|
         |2018|  Beans| Mexico| 2000|
         |2018| Banana| Canada| 2000|
         |2018| Banana|  China|  400|
-        |2018| Banana| Mexico| null|
+        |2018| Banana| Mexico| NULL|
         |2018|Carrots| Canada| 2000|
         |2018|Carrots|  China| 1200|
-        |2018|Carrots| Mexico| null|
+        |2018|Carrots| Mexico| NULL|
         |2019| Orange| Canada| 5000|
-        |2019| Orange|  China| null|
+        |2019| Orange|  China| NULL|
         |2019| Orange| Mexico| 5000|
-        |2019|  Beans| Canada| null|
+        |2019|  Beans| Canada| NULL|
         |2019|  Beans|  China| 1500|
         |2019|  Beans| Mexico| 2000|
-        |2019| Banana| Canada| null|
+        |2019| Banana| Canada| NULL|
         |2019| Banana|  China| 1400|
         |2019| Banana| Mexico|  400|
-        |2019|Carrots| Canada| null|
+        |2019|Carrots| Canada| NULL|
         |2019|Carrots|  China|  200|
-        |2019|Carrots| Mexico| null|
+        |2019|Carrots| Mexico| NULL|
         +----+-------+-------+-----+
         <BLANKLINE>
     """

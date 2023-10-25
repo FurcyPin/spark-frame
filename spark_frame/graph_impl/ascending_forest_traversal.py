@@ -140,9 +140,9 @@ def _ascending_forest_traversal(
         +-------+---------+------+
         |node_id|parent_id|status|
         +-------+---------+------+
-        |      1|     null|    -1|
-        |      2|     null|    -1|
-        |      3|     null|    -1|
+        |      1|     NULL|    -1|
+        |      2|     NULL|    -1|
+        |      3|     NULL|    -1|
         +-------+---------+------+
         <BLANKLINE>
 
@@ -309,9 +309,9 @@ def _ascending_forest_traversal(
     # |      3|        3|     1|
     # |      2|        3|     1|
     # |      1|        3|     1|
-    # |     12|     null|    -1|
-    # |     11|     null|    -1|
-    # |     13|     null|    -1|
+    # |     12|     NULL|    -1|
+    # |     11|     NULL|    -1|
+    # |     13|     NULL|    -1|
     # +-------+---------+------+
     return res_df
 
@@ -367,7 +367,7 @@ def ascending_forest_traversal(
         +----------+--------------------+------------+--------------+
         |         4|                   5|  Charmander|        [Fire]|
         |         5|                   6|  Charmeleon|        [Fire]|
-        |         6|                null|   Charizard|[Fire, Flying]|
+        |         6|                NULL|   Charizard|[Fire, Flying]|
         +----------+--------------------+------------+--------------+
         <BLANKLINE>
 
@@ -391,9 +391,9 @@ def ascending_forest_traversal(
         +----------+--------------------+------------------------------------+------------------------------------+
         |pokemon.id|pokemon.evolve_to_id|node                                |furthest_ancestor                   |
         +----------+--------------------+------------------------------------+------------------------------------+
-        |4         |6                   |{4, 5, Charmander, [Fire]}          |{6, null, Charizard, [Fire, Flying]}|
-        |5         |6                   |{5, 6, Charmeleon, [Fire]}          |{6, null, Charizard, [Fire, Flying]}|
-        |6         |6                   |{6, null, Charizard, [Fire, Flying]}|{6, null, Charizard, [Fire, Flying]}|
+        |4         |6                   |{4, 5, Charmander, [Fire]}          |{6, NULL, Charizard, [Fire, Flying]}|
+        |5         |6                   |{5, 6, Charmeleon, [Fire]}          |{6, NULL, Charizard, [Fire, Flying]}|
+        |6         |6                   |{6, NULL, Charizard, [Fire, Flying]}|{6, NULL, Charizard, [Fire, Flying]}|
         +----------+--------------------+------------------------------------+------------------------------------+
         <BLANKLINE>
 
@@ -419,9 +419,9 @@ def ascending_forest_traversal(
         +-------+---------+
         |node_id|parent_id|
         +-------+---------+
-        |      1|     null|
-        |      2|     null|
-        |      3|     null|
+        |      1|     NULL|
+        |      2|     NULL|
+        |      3|     NULL|
         +-------+---------+
         <BLANKLINE>
     """
