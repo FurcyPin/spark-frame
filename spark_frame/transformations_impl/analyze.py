@@ -115,13 +115,13 @@ def analyze(
         +---+----------+---------------+------------+
         | id|      name|          types|   evolution|
         +---+----------+---------------+------------+
-        |  1| Bulbasaur|[Grass, Poison]|{true, null}|
+        |  1| Bulbasaur|[Grass, Poison]|{true, NULL}|
         |  2|   Ivysaur|[Grass, Poison]|   {true, 1}|
         |  3|  Venusaur|[Grass, Poison]|  {false, 2}|
-        |  4|Charmander|         [Fire]|{true, null}|
+        |  4|Charmander|         [Fire]|{true, NULL}|
         |  5|Charmeleon|         [Fire]|   {true, 4}|
         |  6| Charizard| [Fire, Flying]|  {false, 5}|
-        |  7|  Squirtle|        [Water]|{true, null}|
+        |  7|  Squirtle|        [Water]|{true, NULL}|
         |  8| Wartortle|        [Water]|   {true, 7}|
         |  9| Blastoise|        [Water]|  {false, 8}|
         +---+----------+---------------+------------+
@@ -146,13 +146,13 @@ def analyze(
         +---+----------+---------------+------------+---------+
         | id|      name|          types|   evolution|main_type|
         +---+----------+---------------+------------+---------+
-        |  1| Bulbasaur|[Grass, Poison]|{true, null}|    Grass|
+        |  1| Bulbasaur|[Grass, Poison]|{true, NULL}|    Grass|
         |  2|   Ivysaur|[Grass, Poison]|   {true, 1}|    Grass|
         |  3|  Venusaur|[Grass, Poison]|  {false, 2}|    Grass|
-        |  4|Charmander|         [Fire]|{true, null}|     Fire|
+        |  4|Charmander|         [Fire]|{true, NULL}|     Fire|
         |  5|Charmeleon|         [Fire]|   {true, 4}|     Fire|
         |  6| Charizard| [Fire, Flying]|  {false, 5}|     Fire|
-        |  7|  Squirtle|        [Water]|{true, null}|    Water|
+        |  7|  Squirtle|        [Water]|{true, NULL}|    Water|
         |  8| Wartortle|        [Water]|   {true, 7}|    Water|
         |  9| Blastoise|        [Water]|  {false, 8}|    Water|
         +---+----------+---------------+------------+---------+

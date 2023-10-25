@@ -392,10 +392,10 @@ def _build_diff_dataframe(
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
-        |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{2, null, false, true, false}    |{null, 3, false, false, true}    |{true, true} |true        |
-        |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{3, null, false, true, false}    |{null, 4, false, false, true}    |{true, true} |false       |
-        |{3, null, false, true, false}|{c, null, false, true, false}|{3, null, false, true, false}|{4, null, false, true, false}    |{null, null, false, false, false}|{true, false}|false       |
-        |{null, 4, false, false, true}|{null, f, false, false, true}|{null, 3, false, false, true}|{null, null, false, false, false}|{null, 5, false, false, true}    |{false, true}|false       |
+        |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{2, NULL, false, true, false}    |{NULL, 3, false, false, true}    |{true, true} |true        |
+        |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{3, NULL, false, true, false}    |{NULL, 4, false, false, true}    |{true, true} |false       |
+        |{3, NULL, false, true, false}|{c, NULL, false, true, false}|{3, NULL, false, true, false}|{4, NULL, false, true, false}    |{NULL, NULL, false, false, false}|{true, false}|false       |
+        |{NULL, 4, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 5, false, false, true}    |{false, true}|false       |
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         <BLANKLINE>
     """

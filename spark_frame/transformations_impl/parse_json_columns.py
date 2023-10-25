@@ -48,7 +48,7 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
         +---+--------------------+
         |  1|[{"a": 1}, {"a": 2}]|
         |  1|[{"a": 2}, {"a": 4}]|
-        |  2|                null|
+        |  2|                NULL|
         +---+--------------------+
         <BLANKLINE>
         >>> df.printSchema()
@@ -87,7 +87,7 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
         +---+----------------------+
         |1  |{[{"a": 1}, {"a": 2}]}|
         |1  |{[{"a": 2}, {"a": 4}]}|
-        |2  |null                  |
+        |2  |NULL                  |
         +---+----------------------+
         <BLANKLINE>
         >>> df.printSchema()
@@ -112,7 +112,7 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
         +---+----------------------+------------+
         |1  |{[{"a": 1}, {"a": 2}]}|[{1}, {2}]  |
         |1  |{[{"a": 2}, {"a": 4}]}|[{2}, {4}]  |
-        |2  |null                  |null        |
+        |2  |NULL                  |NULL        |
         +---+----------------------+------------+
         <BLANKLINE>
 
@@ -168,7 +168,7 @@ def __wrap_json_columns(df: DataFrame, columns: Dict[str, str]) -> DataFrame:
     +---+--------------------+
     |  1|[{"a": 1}, {"a": 2}]|
     |  1|[{"a": 2}, {"a": 4}]|
-    |  2|                null|
+    |  2|                NULL|
     +---+--------------------+
     <BLANKLINE>
     >>> __wrap_json_columns(df, {"json1": "parsed_json1"}).show(truncate=False)
@@ -177,7 +177,7 @@ def __wrap_json_columns(df: DataFrame, columns: Dict[str, str]) -> DataFrame:
     +---+--------------------+--------------------------------------+
     |1  |[{"a": 1}, {"a": 2}]|{"parsed_json1": [{"a": 1}, {"a": 2}]}|
     |1  |[{"a": 2}, {"a": 4}]|{"parsed_json1": [{"a": 2}, {"a": 4}]}|
-    |2  |null                |{"parsed_json1": null}                |
+    |2  |NULL                |{"parsed_json1": null}                |
     +---+--------------------+--------------------------------------+
     <BLANKLINE>
 
@@ -205,7 +205,7 @@ def __infer_schema_per_column(df: DataFrame, columns: List[str]) -> Dict[str, St
     +---+--------------------+--------------------------------------+
     |1  |[{"a": 1}, {"a": 2}]|{"parsed_json1": [{"a": 1}, {"a": 2}]}|
     |1  |[{"a": 2}, {"a": 4}]|{"parsed_json1": [{"a": 2}, {"a": 4}]}|
-    |2  |null                |{"parsed_json1": null}                |
+    |2  |NULL                |{"parsed_json1": null}                |
     +---+--------------------+--------------------------------------+
     <BLANKLINE>
     >>> __infer_schema_per_column(df, ["parsed_json1"])["parsed_json1"].simpleString()
@@ -237,7 +237,7 @@ def __parse_json_columns(df: DataFrame, schema_per_col: Dict[str, StructType]) -
     +---+--------------------+--------------------------------------+
     |1  |[{"a": 1}, {"a": 2}]|{"parsed_json1": [{"a": 1}, {"a": 2}]}|
     |1  |[{"a": 2}, {"a": 4}]|{"parsed_json1": [{"a": 2}, {"a": 4}]}|
-    |2  |null                |{"parsed_json1": null}                |
+    |2  |NULL                |{"parsed_json1": null}                |
     +---+--------------------+--------------------------------------+
     <BLANKLINE>
     >>> from spark_frame.schema_utils import schema_from_simple_string
@@ -257,7 +257,7 @@ def __parse_json_columns(df: DataFrame, schema_per_col: Dict[str, StructType]) -
     +---+--------------------+------------+
     |1  |[{"a": 1}, {"a": 2}]|[{1}, {2}]  |
     |1  |[{"a": 2}, {"a": 4}]|[{2}, {4}]  |
-    |2  |null                |null        |
+    |2  |NULL                |NULL        |
     +---+--------------------+------------+
     <BLANKLINE>
 

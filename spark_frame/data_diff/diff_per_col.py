@@ -5,7 +5,6 @@ from pyspark.sql import functions as f
 
 from spark_frame import nested
 from spark_frame.data_diff.diff_results import DiffResult
-from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.data_diff.package import STRUCT_SEPARATOR_REPLACEMENT
 
 
@@ -51,25 +50,25 @@ def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: 
         +-----------+-------------+----------+-----------+---+---------------+-------+
         |         c1|    no_change|         b|          b|  3|              4|      1|
         |         c1|    no_change|         a|          a|  1|              4|      2|
-        |         c1| only_in_left|         c|       null|  1|              1|      1|
-        |         c1|only_in_right|      null|          f|  1|              1|      1|
+        |         c1| only_in_left|         c|       NULL|  1|              1|      1|
+        |         c1|only_in_right|      NULL|          f|  1|              1|      1|
         |         c2|      changed|         2|          4|  2|              3|      1|
         |         c2|      changed|         2|          3|  1|              3|      2|
         |         c2|    no_change|         1|          1|  1|              1|      1|
-        |         c2| only_in_left|         3|       null|  1|              1|      1|
-        |         c2|only_in_right|      null|          3|  1|              1|      1|
-        |         c3| only_in_left|         1|       null|  2|              5|      1|
-        |         c3| only_in_left|         2|       null|  2|              5|      2|
-        |         c3| only_in_left|         3|       null|  1|              5|      3|
-        |         c4|only_in_right|      null|          1|  2|              5|      1|
-        |         c4|only_in_right|      null|          2|  2|              5|      2|
-        |         c4|only_in_right|      null|          3|  1|              5|      3|
+        |         c2| only_in_left|         3|       NULL|  1|              1|      1|
+        |         c2|only_in_right|      NULL|          3|  1|              1|      1|
+        |         c3| only_in_left|         1|       NULL|  2|              5|      1|
+        |         c3| only_in_left|         2|       NULL|  2|              5|      2|
+        |         c3| only_in_left|         3|       NULL|  1|              5|      3|
+        |         c4|only_in_right|      NULL|          1|  2|              5|      1|
+        |         c4|only_in_right|      NULL|          2|  2|              5|      2|
+        |         c4|only_in_right|      NULL|          3|  1|              5|      3|
         |         id|    no_change|         1|          1|  1|              4|      1|
         |         id|    no_change|         2|          2|  1|              4|      2|
         |         id|    no_change|         3|          3|  1|              4|      3|
         |         id|    no_change|         4|          4|  1|              4|      4|
-        |         id| only_in_left|         5|       null|  1|              1|      1|
-        |         id|only_in_right|      null|          6|  1|              1|      1|
+        |         id| only_in_left|         5|       NULL|  1|              1|      1|
+        |         id|only_in_right|      NULL|          6|  1|              1|      1|
         +-----------+-------------+----------+-----------+---+---------------+-------+
         <BLANKLINE>
 
@@ -77,11 +76,11 @@ def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: 
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         |column_name|changed_nb|changed_diff          |no_change_nb|no_change_diff                              |only_in_left_nb|only_in_left_diff                         |only_in_right_nb|only_in_right_diff                        |
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
-        |c1         |null      |[]                    |4           |[{b, b, 3}, {a, a, 1}]                      |1              |[{c, null, 1}]                            |1               |[{null, f, 1}]                            |
-        |c4         |null      |[]                    |null        |[]                                          |null           |[]                                        |5               |[{null, 1, 2}, {null, 2, 2}, {null, 3, 1}]|
-        |c3         |null      |[]                    |null        |[]                                          |5              |[{1, null, 2}, {2, null, 2}, {3, null, 1}]|null            |[]                                        |
-        |c2         |3         |[{2, 4, 2}, {2, 3, 1}]|1           |[{1, 1, 1}]                                 |1              |[{3, null, 1}]                            |1               |[{null, 3, 1}]                            |
-        |id         |null      |[]                    |4           |[{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}]|1              |[{5, null, 1}]                            |1               |[{null, 6, 1}]                            |
+        |c1         |NULL      |[]                    |4           |[{b, b, 3}, {a, a, 1}]                      |1              |[{c, NULL, 1}]                            |1               |[{NULL, f, 1}]                            |
+        |c4         |NULL      |[]                    |NULL        |[]                                          |NULL           |[]                                        |5               |[{NULL, 1, 2}, {NULL, 2, 2}, {NULL, 3, 1}]|
+        |c3         |NULL      |[]                    |NULL        |[]                                          |5              |[{1, NULL, 2}, {2, NULL, 2}, {3, NULL, 1}]|NULL            |[]                                        |
+        |c2         |3         |[{2, 4, 2}, {2, 3, 1}]|1           |[{1, 1, 1}]                                 |1              |[{3, NULL, 1}]                            |1               |[{NULL, 3, 1}]                            |
+        |id         |NULL      |[]                    |4           |[{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}]|1              |[{5, NULL, 1}]                            |1               |[{NULL, 6, 1}]                            |
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         <BLANKLINE>
     """
@@ -101,7 +100,7 @@ def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: 
     return pivoted_df
 
 
-def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame, diff_stats: DiffStats) -> DataFrame:
+def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFrame:
     """
 
     Examples
@@ -127,14 +126,14 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame, diff_stats
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         |column_name|changed_nb|changed_diff          |no_change_nb|no_change_diff                              |only_in_left_nb|only_in_left_diff                         |only_in_right_nb|only_in_right_diff                        |
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
-        |c1         |null      |[]                    |4           |[{b, b, 3}, {a, a, 1}]                      |1              |[{c, null, 1}]                            |1               |[{null, f, 1}]                            |
-        |c4         |null      |[]                    |null        |[]                                          |null           |[]                                        |5               |[{null, 1, 2}, {null, 2, 2}, {null, 3, 1}]|
-        |c3         |null      |[]                    |null        |[]                                          |5              |[{1, null, 2}, {2, null, 2}, {3, null, 1}]|null            |[]                                        |
-        |c2         |3         |[{2, 4, 2}, {2, 3, 1}]|1           |[{1, 1, 1}]                                 |1              |[{3, null, 1}]                            |1               |[{null, 3, 1}]                            |
-        |id         |null      |[]                    |4           |[{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}]|1              |[{5, null, 1}]                            |1               |[{null, 6, 1}]                            |
+        |c1         |NULL      |[]                    |4           |[{b, b, 3}, {a, a, 1}]                      |1              |[{c, NULL, 1}]                            |1               |[{NULL, f, 1}]                            |
+        |c4         |NULL      |[]                    |NULL        |[]                                          |NULL           |[]                                        |5               |[{NULL, 1, 2}, {NULL, 2, 2}, {NULL, 3, 1}]|
+        |c3         |NULL      |[]                    |NULL        |[]                                          |5              |[{1, NULL, 2}, {2, NULL, 2}, {3, NULL, 1}]|NULL            |[]                                        |
+        |c2         |3         |[{2, 4, 2}, {2, 3, 1}]|1           |[{1, 1, 1}]                                 |1              |[{3, NULL, 1}]                            |1               |[{NULL, 3, 1}]                            |
+        |id         |NULL      |[]                    |4           |[{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}]|1              |[{5, NULL, 1}]                            |1               |[{NULL, 6, 1}]                            |
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         <BLANKLINE>
-        >>> diff_per_col_df = _format_diff_per_col_df(pivoted_df, col_df, diff_result.diff_stats)
+        >>> diff_per_col_df = _format_diff_per_col_df(pivoted_df, col_df)
         >>> nested.print_schema(diff_per_col_df)
         root
          |-- column_number: integer (nullable = true)
@@ -260,12 +259,12 @@ def _get_diff_per_col_df(
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
-        |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, null, false, true, false}    |{null, 1, false, false, true}    |{true, true} |true        |
-        |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, null, false, true, false}    |{null, 1, false, false, true}    |{true, true} |false       |
-        |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, null, false, true, false}    |{null, 2, false, false, true}    |{true, true} |false       |
-        |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, null, false, true, false}    |{null, 2, false, false, true}    |{true, true} |false       |
-        |{5, null, false, true, false}|{c, null, false, true, false}|{3, null, false, true, false}|{3, null, false, true, false}    |{null, null, false, false, false}|{true, false}|false       |
-        |{null, 6, false, false, true}|{null, f, false, false, true}|{null, 3, false, false, true}|{null, null, false, false, false}|{null, 3, false, false, true}    |{false, true}|false       |
+        |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |true        |
+        |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |false       |
+        |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |
+        |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |
+        |{5, NULL, false, true, false}|{c, NULL, false, true, false}|{3, NULL, false, true, false}|{3, NULL, false, true, false}    |{NULL, NULL, false, false, false}|{true, false}|false       |
+        |{NULL, 6, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 3, false, false, true}    |{false, true}|false       |
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         <BLANKLINE>
         >>> diff_result.top_per_col_state_df.show(100)
@@ -274,25 +273,25 @@ def _get_diff_per_col_df(
         +-----------+-------------+----------+-----------+---+---------------+-------+
         |         c1|    no_change|         b|          b|  3|              4|      1|
         |         c1|    no_change|         a|          a|  1|              4|      2|
-        |         c1| only_in_left|         c|       null|  1|              1|      1|
-        |         c1|only_in_right|      null|          f|  1|              1|      1|
+        |         c1| only_in_left|         c|       NULL|  1|              1|      1|
+        |         c1|only_in_right|      NULL|          f|  1|              1|      1|
         |         c2|      changed|         2|          4|  2|              3|      1|
         |         c2|      changed|         2|          3|  1|              3|      2|
         |         c2|    no_change|         1|          1|  1|              1|      1|
-        |         c2| only_in_left|         3|       null|  1|              1|      1|
-        |         c2|only_in_right|      null|          3|  1|              1|      1|
-        |         c3| only_in_left|         1|       null|  2|              5|      1|
-        |         c3| only_in_left|         2|       null|  2|              5|      2|
-        |         c3| only_in_left|         3|       null|  1|              5|      3|
-        |         c4|only_in_right|      null|          1|  2|              5|      1|
-        |         c4|only_in_right|      null|          2|  2|              5|      2|
-        |         c4|only_in_right|      null|          3|  1|              5|      3|
+        |         c2| only_in_left|         3|       NULL|  1|              1|      1|
+        |         c2|only_in_right|      NULL|          3|  1|              1|      1|
+        |         c3| only_in_left|         1|       NULL|  2|              5|      1|
+        |         c3| only_in_left|         2|       NULL|  2|              5|      2|
+        |         c3| only_in_left|         3|       NULL|  1|              5|      3|
+        |         c4|only_in_right|      NULL|          1|  2|              5|      1|
+        |         c4|only_in_right|      NULL|          2|  2|              5|      2|
+        |         c4|only_in_right|      NULL|          3|  1|              5|      3|
         |         id|    no_change|         1|          1|  1|              4|      1|
         |         id|    no_change|         2|          2|  1|              4|      2|
         |         id|    no_change|         3|          3|  1|              4|      3|
         |         id|    no_change|         4|          4|  1|              4|      4|
-        |         id| only_in_left|         5|       null|  1|              1|      1|
-        |         id|only_in_right|      null|          6|  1|              1|      1|
+        |         id| only_in_left|         5|       NULL|  1|              1|      1|
+        |         id|only_in_right|      NULL|          6|  1|              1|      1|
         +-----------+-------------+----------+-----------+---+---------------+-------+
         <BLANKLINE>
 
@@ -346,7 +345,6 @@ def _get_diff_per_col_df(
         +-------------+-----------+---------------+----------------------------------------------------------+
         <BLANKLINE>
     """
-    diff_stats = diff_result.diff_stats
     if top_per_col_state_df is None:
         _top_per_col_state_df = diff_result.top_per_col_state_df
     else:
@@ -355,5 +353,5 @@ def _get_diff_per_col_df(
     columns = list(diff_result.schema_diff_result.column_names_diff.keys())
     pivoted_df = _get_pivoted_df(_top_per_col_state_df, max_nb_rows_per_col_state)
     col_df = _get_col_df(columns, spark)
-    df = _format_diff_per_col_df(pivoted_df, col_df, diff_stats)
+    df = _format_diff_per_col_df(pivoted_df, col_df)
     return df
