@@ -62,7 +62,7 @@ This library is tested against Windows, Mac and Linux.
 | Generating HTML reports for data diff | `DiffResult.export_to_html` |          jinja2 |
 
 
-# Release notes
+# Changelog
 
 # v0.4.0
 
