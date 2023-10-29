@@ -95,7 +95,6 @@ class DiffResult:
         """
         self.join_cols = join_cols
         """The list of column names to join"""
-        self._changed_df_shards: Optional[List[DataFrame]] = None
 
     @property
     def same_schema(self) -> bool:
