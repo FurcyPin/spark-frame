@@ -8,7 +8,7 @@ from spark_frame import nested
 from spark_frame.nested_impl.unnest_all_fields import unnest_all_fields
 from spark_frame.transformations_impl import analyze_aggs
 from spark_frame.transformations_impl.union_dataframes import union_dataframes
-from spark_frame.utils import is_sub_field_of_any, quote
+from spark_frame.utils import is_sub_field_or_equal_to_any, quote
 
 
 def _analyze_flat_df(
@@ -198,7 +198,7 @@ def analyze(
         group_by = [group_by]
 
     flat_fields = nested.fields(df)
-    fields_to_drop = [field for field in flat_fields if is_sub_field_of_any(field, group_by)]
+    fields_to_drop = [field for field in flat_fields if is_sub_field_or_equal_to_any(field, group_by)]
     nb_cols = len(flat_fields) - len(fields_to_drop)
     print(f"Analyzing {nb_cols} columns ...")
 
