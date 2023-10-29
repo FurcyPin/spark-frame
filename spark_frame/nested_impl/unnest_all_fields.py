@@ -4,7 +4,7 @@ from pyspark.sql import DataFrame
 
 from spark_frame import nested
 from spark_frame.nested_impl.package import unnest_fields
-from spark_frame.utils import is_sub_field_of_any
+from spark_frame.utils import is_sub_field_or_equal_to_any
 
 
 def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -> List[DataFrame]:
@@ -90,5 +90,5 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
     """
     if keep_columns is None:
         keep_columns = []
-    fields_to_unnest = [field for field in nested.fields(df) if not is_sub_field_of_any(field, keep_columns)]
+    fields_to_unnest = [field for field in nested.fields(df) if not is_sub_field_or_equal_to_any(field, keep_columns)]
     return unnest_fields(df, fields_to_unnest, keep_columns=keep_columns)

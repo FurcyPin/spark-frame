@@ -19,47 +19,47 @@ class AnalysisException(Exception):
     pass
 
 
-def is_sub_field(sub_field: str, field: str) -> bool:
+def is_sub_field_or_equal(sub_field: str, field: str) -> bool:
     """Return True if `sub_field` is a sub-field of `field`
 
-    >>> is_sub_field("a", "a")
+    >>> is_sub_field_or_equal("a", "a")
     True
-    >>> is_sub_field("a", "b")
+    >>> is_sub_field_or_equal("a", "b")
     False
 
-    >>> is_sub_field("a.b", "a")
+    >>> is_sub_field_or_equal("a.b", "a")
     True
-    >>> is_sub_field("a.b", "b")
+    >>> is_sub_field_or_equal("a.b", "b")
     False
 
-    >>> is_sub_field("a", "a.b")
+    >>> is_sub_field_or_equal("a", "a.b")
     False
 
     """
     return sub_field == field or sub_field.startswith(field + ".")
 
 
-def is_sub_field_of_any(sub_field: str, fields: List[str]) -> bool:
+def is_sub_field_or_equal_to_any(sub_field: str, fields: List[str]) -> bool:
     """Return True if `sub_field` is a sub-field of any field in `fields`
 
-    >>> is_sub_field_of_any("a", ["a", "b"])
+    >>> is_sub_field_or_equal_to_any("a", ["a", "b"])
     True
-    >>> is_sub_field_of_any("a", ["b", "c"])
+    >>> is_sub_field_or_equal_to_any("a", ["b", "c"])
     False
 
-    >>> is_sub_field_of_any("a.b", ["a", "b"])
+    >>> is_sub_field_or_equal_to_any("a.b", ["a", "b"])
     True
-    >>> is_sub_field_of_any("a.b", ["b", "c"])
+    >>> is_sub_field_or_equal_to_any("a.b", ["b", "c"])
     False
 
-    >>> is_sub_field_of_any("a", ["a.b"])
+    >>> is_sub_field_or_equal_to_any("a", ["a.b"])
     False
 
-    >>> is_sub_field_of_any("a", [])
+    >>> is_sub_field_or_equal_to_any("a", [])
     False
 
     """
-    return any([is_sub_field(sub_field, field) for field in fields])
+    return any([is_sub_field_or_equal(sub_field, field) for field in fields])
 
 
 def group_by_key(items: Iterable[Tuple[K, V]]) -> Dict[K, List[V]]:
