@@ -23,7 +23,14 @@ def _restore_special_characters(col_name: str) -> str:
 
 
 def _replace_special_characters_from_col_names(df: DataFrame) -> DataFrame:
-    return df.withColumnsRenamed({col: col.translate(_replacements) for col in df.columns})
+    # TODO: remove this if once support for Spark 3.3 is dropped
+    if df.sparkSession.version >= "3.4":
+        return df.withColumnsRenamed({col: col.translate(_replacements) for col in df.columns})
+    else:
+        res_df = df
+        for col in df.columns:
+            res_df = res_df.withColumnRenamed(col, col.translate(_replacements))
+        return res_df
 
 
 def _restore_special_characters_from_col(col: Column) -> Column:
