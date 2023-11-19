@@ -6,8 +6,14 @@ from pyspark.sql.types import IntegerType, LongType, StringType
 
 from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.package import EXISTS_COL_NAME, IS_EQUAL_COL_NAME, STRUCT_SEPARATOR_REPLACEMENT, canonize_col
-from spark_frame.data_diff.schema_diff import DiffPrefix, diff_dataframe_schemas
-from spark_frame.data_type_utils import flatten_schema, get_common_columns, is_repeated
+from spark_frame.data_diff.schema_diff import DiffPrefix, SchemaDiffResult, diff_dataframe_schemas
+from spark_frame.data_diff.special_characters import (
+    _replace_special_characters,
+    _replace_special_characters_from_col_names,
+    _restore_special_characters,
+)
+from spark_frame.data_type_utils import is_repeated
+from spark_frame.nested_impl.package import unnest_fields
 from spark_frame.transformations import flatten
 from spark_frame.transformations_impl.convert_all_maps_to_arrays import convert_all_maps_to_arrays
 from spark_frame.transformations_impl.harmonize_dataframes import harmonize_dataframes
@@ -297,6 +303,7 @@ def _check_join_cols(
     else:
         plural_str = "s"
         join_cols_str = str(join_cols)
+    join_cols_str = _restore_special_characters(join_cols_str)
 
     if self_join_growth_estimate >= 2.0:
         raise CombinatorialExplosionError(
@@ -305,7 +312,7 @@ def _check_join_cols(
             f"Please provide join_cols that are truly unique for both DataFrames."
         )
     print(
-        f"We will try to find the differences by joining the DataFrames together "
+        f"Generating the diff by joining the DataFrames together "
         f"using the {inferred_provided_str} column{plural_str}: {join_cols_str}"
     )
     if self_join_growth_estimate > 1.0:
@@ -399,9 +406,7 @@ def _build_diff_dataframe(
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         <BLANKLINE>
     """
-    column_names_diff = {
-        col_name.replace(".", STRUCT_SEPARATOR_REPLACEMENT): diff for col_name, diff in column_names_diff.items()
-    }
+    column_names_diff = {_replace_special_characters(col_name): diff for col_name, diff in column_names_diff.items()}
 
     left_df = left_df.withColumn(EXISTS_COL_NAME, f.lit(True))
     right_df = right_df.withColumn(EXISTS_COL_NAME, f.lit(True))
@@ -447,7 +452,11 @@ def _build_diff_dataframe(
         ).alias(col_name)
 
     diff_df = diff.select(
-        *[comparison_struct(col_name, diff_prefix) for col_name, diff_prefix in column_names_diff.items()],
+        *[
+            comparison_struct(col_name, diff_prefix)
+            for col_name, diff_prefix in column_names_diff.items()
+            if col_name in diff.columns
+        ],
         f.struct(
             f.coalesce(left_df[EXISTS_COL_NAME], f.lit(False)).alias("left_value"),
             f.coalesce(right_df[EXISTS_COL_NAME], f.lit(False)).alias("right_value"),
@@ -456,7 +465,7 @@ def _build_diff_dataframe(
 
     row_is_equal = f.lit(True)
     for col_name, diff_prefix in column_names_diff.items():
-        if diff_prefix == DiffPrefix.UNCHANGED:
+        if diff_prefix == DiffPrefix.UNCHANGED and col_name in diff_df.columns:
             row_is_equal = row_is_equal & f.col(f"{col_name}.is_equal")
     return diff_df.withColumn(IS_EQUAL_COL_NAME, row_is_equal)
 
@@ -464,14 +473,52 @@ def _build_diff_dataframe(
 def _harmonize_and_normalize_dataframes(
     left_flat: DataFrame,
     right_flat: DataFrame,
-    common_columns: Dict[str, Optional[str]],
     skip_make_dataframes_comparable: bool,
 ) -> Tuple[DataFrame, DataFrame]:
     if not skip_make_dataframes_comparable:
-        left_flat, right_flat = harmonize_dataframes(left_flat, right_flat, common_columns, keep_missing_columns=True)
+        left_flat, right_flat = harmonize_dataframes(left_flat, right_flat, keep_missing_columns=True)
     left_flat = sort_all_arrays(left_flat)
     right_flat = sort_all_arrays(right_flat)
     return left_flat, right_flat
+
+
+def _build_diff_dataframe_shards(
+    left_df: DataFrame,
+    right_df: DataFrame,
+    schema_diff_result: SchemaDiffResult,
+    join_cols: List[str],
+    specified_join_cols: Optional[List[str]],
+) -> Dict[str, DataFrame]:
+    left_fields_to_unnest = [
+        col_name
+        for col_name, diff_prefix in schema_diff_result.column_names_diff.items()
+        if diff_prefix in [DiffPrefix.UNCHANGED, DiffPrefix.REMOVED]
+    ]
+    right_fields_to_unnest = [
+        col_name
+        for col_name, diff_prefix in schema_diff_result.column_names_diff.items()
+        if diff_prefix in [DiffPrefix.UNCHANGED, DiffPrefix.ADDED]
+    ]
+
+    unnested_left_dfs = unnest_fields(left_df, left_fields_to_unnest, keep_fields=join_cols)
+    unnested_right_dfs = unnest_fields(right_df, right_fields_to_unnest, keep_fields=join_cols)
+
+    common_keys = sorted(set(unnested_left_dfs.keys()).intersection(set(unnested_right_dfs.keys())))
+
+    def build_shard(key: str) -> DataFrame:
+        l_df = unnested_left_dfs[key]
+        r_df = unnested_right_dfs[key]
+        l_df = _replace_special_characters_from_col_names(l_df)
+        r_df = _replace_special_characters_from_col_names(r_df)
+        schema_diff_result = diff_dataframe_schemas(l_df, r_df, join_cols)
+        new_join_cols = [_replace_special_characters(col) for col in join_cols]
+        new_join_cols = [col for col in new_join_cols if col in l_df.columns]
+        new_join_cols, self_join_growth_estimate = _get_join_cols(l_df, r_df, new_join_cols)
+        _check_join_cols(specified_join_cols, new_join_cols, self_join_growth_estimate)
+        diff_df = _build_diff_dataframe(l_df, r_df, schema_diff_result.column_names_diff, new_join_cols)
+        return diff_df
+
+    return {key: build_shard(key) for key in common_keys}
 
 
 def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optional[List[str]] = None) -> DiffResult:
@@ -520,35 +567,32 @@ def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optio
         Analyzing differences...
         No join_cols provided: trying to automatically infer a column that can be used for joining the two DataFrames
         Found the following column: id
-        We will try to find the differences by joining the DataFrames together using the inferred column: id
+        Generating the diff by joining the DataFrames together using the inferred column: id
         >>> diff_result.display()
         Schema has changed:
-        @@ -1,4 +1,5 @@
+        @@ -1,2 +1,2 @@
         <BLANKLINE>
          id INT
-         my_array!.a INT
-         my_array!.b INT
-         my_array!.c INT
-        +my_array!.d INT
+        -my_array ARRAY<STRUCT<A:INT,B:INT,C:INT>>
+        +my_array ARRAY<STRUCT<A:INT,B:INT,C:INT,D:INT>>
         WARNING: columns that do not match both sides will be ignored
         <BLANKLINE>
         diff NOT ok
         <BLANKLINE>
-        Summary:
-        <BLANKLINE>
         Row count ok: 3 rows
         <BLANKLINE>
-        1 (25.0%) rows are identical
-        1 (25.0%) rows have changed
+        0 (0.0%) rows are identical
+        2 (50.0%) rows have changed
         1 (25.0%) rows are only in 'left'
         1 (25.0%) rows are only in 'right
         <BLANKLINE>
         Found the following changes:
-        +-----------+-------------+---------------------+---------------------+--------------+
-        |column_name|total_nb_diff|left_value           |right_value          |nb_differences|
-        +-----------+-------------+---------------------+---------------------+--------------+
-        |my_array   |1            |[{"a":1,"b":2,"c":3}]|[{"a":2,"b":2,"c":3}]|1             |
-        +-----------+-------------+---------------------+---------------------+--------------+
+        +-----------+-------------+---------------------+---------------------------+--------------+
+        |column_name|total_nb_diff|left_value           |right_value                |nb_differences|
+        +-----------+-------------+---------------------+---------------------------+--------------+
+        |my_array   |2            |[{"a":1,"b":2,"c":3}]|[{"a":1,"b":2,"c":3,"d":4}]|1             |
+        |my_array   |2            |[{"a":1,"b":2,"c":3}]|[{"a":2,"b":2,"c":3,"d":4}]|1             |
+        +-----------+-------------+---------------------+---------------------------+--------------+
         <BLANKLINE>
         1 rows were only found in 'left' :
         Most frequent values in 'left' for each column :
@@ -561,43 +605,128 @@ def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optio
         <BLANKLINE>
         1 rows were only found in 'right' :
         Most frequent values in 'right' for each column :
-        +-----------+---------------------+---+
-        |column_name|value                |nb |
-        +-----------+---------------------+---+
-        |id         |4                    |1  |
-        |my_array   |[{"a":1,"b":2,"c":3}]|1  |
-        +-----------+---------------------+---+
+        +-----------+---------------------------+---+
+        |column_name|value                      |nb |
+        +-----------+---------------------------+---+
+        |id         |4                          |1  |
+        |my_array   |[{"a":1,"b":2,"c":3,"d":4}]|1  |
+        +-----------+---------------------------+---+
+        <BLANKLINE>
+
+        >>> diff_result_exploded = compare_dataframes(df1, df2, join_cols=["id", "my_array!.a"])  # noqa: E501
+        <BLANKLINE>
+        Analyzing differences...
+        Generating the diff by joining the DataFrames together using the provided column: id
+        Generating the diff by joining the DataFrames together using the provided columns: ['id', 'my_array!.a']
+        >>> diff_result_exploded.display()
+        Schema has changed:
+        @@ -1,4 +1,5 @@
+        <BLANKLINE>
+         id INT
+         my_array!.a INT
+         my_array!.b INT
+         my_array!.c INT
+        +my_array!.d INT
+        WARNING: columns that do not match both sides will be ignored
+        <BLANKLINE>
+        diff NOT ok
+        <BLANKLINE>
+        WARNING: This diff has multiple granularity levels, we will print the results for each granularity level,
+                 but we recommend to export the results to html for a much more digest result.
+        <BLANKLINE>
+        ##############################################################
+        Granularity : root (4 rows)
+        <BLANKLINE>
+        Row count ok: 3 rows
+        <BLANKLINE>
+        2 (50.0%) rows are identical
+        0 (0.0%) rows have changed
+        1 (25.0%) rows are only in 'left'
+        1 (25.0%) rows are only in 'right
+        <BLANKLINE>
+        1 rows were only found in 'left' :
+        Most frequent values in 'left' for each column :
+        +-----------+-----+---+
+        |column_name|value|nb |
+        +-----------+-----+---+
+        |id         |3    |1  |
+        |my_array!.a|1    |2  |
+        |my_array!.b|2    |2  |
+        |my_array!.c|3    |2  |
+        +-----------+-----+---+
+        <BLANKLINE>
+        1 rows were only found in 'right' :
+        Most frequent values in 'right' for each column :
+        +-----------+-----+---+
+        |column_name|value|nb |
+        +-----------+-----+---+
+        |id         |4    |1  |
+        |my_array!.a|1    |1  |
+        |my_array!.a|2    |1  |
+        |my_array!.b|2    |2  |
+        |my_array!.c|3    |2  |
+        |my_array!.d|4    |3  |
+        +-----------+-----+---+
+        <BLANKLINE>
+        ##############################################################
+        Granularity : my_array (5 rows)
+        <BLANKLINE>
+        Row count ok: 3 rows
+        <BLANKLINE>
+        1 (20.0%) rows are identical
+        0 (0.0%) rows have changed
+        2 (40.0%) rows are only in 'left'
+        2 (40.0%) rows are only in 'right
+        <BLANKLINE>
+        2 rows were only found in 'left' :
+        Most frequent values in 'left' for each column :
+        +-----------+-----+---+
+        |column_name|value|nb |
+        +-----------+-----+---+
+        |id         |3    |1  |
+        |my_array!.a|1    |2  |
+        |my_array!.b|2    |2  |
+        |my_array!.c|3    |2  |
+        +-----------+-----+---+
+        <BLANKLINE>
+        2 rows were only found in 'right' :
+        Most frequent values in 'right' for each column :
+        +-----------+-----+---+
+        |column_name|value|nb |
+        +-----------+-----+---+
+        |id         |4    |1  |
+        |my_array!.a|1    |1  |
+        |my_array!.a|2    |1  |
+        |my_array!.b|2    |2  |
+        |my_array!.c|3    |2  |
+        |my_array!.d|4    |3  |
+        +-----------+-----+---+
         <BLANKLINE>
     """
+    print("\nAnalyzing differences...")
+
     if join_cols == []:
         join_cols = None
     specified_join_cols = join_cols
     left_df = convert_all_maps_to_arrays(left_df)
     right_df = convert_all_maps_to_arrays(right_df)
 
-    schema_diff_result = diff_dataframe_schemas(left_df, right_df)
+    if join_cols is None:
+        left_flat = flatten(left_df, struct_separator=STRUCT_SEPARATOR_REPLACEMENT)
+        right_flat = flatten(right_df, struct_separator=STRUCT_SEPARATOR_REPLACEMENT)
+        join_cols, self_join_growth_estimate = _get_join_cols(left_flat, right_flat, join_cols)
 
-    left_flat = flatten(left_df, struct_separator=STRUCT_SEPARATOR_REPLACEMENT)
-    right_flat = flatten(right_df, struct_separator=STRUCT_SEPARATOR_REPLACEMENT)
-
-    print("\nAnalyzing differences...")
-    join_cols, self_join_growth_estimate = _get_join_cols(left_flat, right_flat, join_cols)
-    _check_join_cols(specified_join_cols, join_cols, self_join_growth_estimate)
-
-    left_schema_flat = flatten_schema(left_flat.schema, explode=True)
-    if not schema_diff_result.same_schema:
-        right_schema_flat = flatten_schema(right_flat.schema, explode=True)
-        common_columns = get_common_columns(left_schema_flat, right_schema_flat)
-    else:
-        common_columns = {field.name: None for field in left_schema_flat}
-
-    left_flat, right_flat = _harmonize_and_normalize_dataframes(
-        left_flat, right_flat, common_columns, skip_make_dataframes_comparable=schema_diff_result.same_schema
+    global_schema_diff_result = diff_dataframe_schemas(left_df, right_df, join_cols)
+    left_df, right_df = _harmonize_and_normalize_dataframes(
+        left_df, right_df, skip_make_dataframes_comparable=global_schema_diff_result.same_schema
     )
 
-    diff_df = _build_diff_dataframe(left_flat, right_flat, schema_diff_result.column_names_diff, join_cols)
+    diff_dataframe_shards = _build_diff_dataframe_shards(
+        left_df, right_df, global_schema_diff_result, join_cols, specified_join_cols
+    )
+    diff_result = DiffResult(global_schema_diff_result, diff_dataframe_shards, join_cols)
 
-    return DiffResult(schema_diff_result, diff_df, join_cols)
+    return diff_result
 
 
 def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:

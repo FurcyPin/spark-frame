@@ -6,7 +6,9 @@ from typing import Dict, List, cast
 from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
 
+from spark_frame.conf import REPETITION_MARKER
 from spark_frame.data_type_utils import flatten_schema, is_nullable
+from spark_frame.utils import has_same_granularity_as_any, is_parent_field_of_any
 
 
 class DiffPrefix(str, Enum):
@@ -32,6 +34,10 @@ class SchemaDiffResult:
             print("WARNING: columns that do not match both sides will be ignored")
         else:
             print(f"Schema: ok ({self.nb_cols})")
+
+    @property
+    def column_names(self) -> List[str]:
+        return list(self.column_names_diff.keys())
 
 
 def _schema_to_string(schema: StructType, include_nullable: bool = False, include_metadata: bool = False) -> List[str]:
@@ -81,52 +87,84 @@ def _schema_to_string(schema: StructType, include_nullable: bool = False, includ
     return res
 
 
-def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame) -> SchemaDiffResult:
+def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame, join_cols: List[str]) -> SchemaDiffResult:
     """Compares two DataFrames schemas and print out the differences.
-        Ignore the nullable and comment attributes.
+    Ignore the nullable and comment attributes.
 
-        Args:
-            left_df: A Spark DataFrame
-            right_df: Another DataFrame
-    {'id': ' ', 'c1': ' ', 'c2': '-', 'c3': '+', 'c4!.a': ' ', 'c4!.b': '-', 'c4!.d': '+'}
-        Returns:
-            A SchemaDiffResult object
+    Args:
+        left_df: A Spark DataFrame
+        right_df: Another DataFrame
+        join_cols: The list of column names that will be used for joining the two DataFrames together
 
-        Examples:
+    Returns:
+        A SchemaDiffResult object
 
-            >>> from pyspark.sql import SparkSession
-            >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-            >>> left_df = spark.sql('''SELECT 1 as id, "" as c1, "" as c2, ARRAY(STRUCT(2 as a, "" as b)) as c4''')
-            >>> right_df = spark.sql('''SELECT 1 as id, 2 as c1, "" as c3, ARRAY(STRUCT(3 as a, "" as d)) as c4''')
-            >>> schema_diff_result = diff_dataframe_schemas(left_df, right_df)
-            >>> schema_diff_result.display()
-            Schema has changed:
-            @@ -1,5 +1,5 @@
-            <BLANKLINE>
-             id INT
-            -c1 STRING
-            -c2 STRING
-            +c1 INT
-            +c3 STRING
-             c4!.a INT
-            -c4!.b STRING
-            +c4!.d STRING
-            WARNING: columns that do not match both sides will be ignored
-            >>> schema_diff_result.same_schema
-            False
-            >>> schema_diff_result.column_names_diff
-            {'id': ' ', 'c1': ' ', 'c2': '-', 'c3': '+', 'c4': ' '}
+    Examples:
+
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> left_df = spark.sql('''SELECT 1 as id, "" as c1, "" as c2, ARRAY(STRUCT(2 as a, "" as b)) as c4''')
+        >>> right_df = spark.sql('''SELECT 1 as id, 2 as c1, "" as c3, ARRAY(STRUCT(3 as a, "" as d)) as c4''')
+        >>> schema_diff_result = diff_dataframe_schemas(left_df, right_df, ["id"])
+        >>> schema_diff_result.display()
+        Schema has changed:
+        @@ -1,4 +1,4 @@
+        <BLANKLINE>
+         id INT
+        -c1 STRING
+        -c2 STRING
+        -c4 ARRAY<STRUCT<A:INT,B:STRING>>
+        +c1 INT
+        +c3 STRING
+        +c4 ARRAY<STRUCT<A:INT,D:STRING>>
+        WARNING: columns that do not match both sides will be ignored
+        >>> schema_diff_result.same_schema
+        False
+        >>> schema_diff_result.column_names_diff
+        {'id': ' ', 'c1': ' ', 'c2': '-', 'c3': '+', 'c4': ' '}
+
+        >>> schema_diff_result = diff_dataframe_schemas(left_df, right_df, ["id", "c4!.a"])
+        >>> schema_diff_result.display()
+        Schema has changed:
+        @@ -1,5 +1,5 @@
+        <BLANKLINE>
+         id INT
+        -c1 STRING
+        -c2 STRING
+        +c1 INT
+        +c3 STRING
+         c4!.a INT
+        -c4!.b STRING
+        +c4!.d STRING
+        WARNING: columns that do not match both sides will be ignored
+        >>> schema_diff_result.same_schema
+        False
+        >>> schema_diff_result.column_names_diff
+        {'id': ' ', 'c1': ' ', 'c2': '-', 'c3': '+', 'c4!.a': ' ', 'c4!.b': '-', 'c4!.d': '+'}
+
 
     """
-    left_schema_flat_exploded = flatten_schema(left_df.schema, explode=True)
-    right_schema_flat_exploded = flatten_schema(right_df.schema, explode=True)
+
+    def explode_schema_according_to_join_cols(schema: StructType) -> StructType:
+        exploded_schema = flatten_schema(schema, explode=True, keep_non_leaf_fields=True)
+        return StructType(
+            [
+                field
+                for field in exploded_schema.fields
+                if has_same_granularity_as_any(field.name, join_cols)
+                and not is_parent_field_of_any(field.name, join_cols)
+                and not isinstance(field.dataType, StructType)
+                and not field.name.endswith(REPETITION_MARKER)
+            ]
+        )
+
+    left_schema_flat_exploded = explode_schema_according_to_join_cols(left_df.schema)
+    right_schema_flat_exploded = explode_schema_according_to_join_cols(right_df.schema)
+
     left_schema: List[str] = _schema_to_string(left_schema_flat_exploded)
     right_schema: List[str] = _schema_to_string(right_schema_flat_exploded)
-
-    left_schema_flat = flatten_schema(left_df.schema, explode=False)
-    right_schema_flat = flatten_schema(right_df.schema, explode=False)
-    left_columns_flat: List[str] = [field.name for field in left_schema_flat.fields]
-    right_columns_flat: List[str] = [field.name for field in right_schema_flat.fields]
+    left_columns_flat: List[str] = [field.name for field in left_schema_flat_exploded.fields]
+    right_columns_flat: List[str] = [field.name for field in right_schema_flat_exploded.fields]
 
     diff_str = list(difflib.unified_diff(left_schema, right_schema, n=10000))[2:]
     column_names_diff = _diff_dataframe_column_names(left_columns_flat, right_columns_flat)

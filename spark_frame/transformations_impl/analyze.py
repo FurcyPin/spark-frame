@@ -212,7 +212,7 @@ def analyze(
     index_by_field = {field: index for index, field in enumerate(flat_fields)}
     analyzed_dfs = [
         _analyze_flat_df(flat_df.drop(*fields_to_drop), index_by_field, group_by=group, aggs=_aggs)
-        for flat_df in flattened_dfs
+        for flat_df in flattened_dfs.values()
     ]
 
     union_df = union_dataframes(*analyzed_dfs)

@@ -8,7 +8,14 @@ from pyspark.sql.types import ArrayType, DataType, MapType, StructType
 from spark_frame import fp
 from spark_frame.conf import MAP_KEY, MAP_MARKER, MAP_VALUE, REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.fp import PrintableFunction, higher_order
-from spark_frame.utils import AnalysisException, assert_true, group_by_key, quote, quote_columns
+from spark_frame.utils import (
+    AnalysisException,
+    assert_true,
+    group_by_key,
+    is_direct_sub_field_of_any,
+    quote,
+    substring_before_last_occurrence,
+)
 
 ColumnTransformation = Callable[[Optional[Column]], Column]
 AnyKindOfTransformation = Union[str, Column, ColumnTransformation, "PrintableFunction", None]
@@ -632,9 +639,27 @@ def resolve_nested_fields(
     return root_transformation([starting_level])
 
 
+def _get_deepest_unnested_field(col_names: List[str]) -> str:
+    """Given a list of field names, give the name of the deepest that has been unnested in that list.
+
+    >>> _get_deepest_unnested_field(['id1', 'id2'])
+    ''
+    >>> _get_deepest_unnested_field(['id1', 'id2', 's1!.id'])
+    's1'
+    >>> _get_deepest_unnested_field(['id1', 'id2', 's1!.id', 's1!.ss!'])
+    's1!.ss'
+
+    """
+    deepest = sorted(col_names, key=lambda s: s.count(REPETITION_MARKER))[-1]
+    if deepest.count(REPETITION_MARKER) == 0:
+        return ""
+    else:
+        return substring_before_last_occurrence(deepest, REPETITION_MARKER)
+
+
 def unnest_fields(
-    df: DataFrame, fields: Union[str, List[str]], keep_columns: Optional[List[str]] = None
-) -> List[DataFrame]:
+    df: DataFrame, fields: Union[str, List[str]], keep_fields: Optional[List[str]] = None
+) -> Dict[str, DataFrame]:
     """Given a DataFrame, return a list of DataFrames where all the specified columns have been recursively
     unnested (a.k.a. exploded). This produce one DataFrame for each possible granularity.
 
@@ -647,7 +672,7 @@ def unnest_fields(
     Args:
         df: A Spark DataFrame
         fields: One or several nested field names.
-        keep_columns:
+        keep_fields: Optional list of field names that should be kept while exploding the DataFrame.
 
     Returns:
         A list of DataFrames
@@ -673,28 +698,40 @@ def unnest_fields(
         |1  |[{2, [{3, 4}], [5, 6]}]|{7}|[[1, 2], [3, 4]]|[[{1, 2}], [{3, 4}]]|
         +---+-----------------------+---+----------------+--------------------+
         <BLANKLINE>
-        >>> for res_df in unnest_fields(df, ['id', 's2.f']): res_df.show()
+        >>> for cols, res_df in unnest_fields(df, ['id', 's2.f']).items():
+        ...     print(cols)
+        ...     res_df.show()
+        <BLANKLINE>
         +---+----+
         | id|s2.f|
         +---+----+
         |  1|   7|
         +---+----+
         <BLANKLINE>
-        >>> for res_df in unnest_fields(df, 's1!'): res_df.show(truncate=False)
+        >>> for cols, res_df in unnest_fields(df, 's1!').items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s1
         +---------------------+
         |s1!                  |
         +---------------------+
         |{2, [{3, 4}], [5, 6]}|
         +---------------------+
         <BLANKLINE>
-        >>> for res_df in unnest_fields(df, 's1!.b!'): res_df.show(truncate=False)
+        >>> for cols, res_df in unnest_fields(df, 's1!.b!').items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s1!.b
         +------+
         |s1!.b!|
         +------+
         |{3, 4}|
         +------+
         <BLANKLINE>
-        >>> for res_df in unnest_fields(df, 's1!.e!'): res_df.show(truncate=False)
+        >>> for cols, res_df in unnest_fields(df, 's1!.e!').items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s1!.e
         +------+
         |s1!.e!|
         +------+
@@ -702,14 +739,30 @@ def unnest_fields(
         |6     |
         +------+
         <BLANKLINE>
-        >>> for res_df in unnest_fields(df, 's1!.e'): res_df.show(truncate=False)
+        >>> for cols, res_df in unnest_fields(df, 's1!.e').items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s1
         +------+
         |s1!.e |
         +------+
         |[5, 6]|
         +------+
         <BLANKLINE>
-        >>> for res_df in unnest_fields(df, 's3!'): res_df.show(truncate=False)
+        >>> for cols, res_df in unnest_fields(df, ['s1!.b','s1!.e']).items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s1
+        +--------+------+
+        |s1!.b   |s1!.e |
+        +--------+------+
+        |[{3, 4}]|[5, 6]|
+        +--------+------+
+        <BLANKLINE>
+        >>> for cols, res_df in unnest_fields(df, 's3!').items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s3
         +------+
         |s3!   |
         +------+
@@ -717,7 +770,10 @@ def unnest_fields(
         |[3, 4]|
         +------+
         <BLANKLINE>
-        >>> for res_df in unnest_fields(df, 's3!!'): res_df.show(truncate=False)
+        >>> for cols, res_df in unnest_fields(df, 's3!!').items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s3!
         +----+
         |s3!!|
         +----+
@@ -729,25 +785,9 @@ def unnest_fields(
         <BLANKLINE>
 
         >>> from spark_frame import nested
-        >>> for res_df in unnest_fields(df, nested.fields(df), keep_columns=["id"]): res_df.show(truncate=False)
-        +---+-----+
-        |id |s1!.a|
-        +---+-----+
-        |1  |2    |
-        +---+-----+
-        <BLANKLINE>
-        +---+--------+--------+
-        |id |s1!.b!.c|s1!.b!.d|
-        +---+--------+--------+
-        |1  |3       |4       |
-        +---+--------+--------+
-        <BLANKLINE>
-        +---+------+
-        |id |s1!.e!|
-        +---+------+
-        |1  |5     |
-        |1  |6     |
-        +---+------+
+        >>> for cols, res_df in unnest_fields(df, nested.fields(df), keep_fields=["id"]).items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
         <BLANKLINE>
         +---+----+
         |id |s2.f|
@@ -755,6 +795,29 @@ def unnest_fields(
         |1  |7   |
         +---+----+
         <BLANKLINE>
+        s1
+        +---+-----+
+        |id |s1!.a|
+        +---+-----+
+        |1  |2    |
+        +---+-----+
+        <BLANKLINE>
+        s1!.b
+        +---+--------+--------+
+        |id |s1!.b!.c|s1!.b!.d|
+        +---+--------+--------+
+        |1  |3       |4       |
+        +---+--------+--------+
+        <BLANKLINE>
+        s1!.e
+        +---+------+
+        |id |s1!.e!|
+        +---+------+
+        |1  |5     |
+        |1  |6     |
+        +---+------+
+        <BLANKLINE>
+        s3!
         +---+----+
         |id |s3!!|
         +---+----+
@@ -764,6 +827,7 @@ def unnest_fields(
         |1  |4   |
         +---+----+
         <BLANKLINE>
+        s4!
         +---+------+------+
         |id |s4!!.e|s4!!.f|
         +---+------+------+
@@ -773,21 +837,36 @@ def unnest_fields(
         <BLANKLINE>
 
         Making sure keep_columns works with columns inside structs
-        >>> for res_df in unnest_fields(df, 's1!', keep_columns=["s2.f"]): res_df.show(truncate=False)
+        >>> for cols, res_df in unnest_fields(df, 's1!', keep_fields=["s2.f"]).items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s1
         +----+---------------------+
         |s2.f|s1!                  |
         +----+---------------------+
         |7   |{2, [{3, 4}], [5, 6]}|
         +----+---------------------+
         <BLANKLINE>
+
+        Making sure keep_columns works with columns inside arrays of structs
+        >>> for cols, res_df in unnest_fields(df, ['s1!.b!.c', 's1!.b!.d'], keep_fields=["s1!.a"]).items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        s1!.b
+        +-----+--------+--------+
+        |s1!.a|s1!.b!.c|s1!.b!.d|
+        +-----+--------+--------+
+        |2    |3       |4       |
+        +-----+--------+--------+
+        <BLANKLINE>
+
     """
-    if keep_columns is None:
+    if keep_fields is None:
         keep_columns_list = []
     else:
-        keep_columns_list = keep_columns
+        keep_columns_list = keep_fields
     if isinstance(fields, str):
         fields = [fields]
-    fields = [field for field in fields if field not in keep_columns_list]
 
     def recurse_node_with_multiple_items(
         node: OrderedTree,
@@ -827,7 +906,12 @@ def unnest_fields(
         elif key == REPETITION_MARKER:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type array with siblings")
             exploded_col = f.explode(f.col(quoted_prefix)).alias(prefix + key)
-            keep_cols = [f.col(keep_col).alias(keep_col) for keep_col in keep_columns_list]
+
+            keep_cols = [
+                f.col(keep_col).alias(keep_col)
+                for keep_col in keep_columns_list
+                if is_direct_sub_field_of_any(keep_col, current_df.columns) or keep_col in current_df.columns
+            ]
             new_df = current_df.select(*keep_cols, exploded_col)
             yield from recurse_node_with_one_item(
                 children, new_df, prefix=prefix + key, quoted_prefix=quote(prefix + key)
@@ -841,5 +925,15 @@ def unnest_fields(
     root_tree = _build_nested_struct_tree(col_dict)
     dataframe_and_columns = recurse_node_with_multiple_items(root_tree, df, prefix="", quoted_prefix="")
     grouped_res = group_by_key(dataframe_and_columns)
-    res = [df.select(*quote_columns(keep_columns_list), *cols) for df, cols in grouped_res.items()]
-    return res
+    res = [
+        df.select(
+            *[
+                quote(keep_col)
+                for keep_col in keep_columns_list
+                if keep_col in df.columns and keep_col not in df.select(*cols).columns
+            ],
+            *cols,
+        )
+        for df, cols in grouped_res.items()
+    ]
+    return {_get_deepest_unnested_field(df.columns): df for df in res}

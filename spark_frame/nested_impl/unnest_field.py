@@ -100,4 +100,4 @@ def unnest_field(df: DataFrame, field_name: str, keep_columns: Optional[List[str
     """
     if keep_columns is None:
         keep_columns = []
-    return unnest_fields(df, field_name, keep_columns=keep_columns)[0]
+    return next(iter(unnest_fields(df, field_name, keep_fields=keep_columns).values()))

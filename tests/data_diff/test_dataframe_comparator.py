@@ -29,4 +29,4 @@ def test_dataframe_comparator_is_deprecated(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is True
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats

@@ -59,18 +59,20 @@ def harmonize_dataframes(
         +---+---------------+
         <BLANKLINE>
     """
+    left_schema_flat = flatten_schema(left_df.schema, explode=True)
+    right_schema_flat = flatten_schema(right_df.schema, explode=True)
     if common_columns is None:
-        left_schema_flat = flatten_schema(left_df.schema, explode=True)
-        right_schema_flat = flatten_schema(right_df.schema, explode=True)
         common_columns = get_common_columns(left_schema_flat, right_schema_flat)
 
-    left_only_columns = []
-    right_only_columns = []
+    left_only_columns = {}
+    right_only_columns = {}
     if keep_missing_columns:
-        left_cols = set(left_df.columns)
-        right_cols = set(right_df.columns)
-        left_only_columns = [col for col in left_df.columns if col not in right_cols]
-        right_only_columns = [col for col in right_df.columns if col not in left_cols]
+        left_cols = [field.name for field in left_schema_flat.fields]
+        right_cols = [field.name for field in right_schema_flat.fields]
+        left_cols_set = set(left_cols)
+        right_cols_set = set(right_cols)
+        left_only_columns = {col: None for col in left_cols if col not in right_cols_set}
+        right_only_columns = {col: None for col in right_cols if col not in left_cols_set}
 
     def build_col(col_name: str, col_type: Optional[str]) -> PrintableFunction:
         parent_structs = _deepest_granularity(col_name)
@@ -82,10 +84,15 @@ def harmonize_dataframes(
         f2 = higher_order.recursive_struct_get(parent_structs)
         return fp.compose(f1, f2)
 
-    common_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in common_columns.items()}
-    tree = _build_nested_struct_tree(common_columns_dict)
-    root_transformation = _build_transformation_from_tree(tree)
+    left_columns = {**common_columns, **left_only_columns}
+    right_columns = {**common_columns, **right_only_columns}
+    left_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in left_columns.items()}
+    right_columns_dict = {col_name: build_col(col_name, col_type) for (col_name, col_type) in right_columns.items()}
+    left_tree = _build_nested_struct_tree(left_columns_dict)
+    right_tree = _build_nested_struct_tree(right_columns_dict)
+    left_root_transformation = _build_transformation_from_tree(left_tree)
+    right_root_transformation = _build_transformation_from_tree(right_tree)
     return (
-        left_df.select(*root_transformation([left_df]), *left_only_columns),
-        right_df.select(*root_transformation([right_df]), *right_only_columns),
+        left_df.select(*left_root_transformation([left_df])),
+        right_df.select(*right_root_transformation([right_df])),
     )
