@@ -3,7 +3,6 @@ from typing import List
 
 from pyspark.sql import DataFrame
 
-from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.data_diff.schema_diff import SchemaDiffResult
 
 
@@ -28,10 +27,10 @@ class DiffResultSummary:
     left_df_alias: str
     right_df_alias: str
     diff_per_col_df: DataFrame
-    diff_stats: DiffStats
 
     schema_diff_result: SchemaDiffResult
     join_cols: List[str]
     same_schema: bool
     same_data: bool
     is_ok: bool
+    total_nb_rows: int

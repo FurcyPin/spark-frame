@@ -38,7 +38,7 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
 
     assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
@@ -102,7 +102,7 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(spark: Spark
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
 
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 

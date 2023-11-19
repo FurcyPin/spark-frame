@@ -141,10 +141,12 @@ def flatten_schema(
     map_marker: str = MAP_MARKER,
     map_key: str = MAP_KEY,
     map_value: str = MAP_VALUE,
+    keep_non_leaf_fields: bool = False,
 ) -> StructType:
     """Transform a schema into a new schema where all structs have been flattened.
     The field names are kept, with a '.' separator for struct fields.
-    If `explode` option is set, arrays and maps are exploded as well.
+
+    If `explode` option is set, explode arrays and maps as well, in whih case:
 
     - Array names are appended with a '!' repetition marker
     - Map names are appended with '%key' for their keys and '%value' for their values
@@ -158,6 +160,7 @@ def flatten_schema(
         map_marker: String used to mark maps
         map_key: String used to represent map keys
         map_value: String used to represent map values
+        keep_non_leaf_fields: If set, the fields of type array or struct are also included in the result
 
     Returns:
         A flattened schema
@@ -172,6 +175,10 @@ def flatten_schema(
         'struct<id:int,s.a:int,s.b!.c:int,s.b!.d:int,s.b!.e!:int>'
         >>> flatten_schema(df.schema, explode=False).simpleString()
         'struct<id:int,s.a:int,s.b:array<struct<c:int,d:int,e:array<int>>>>'
+        >>> flatten_schema(df.schema, explode=True).fieldNames()
+        ['id', 's.a', 's.b!.c', 's.b!.d', 's.b!.e!']
+        >>> flatten_schema(df.schema, explode=True, keep_non_leaf_fields=True).fieldNames()
+        ['id', 's', 's.a', 's.b', 's.b!', 's.b!.c', 's.b!.d', 's.b!.e', 's.b!.e!']
 
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
@@ -182,32 +189,39 @@ def flatten_schema(
         'struct<id:int,m%key.a:int,m%value.b:int>'
         >>> flatten_schema(df.schema, explode=False).simpleString()
         'struct<id:int,m:map<struct<a:int>,struct<b:int>>>'
+
     """
 
     def flatten_data_type(
-        data_type: DataType, is_nullable: bool, metadata: Dict[str, str], prefix: str
+        data_type: DataType, nullable: bool, metadata: Dict[str, str], prefix: str
     ) -> Generator[StructField, None, None]:
         if isinstance(data_type, StructType):
-            yield from flatten_struct_type(data_type, is_nullable, prefix + struct_separator)
+            if keep_non_leaf_fields:
+                yield StructField(prefix, data_type, nullable, metadata)
+            yield from flatten_struct_type(data_type, nullable, prefix + struct_separator)
         elif isinstance(data_type, ArrayType) and explode:
+            if keep_non_leaf_fields:
+                yield StructField(prefix, data_type, nullable, metadata)
             yield from flatten_data_type(
-                data_type.elementType, is_nullable or data_type.containsNull, metadata, prefix + repetition_marker
+                data_type.elementType, nullable or data_type.containsNull, metadata, prefix + repetition_marker
             )
         elif isinstance(data_type, MapType) and explode:
-            yield from flatten_data_type(data_type.keyType, is_nullable, metadata, prefix + map_marker + map_key)
+            if keep_non_leaf_fields:
+                yield StructField(prefix, data_type, nullable, metadata)
+            yield from flatten_data_type(data_type.keyType, nullable, metadata, prefix + map_marker + map_key)
             yield from flatten_data_type(
                 data_type.valueType,
-                is_nullable or data_type.valueContainsNull,
+                nullable or data_type.valueContainsNull,
                 metadata,
                 prefix + map_marker + map_value,
             )
         else:
-            yield StructField(prefix, data_type, is_nullable, metadata)
+            yield StructField(prefix, data_type, nullable, metadata)
 
     def flatten_struct_type(
-        schema: StructType, previous_nullable: bool = False, prefix: str = ""
+        struct_type: StructType, previous_nullable: bool = False, prefix: str = ""
     ) -> Generator[StructField, None, None]:
-        for field in schema:
+        for field in struct_type:
             yield from flatten_data_type(
                 field.dataType, previous_nullable or is_nullable(field), field.metadata, prefix + field.name
             )

@@ -1,11 +1,10 @@
-from typing import List, Optional
+from typing import List
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as f
 
 from spark_frame import nested
-from spark_frame.data_diff.diff_results import DiffResult
-from spark_frame.data_diff.package import STRUCT_SEPARATOR_REPLACEMENT
+from spark_frame.data_diff.special_characters import _restore_special_characters_from_col
 
 
 def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
@@ -32,7 +31,7 @@ def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
         <BLANKLINE>
     """
     col_df = spark.createDataFrame(list(enumerate(columns)), "column_number INT, column_name STRING").withColumn(
-        "column_name", f.regexp_replace(f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, ".")
+        "column_name", _restore_special_characters_from_col(f.col("column_name"))
     )
     return col_df
 
@@ -108,7 +107,7 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
         >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
         >>> spark = diff_result.top_per_col_state_df.sparkSession
-        >>> columns = diff_result.diff_df.columns[:-2]
+        >>> columns = diff_result.schema_diff_result.column_names
         >>> col_df = _get_col_df(columns, spark)
         >>> pivoted_df = _get_pivoted_df(diff_result.top_per_col_state_df, max_nb_rows_per_col_state=10)
         >>> col_df.show()
@@ -214,11 +213,9 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
 
 
 def _get_diff_per_col_df(
-    diff_result: DiffResult,
-    max_nb_rows_per_col_state: int,
-    top_per_col_state_df: Optional[DataFrame] = None,
+    top_per_col_state_df: DataFrame, columns: List[str], max_nb_rows_per_col_state: int
 ) -> DataFrame:
-    """Given a DiffResult, return a DataFrame that gives for each column and each
+    """Given a top_per_col_state_df, return a DataFrame that gives for each column and each
     column state (changed, no_change, only_in_left, only_in_right) the total number of occurences
     and the most frequent occurrences.
 
@@ -227,9 +224,16 @@ def _get_diff_per_col_df(
         and Spark currently does not provide any way to perform a sort_by on an ARRAY<STRUCT>.
 
     Args:
-        diff_result: A DiffResult object
+        top_per_col_state_df: A DataFrame with the following columns
+            - column_name
+            - state
+            - left_value
+            - right_value
+            - nb
+            - col_state_total
+            - row_num
+        columns: The list of column names to use. The column ordering given by this list is preserved.
         max_nb_rows_per_col_state: The maximal size of the arrays in `diff`
-        top_per_col_state_df: An optional alternative DataFrame, used only for testing.
 
     Returns:
         A DataFrame with the following schema:
@@ -256,7 +260,8 @@ def _get_diff_per_col_df(
     Examples:
         >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
-        >>> diff_result.diff_df.show(truncate=False)  # noqa: E501
+        >>> diff_df = diff_result.diff_df_shards[""]
+        >>> diff_df.show(truncate=False)  # noqa: E501
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
@@ -296,7 +301,10 @@ def _get_diff_per_col_df(
         +-----------+-------------+----------+-----------+---+---------------+-------+
         <BLANKLINE>
 
-        >>> diff_per_col_df = _get_diff_per_col_df(diff_result, max_nb_rows_per_col_state=10)
+        >>> diff_per_col_df = _get_diff_per_col_df(
+        ...     diff_result.top_per_col_state_df,
+        ...     diff_result.schema_diff_result.column_names,
+        ...     max_nb_rows_per_col_state=10)
         >>> from spark_frame import nested
         >>> nested.print_schema(diff_per_col_df)
         root
@@ -331,9 +339,10 @@ def _get_diff_per_col_df(
 
         The following test demonstrates that the arrays in `diff`
         are not guaranteed to be sorted by decreasing frequency
-        >>> _get_diff_per_col_df(diff_result,
-        ...     max_nb_rows_per_col_state=10,
-        ...     top_per_col_state_df=diff_result.top_per_col_state_df.orderBy("nb")
+        >>> _get_diff_per_col_df(
+        ...     diff_result.top_per_col_state_df.orderBy("nb"),
+        ...     diff_result.schema_diff_result.column_names,
+        ...     max_nb_rows_per_col_state=10
         ... ).show(truncate=False)  # noqa: E501
         +-------------+-----------+---------------+----------------------------------------------------------+
         |column_number|column_name|counts         |diff                                                      |
@@ -346,13 +355,8 @@ def _get_diff_per_col_df(
         +-------------+-----------+---------------+----------------------------------------------------------+
         <BLANKLINE>
     """
-    if top_per_col_state_df is None:
-        _top_per_col_state_df = diff_result.top_per_col_state_df
-    else:
-        _top_per_col_state_df = top_per_col_state_df
-    spark = _top_per_col_state_df.sparkSession
-    columns = list(diff_result.schema_diff_result.column_names_diff.keys())
-    pivoted_df = _get_pivoted_df(_top_per_col_state_df, max_nb_rows_per_col_state)
+    spark = top_per_col_state_df.sparkSession
+    pivoted_df = _get_pivoted_df(top_per_col_state_df, max_nb_rows_per_col_state)
     col_df = _get_col_df(columns, spark)
     df = _format_diff_per_col_df(pivoted_df, col_df)
     return df

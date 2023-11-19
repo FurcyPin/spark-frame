@@ -5,7 +5,7 @@ from pyspark.sql import DataFrame
 from spark_frame.data_type_utils import flatten_schema
 
 
-def fields(df: DataFrame) -> List[str]:
+def fields(df: DataFrame, keep_non_leaf_fields: bool = False) -> List[str]:
     """Return the name of all the fields (including nested sub-fields) in the given DataFrame.
 
     - Structs are flattened with a `.` after their name.
@@ -21,6 +21,7 @@ def fields(df: DataFrame) -> List[str]:
 
     Args:
         df: A Spark DataFrame
+        keep_non_leaf_fields: If set, the fields of type array or struct are also included in the result
 
     Returns:
         The list of all flattened field names in this DataFrame
@@ -69,5 +70,26 @@ def fields(df: DataFrame) -> List[str]:
         s3!!
         s4!!.c
         s4!!.d
+        >>> for field in fields(df, keep_non_leaf_fields = True): print(field)
+        id
+        s1
+        s1!
+        s1!.a
+        s1!.b
+        s1!.b!
+        s1!.b!.c
+        s1!.b!.d
+        s1!.e
+        s1!.e!
+        s2
+        s2.f
+        s3
+        s3!
+        s3!!
+        s4
+        s4!
+        s4!!
+        s4!!.c
+        s4!!.d
     """
-    return [col.name for col in flatten_schema(df.schema, explode=True)]
+    return flatten_schema(df.schema, explode=True, keep_non_leaf_fields=keep_non_leaf_fields).fieldNames()

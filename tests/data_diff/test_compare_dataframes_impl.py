@@ -31,7 +31,7 @@ def test_compare_df_with_simplest(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is True
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -61,7 +61,7 @@ def test_compare_df_with_ordering(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is True
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -91,7 +91,7 @@ def test_compare_df_with_empty_dataframes(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is True
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -121,7 +121,7 @@ def test_compare_df_with_different_keys(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -151,7 +151,7 @@ def test_compare_df_with_structs(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
     analyzer = DiffResultAnalyzer()
@@ -186,7 +186,7 @@ def test_compare_df_with_struct_and_different_schemas(spark: SparkSession):
     )
     assert diff_result.same_schema is False
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -216,7 +216,7 @@ def test_compare_df_with_arrays(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is True
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
 
     diff_per_col_df = diff_result.get_diff_per_col_df(100)
     columns = diff_per_col_df.select("column_number", "column_name").sort("column_number")
@@ -264,7 +264,7 @@ def test_compare_df_with_empty_and_null_arrays(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -300,7 +300,7 @@ def test_compare_df_with_missing_empty_and_null_arrays(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
     analyzer = DiffResultAnalyzer()
@@ -334,7 +334,7 @@ def test_compare_df_with_arrays_of_structs_ok(spark: SparkSession):
     assert diff_result.same_schema is False
     assert diff_result.same_data is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -365,7 +365,137 @@ def test_compare_df_with_arrays_of_structs_not_ok(spark: SparkSession):
     assert diff_result.same_schema is False
     assert diff_result.same_data is False
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
+    diff_result.display()
+    export_diff_result_to_html(diff_result)
+
+
+def test_compare_df_with_multiple_arrays_of_structs_not_ok(spark: SparkSession):
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(
+                1 as id1,
+                1 as id2,
+                ARRAY(
+                    STRUCT(
+                        1 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    ),
+                    STRUCT(
+                        2 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    ),
+                    STRUCT(
+                        3 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    )
+                ) as s1,
+                ARRAY(
+                    STRUCT(1 as id, "a" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss),
+                    STRUCT(2 as id, "a" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss),
+                    STRUCT(3 as id, "a" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss)
+                ) as s2
+            ),
+            STRUCT(
+                2 as id1,
+                2 as id2,
+                ARRAY(
+                    STRUCT(
+                        1 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    ),
+                    STRUCT(
+                        2 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    ),
+                    STRUCT(
+                        3 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    )
+                ) as s1,
+                ARRAY(
+                    STRUCT(1 as id, "b" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss),
+                    STRUCT(2 as id, "b" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss),
+                    STRUCT(3 as id, "b" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss)
+                ) as s2
+            )
+        ))
+        """
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT(
+                1 as id1,
+                1 as id2,
+                ARRAY(
+                    STRUCT(
+                        1 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    ),
+                    STRUCT(
+                        2 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    ),
+                    STRUCT(
+                        3 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "c" as a)) as ss
+                    )
+                ) as s1,
+                ARRAY(
+                    STRUCT(1 as id, "a" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss),
+                    STRUCT(2 as id, "a" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss),
+                    STRUCT(3 as id, "a" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss)
+                ) as s2
+            ),
+            STRUCT(
+                2 as id1,
+                2 as id2,
+                ARRAY(
+                    STRUCT(
+                        1 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    ),
+                    STRUCT(
+                        2 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    ),
+                    STRUCT(
+                        3 as id,
+                        "a" as a,
+                        ARRAY(STRUCT(1 as id, "a" as a), STRUCT(2 as id, "b" as a)) as ss
+                    )
+                ) as s1,
+                ARRAY(
+                    STRUCT(1 as id, "b" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss),
+                    STRUCT(2 as id, "b" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss),
+                    STRUCT(3 as id, "b" as a, ARRAY(STRUCT(1 as id, "b" as a)) as ss)
+                ) as s2
+            )
+        ))
+        """
+    )
+    diff_result: DiffResult = compare_dataframes(df_1, df_2, join_cols=["id1", "id2", "s1!.id", "s1!.ss!.id"])
+    # expected_diff_stats = DiffStats(
+    #     total=3, no_change=2, changed=1, in_left=3, in_right=3, only_in_left=0, only_in_right=0
+    # )
+    assert diff_result.same_schema is True
+    diff_result.top_per_col_state_df.show(truncate=False)
+    assert diff_result.same_data is False
+    assert diff_result.is_ok is False
+    # assert diff_result.diff_stats[''] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -395,7 +525,7 @@ def test_compare_df_with_differing_types(spark: SparkSession):
     )
     assert diff_result.same_schema is False
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -422,7 +552,7 @@ def test_compare_df_when_flattened_column_name_collision(spark: SparkSession):
     assert diff_result.same_schema is True
     assert diff_result.same_data is True
     assert diff_result.is_ok is True
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -461,7 +591,7 @@ def test_compare_df_with_null_join_cols(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -491,7 +621,7 @@ def test_compare_df_with_disappearing_columns(spark: SparkSession):
     )
     assert diff_result.same_schema is False
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -521,7 +651,7 @@ def test_compare_df_with_appearing_columns(spark: SparkSession):
     )
     assert diff_result.same_schema is False
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -553,7 +683,7 @@ def test_compare_df_with_renamed_columns(spark: SparkSession):
     )
     assert diff_result.same_schema is False
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -585,7 +715,7 @@ def test_compare_df_with_renamed_columns_inside_structs(spark: SparkSession):
     )
     assert diff_result.same_schema is False
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
     diff_result.display()
     export_diff_result_to_html(diff_result)
 
@@ -647,7 +777,7 @@ def test_join_cols_should_not_be_displayed_first(spark: SparkSession):
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
-    assert diff_result.diff_stats == expected_diff_stats
+    assert diff_result.diff_stats_shards[""] == expected_diff_stats
 
     diff_per_col_df = diff_result.get_diff_per_col_df(100)
     columns = diff_per_col_df.select("column_number", "column_name").sort("column_number")

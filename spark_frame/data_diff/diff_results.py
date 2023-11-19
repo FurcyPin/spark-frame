@@ -1,11 +1,12 @@
 from functools import cached_property, lru_cache
-from typing import List, Optional, cast
+from typing import Dict, Generator, List, Optional, cast
 
 from pyspark.sql import DataFrame, Window
 from pyspark.sql import functions as f
 from pyspark.sql.types import StructType
 
 from spark_frame import transformations as df_transformations
+from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.data_diff.export import (
@@ -17,11 +18,13 @@ from spark_frame.data_diff.package import (
     EXISTS_COL_NAME,
     IS_EQUAL_COL_NAME,
     PREDICATES,
+    REPETITION_MARKER_REPLACEMENT,
     STRUCT_SEPARATOR_REPLACEMENT,
     canonize_col,
 )
 from spark_frame.data_diff.schema_diff import DiffPrefix, SchemaDiffResult
-from spark_frame.utils import quote
+from spark_frame.transformations import union_dataframes
+from spark_frame.utils import quote, substring_before_last_occurrence
 
 
 def _unpivot(diff_df: DataFrame) -> DataFrame:
@@ -70,7 +73,12 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
 
     unpivoted_df = df_transformations.unpivot(diff_df, pivot_columns=[], key_alias="column_name", value_alias="diff")
     unpivoted_df = unpivoted_df.withColumn(
-        "column_name", f.regexp_replace(f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, ".")
+        "column_name",
+        f.regexp_replace(
+            f.regexp_replace(f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, STRUCT_SEPARATOR),
+            REPETITION_MARKER_REPLACEMENT,
+            REPETITION_MARKER,
+        ),
     )
     return unpivoted_df
 
@@ -79,13 +87,13 @@ class DiffResult:
     def __init__(
         self,
         schema_diff_result: SchemaDiffResult,
-        diff_df: DataFrame,
+        diff_df_shards: Dict[str, DataFrame],
         join_cols: List[str],
     ) -> None:
         """Class containing the results of a diff between two DataFrames"""
-        self.schema_diff_result = schema_diff_result
-        self.diff_df = diff_df
-        """A Spark DataFrame with the following schema:
+        self.schema_diff_result: SchemaDiffResult = schema_diff_result
+        self.diff_df_shards: Dict[str, DataFrame] = diff_df_shards
+        """A list of Spark DataFrames with the following schema:
 
         - All columns from join_cols
         - For all other common columns in the diffed Dataframe:
@@ -93,35 +101,43 @@ class DiffResult:
         - A Column `__EXISTS__: STRUCT<left_value, right_value>`
         - A Column `__IS_EQUAL__: BOOLEAN`
         """
-        self.join_cols = join_cols
+        self.join_cols: List[str] = join_cols
         """The list of column names to join"""
 
     @property
     def same_schema(self) -> bool:
         return self.schema_diff_result.same_schema
 
-    @property
+    @cached_property
     def same_data(self) -> bool:
-        return self.diff_stats.same_data
+        return self.top_per_col_state_df.where(f.col("state") != f.lit("no_change")).isEmpty()
+
+    @cached_property
+    def total_nb_rows(self) -> int:
+        a_join_col = [col for col in self.join_cols if REPETITION_MARKER not in col][0]
+        return self.top_per_col_state_df.where(f.col("column_name") == f.lit(a_join_col)).count()
 
     @property
     def is_ok(self) -> bool:
         return self.same_schema and self.same_data
 
     @cached_property
-    def diff_stats(self) -> DiffStats:
+    def diff_stats_shards(self) -> Dict[str, DiffStats]:
         return self._compute_diff_stats()
 
     @cached_property
     def top_per_col_state_df(self) -> DataFrame:
-        return self._compute_top_per_col_state_df().localCheckpoint()
+        def generate() -> Generator[DataFrame, None, None]:
+            for key, diff_df in self.diff_df_shards.items():
+                keep_cols = [
+                    col_name
+                    for col_name in self.schema_diff_result.column_names
+                    if substring_before_last_occurrence(col_name, "!.") == key
+                ]
+                df = self._compute_top_per_col_state_df(diff_df)
+                yield df.where(f.col("column_name").isin(keep_cols))
 
-    @cached_property
-    def changed_df(self) -> DataFrame:
-        """The DataFrame containing all rows that were found in both DataFrames but are not equal"""
-        return self.diff_df.filter(PREDICATES.present_in_both & PREDICATES.row_changed).drop(
-            EXISTS_COL_NAME, IS_EQUAL_COL_NAME
-        )
+        return union_dataframes(*generate()).localCheckpoint()
 
     @lru_cache()
     def get_diff_per_col_df(self, max_nb_rows_per_col_state: int) -> DataFrame:
@@ -162,7 +178,7 @@ class DiffResult:
         Examples:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
             >>> diff_result = _get_test_diff_result()
-            >>> diff_result.diff_df.show(truncate=False)  # noqa: E501
+            >>> diff_result.diff_df_shards[''].show(truncate=False)  # noqa: E501
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
             |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
@@ -238,15 +254,17 @@ class DiffResult:
         from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
 
         return _get_diff_per_col_df(
-            self, max_nb_rows_per_col_state=max_nb_rows_per_col_state, top_per_col_state_df=None
+            top_per_col_state_df=self.top_per_col_state_df,
+            columns=self.schema_diff_result.column_names,
+            max_nb_rows_per_col_state=max_nb_rows_per_col_state,
         ).localCheckpoint()
 
-    def _compute_diff_stats(self) -> DiffStats:
+    def _compute_diff_stats_shard(self, diff_df_shard: DataFrame) -> DiffStats:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
 
         >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
-        >>> diff_result.diff_df.select('__EXISTS__', '__IS_EQUAL__').show()
+        >>> diff_result.diff_df_shards[''].select('__EXISTS__', '__IS_EQUAL__').show()
         +-------------+------------+
         |   __EXISTS__|__IS_EQUAL__|
         +-------------+------------+
@@ -258,10 +276,10 @@ class DiffResult:
         |{false, true}|       false|
         +-------------+------------+
         <BLANKLINE>
-        >>> diff_result._compute_diff_stats()
+        >>> diff_result._compute_diff_stats()['']
         DiffStats(total=6, no_change=1, changed=3, in_left=5, in_right=5, only_in_left=1, only_in_right=1)
         """
-        res_df = self.diff_df.select(
+        res_df = diff_df_shard.select(
             f.count(f.lit(1)).alias("total"),
             f.sum(f.when(PREDICATES.present_in_both & PREDICATES.row_is_equal, f.lit(1)).otherwise(f.lit(0))).alias(
                 "no_change"
@@ -277,8 +295,32 @@ class DiffResult:
         res = res_df.collect()
         return DiffStats(**{k: (v if v is not None else 0) for k, v in res[0].asDict().items()})
 
-    def _compute_top_per_col_state_df(self) -> DataFrame:
-        """Given a diff_df and its list of join_cols, return a DataFrame with the following properties:
+    def _compute_diff_stats(self) -> Dict[str, DiffStats]:
+        """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
+
+        >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+        >>> diff_result = _get_test_diff_result()
+        >>> diff_result.diff_df_shards[''].select('__EXISTS__', '__IS_EQUAL__').show()
+        +-------------+------------+
+        |   __EXISTS__|__IS_EQUAL__|
+        +-------------+------------+
+        | {true, true}|        true|
+        | {true, true}|       false|
+        | {true, true}|       false|
+        | {true, true}|       false|
+        |{true, false}|       false|
+        |{false, true}|       false|
+        +-------------+------------+
+        <BLANKLINE>
+        >>> diff_result._compute_diff_stats()['']
+        DiffStats(total=6, no_change=1, changed=3, in_left=5, in_right=5, only_in_left=1, only_in_right=1)
+        """
+        return {
+            key: self._compute_diff_stats_shard(diff_df_shard) for key, diff_df_shard in self.diff_df_shards.items()
+        }
+
+    def _compute_top_per_col_state_df(self, diff_df: DataFrame) -> DataFrame:
+        """Given a diff_df, return a DataFrame with the following properties:
 
         - One row per tuple (column_name, state, left_value, right_value)
           (where `state` can take the following values: "only_in_left", "only_in_right", "no_change", "changed")
@@ -287,13 +329,11 @@ class DiffResult:
         - A column `col_state_total` that gives the corresponding sum for the tuple (column_name, state)
           before filtering the rows
 
-        Returns:
-            A Dataframe
-
         Examples:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
             >>> _diff_result = _get_test_diff_result()
-            >>> _diff_result.diff_df.show(truncate=False)  # noqa: E501
+            >>> diff_df = _diff_result.diff_df_shards['']
+            >>> diff_df.show(truncate=False)  # noqa: E501
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
             |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
@@ -305,7 +345,7 @@ class DiffResult:
             |{NULL, 6, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 3, false, false, true}    |{false, true}|false       |
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
             <BLANKLINE>
-            >>> (_diff_result._compute_top_per_col_state_df()
+            >>> (_diff_result._compute_top_per_col_state_df(diff_df)
             ...  .orderBy("column_name", "state", "left_value", "right_value")
             ... ).show(100)
             +-----------+-------------+----------+-----------+---+---------------+-------+
@@ -335,7 +375,6 @@ class DiffResult:
             +-----------+-------------+----------+-----------+---+---------------+-------+
             <BLANKLINE>
         """
-        diff_df = self.diff_df
         unpivoted_diff_df = _unpivot(diff_df.drop(IS_EQUAL_COL_NAME, EXISTS_COL_NAME))
 
         only_in_left = f.col("diff")["exists_left"] & ~f.col("diff")["exists_right"]
@@ -422,7 +461,7 @@ def _get_test_diff_result() -> "DiffResult":
         right_schema_str="",
         column_names_diff=column_names_diff,
     )
-    return DiffResult(schema_diff_result, diff_df=_diff_df, join_cols=["id"])
+    return DiffResult(schema_diff_result, diff_df_shards={"": _diff_df}, join_cols=["id"])
 
 
 def _get_test_intersection_diff_df() -> DataFrame:

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pyspark.sql import DataFrame
 
@@ -7,8 +7,9 @@ from spark_frame.nested_impl.package import unnest_fields
 from spark_frame.utils import is_sub_field_or_equal_to_any
 
 
-def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -> List[DataFrame]:
-    """Given a DataFrame, return a list of DataFrames where all arrays have been recursively unnested (a.k.a. exploded).
+def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -> Dict[str, DataFrame]:
+    """Given a DataFrame, return a dict of {granularity: DataFrame} where all arrays have been recursively
+    unnested (a.k.a. exploded).
     This produce one DataFrame for each possible granularity.
 
     For instance, given a DataFrame with the following flattened schema:
@@ -20,11 +21,11 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
         s4!.e
         s4!.f
 
-    This will return four DataFrames containing the following unnested columns:
-        - id, s1.a
-        - s2!.b, s2!.c
-        - s2!.s3!.d
-        - s4!.e, s4!.f
+    This will produce a dict with four granularity - DataFrames entries:
+        - '': DataFrame[id, s1.a] ('' corresponds to the root granularity)
+        - 's2': DataFrame[s2!.b, s2!.c]
+        - 's2!.s3': DataFrame[s2!.s3!.d]
+        - 's4': DataFrame[s4!.e, s4!.f]
 
     !!! warning "Limitation: Maps are not unnested"
         - Fields of type Maps are not unnested by this method.
@@ -60,19 +61,24 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
         >>> nested.fields(df)
         ['id', 's1.a', 's2!.b', 's2!.c', 's2!.s3!.d', 's4!.e', 's4!.f']
         >>> result_df_list = nested.unnest_all_fields(df, keep_columns=["id"])
-        >>> for result_df in result_df_list: result_df.show()
+        >>> for cols, result_df in result_df_list.items():
+        ...     print(cols)
+        ...     result_df.show()
+        <BLANKLINE>
         +---+----+
         | id|s1.a|
         +---+----+
         |  1|   2|
         +---+----+
         <BLANKLINE>
+        s2
         +---+-----+-----+
         | id|s2!.b|s2!.c|
         +---+-----+-----+
         |  1|    3|    4|
         +---+-----+-----+
         <BLANKLINE>
+        s2!.s3
         +---+---------+
         | id|s2!.s3!.d|
         +---+---------+
@@ -80,6 +86,7 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
         |  1|        6|
         +---+---------+
         <BLANKLINE>
+        s4
         +---+-----+-----+
         | id|s4!.e|s4!.f|
         +---+-----+-----+
@@ -91,4 +98,4 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
     if keep_columns is None:
         keep_columns = []
     fields_to_unnest = [field for field in nested.fields(df) if not is_sub_field_or_equal_to_any(field, keep_columns)]
-    return unnest_fields(df, fields_to_unnest, keep_columns=keep_columns)
+    return unnest_fields(df, fields_to_unnest, keep_fields=keep_columns)
