@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
@@ -23,7 +23,9 @@ def _diff_nb_col() -> Column:
 
 
 class DiffResultAnalyzer:
-    def __init__(self, diff_format_options: DiffFormatOptions = DiffFormatOptions()) -> None:
+    def __init__(self, diff_format_options: Optional[DiffFormatOptions] = None) -> None:
+        if diff_format_options is None:
+            diff_format_options = DiffFormatOptions()
         self.diff_format_options = diff_format_options
 
     def _format_diff_df(self, join_cols: List[str], diff_df: DataFrame) -> DataFrame:

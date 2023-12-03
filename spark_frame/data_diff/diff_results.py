@@ -449,7 +449,7 @@ class DiffResult:
     def display(
         self,
         show_examples: bool = False,
-        diff_format_options: DiffFormatOptions = DiffFormatOptions(),
+        diff_format_options: Optional[DiffFormatOptions] = None,
     ) -> None:
         """Print a summary of the results in the standard output
 
@@ -457,6 +457,8 @@ class DiffResult:
             show_examples: If true, display example of rows for each type of change
             diff_format_options: Formatting options
         """
+        if diff_format_options is None:
+            diff_format_options = DiffFormatOptions()
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
         self.schema_diff_result.display()
@@ -468,7 +470,7 @@ class DiffResult:
         title: Optional[str] = None,
         output_file_path: str = DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
         encoding: str = DEFAULT_HTML_REPORT_ENCODING,
-        diff_format_options: DiffFormatOptions = DiffFormatOptions(),
+        diff_format_options: Optional[DiffFormatOptions] = None,
     ) -> None:
         """Generate an HTML report of this diff result.
 
@@ -481,6 +483,8 @@ class DiffResult:
             output_file_path: Path of the file to write to
             diff_format_options: Formatting options
         """
+        if diff_format_options is None:
+            diff_format_options = DiffFormatOptions()
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
         analyzer = DiffResultAnalyzer(diff_format_options)
