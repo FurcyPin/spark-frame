@@ -47,7 +47,7 @@ select = [
     "TD",
     "FIX",
     "ERA",
-    "PD",
+#    "PD", # pandas-vet: has checks on pandas.DataFrame that trigger on spark.DataFrame and don't make sense on spark
     "PGH",
     "PL",
     "TRY",
@@ -67,6 +67,7 @@ ignore = [
     # Naming the return argument before returning it is makes the code more readable and easier to debug.
 
     "RET505", # Unnecessary `else` after `return` statement
+    "RET506", # Unnecessary `else` after `raise` statement
     # I find the functionnal-programming version less confusing than the imperative version:
     #
     # # Functionnal-programming version:
@@ -95,9 +96,6 @@ ignore = [
     "FBT002", # Boolean default positional argument in function definition
     # These rules makes sense but there are several cases where working around it makes the code more confusing than less
     # Plus, the spark API does not follow this rule already (for instance, df.show(10, true) works)
-
-    "PD901", # Avoid using the generic variable name `df` for DataFrames:
-    # This rule makes less sense when writing functions that handle generic DataFrames
 
     "ANN101", # Missing type annotation for `self` in method
     # This rule is not necessary when self is automatically infered by smart type checkers
