@@ -6,7 +6,10 @@ from pyspark.sql import functions as f
 from spark_frame import fp
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.fp import PrintableFunction, higher_order
-from spark_frame.nested_impl.package import _split_string_and_keep_separator, validate_nested_field_names
+from spark_frame.nested_impl.package import (
+    _split_string_and_keep_separator,
+    validate_nested_field_names,
+)
 from spark_frame.utils import StringOrColumn, assert_true
 
 
@@ -21,7 +24,9 @@ def _split_field_name(field_name: str) -> List[str]:
     def aux() -> Generator[str, None, None]:
         current_alias: Optional[str] = field_name
         while current_alias is not None and len(current_alias) > 0:
-            node_col, child_col = _split_string_and_keep_separator(current_alias, STRUCT_SEPARATOR, REPETITION_MARKER)
+            node_col, child_col = _split_string_and_keep_separator(
+                current_alias, STRUCT_SEPARATOR, REPETITION_MARKER
+            )
             if child_col is not None and node_col == "":
                 node_col = child_col[0]
                 child_col = child_col[1:]
@@ -78,7 +83,7 @@ def aggregate(
          |-- projects!.tasks!.name: string (nullable = true)
          |-- projects!.tasks!.estimate: long (nullable = true)
         <BLANKLINE>
-        >>> employee_df.withColumn("projects", f.to_json("projects.tasks")).show(truncate=False)  # noqa: E501
+        >>> employee_df.withColumn("projects", f.to_json("projects.tasks")).show(truncate=False)
         +-----------+----------+---+-----------------------------------------------------------------------------------------------------------------------------------+
         |employee_id|name      |age|projects                                                                                                                           |
         +-----------+----------+---+-----------------------------------------------------------------------------------------------------------------------------------+
@@ -125,7 +130,7 @@ def aggregate(
         |1          |Jane Doe  |25 |46                 |[{33}, {13}]|
         +-----------+----------+---+-------------------+------------+
         <BLANKLINE>
-    """
+    """  # noqa: E501
     validate_nested_field_names(field_name, allow_maps=False)
     agg_merge = PrintableFunction(
         lambda a: f.aggregate(a, initial_value, merge),
@@ -155,7 +160,9 @@ def aggregate(
         else:
             child_transformation = agg_start
         if is_struct:
-            assert_true(has_children, "Error, this should not happen: struct without children")
+            assert_true(
+                has_children, "Error, this should not happen: struct without children"
+            )
             return child_transformation
         elif is_repeated:
             return fp.compose(agg_merge, higher_order.transform(child_transformation))
@@ -342,6 +349,8 @@ def _get_sample_data() -> DataFrame:
     }
     """
     schema = schema_from_json(json_schema)
-    df = raw_df.withColumn("value", f.from_json(f.col("value"), schema)).select("value.*")
+    df = raw_df.withColumn("value", f.from_json(f.col("value"), schema)).select(
+        "value.*"
+    )
     employee_df = df.select(f.explode("employees").alias("value")).select("value.*")
     return employee_df

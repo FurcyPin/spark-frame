@@ -137,7 +137,7 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
          |    |    |    |-- string: string (nullable = true)
          |    |    |    |-- timestamp: timestamp (nullable = true)
         <BLANKLINE>
-        >>> res.show(10, False) # noqa: E501
+        >>> res.show(10, False)
         +---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
         |id |person.struct                                                                                                                                                                                  |
         +---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -146,7 +146,7 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
         |3  |[{first.name, string, {NULL, NULL, NULL, NULL, NULL, Marie, NULL}}, {age, int, {NULL, NULL, NULL, NULL, 36, NULL, NULL}}, {is.an.adult, boolean, {true, NULL, NULL, NULL, NULL, NULL, NULL}}]  |
         +---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
         <BLANKLINE>
-    """
+    """  # noqa: E501
 
     source_to_cast = {
         "date": "date",
@@ -171,7 +171,9 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
     """Mapping indicating for each already cast Spark DataTypes the name of the corresponding field.
     When missing, the same name will be kept."""
 
-    name_cast = {cast_to_name.get(value, value): value for value in source_to_cast.values()}
+    name_cast = {
+        cast_to_name.get(value, value): value for value in source_to_cast.values()
+    }
     # We make sure the types are sorted
     name_cast = {k: v for k, v in sorted(name_cast.items())}
 
@@ -193,7 +195,9 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
         if cast_type is None:
             print(
                 "WARNING: The field {field_name} is of type {source_type} which is currently unsupported. "
-                "This field will be dropped.".format(field_name=field_name, source_type=source_type),
+                "This field will be dropped.".format(
+                    field_name=field_name, source_type=source_type
+                ),
             )
             return None
         name_type = cast_to_name.get(cast_type, cast_type)
@@ -204,7 +208,9 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
             # does not support column names with backquotes in them, but f.expr does :-p
             f.struct(
                 *[
-                    (f.expr(field_name) if name_type == name_t else f.lit(None)).astype(cast_t).alias(name_t)
+                    (f.expr(field_name) if name_type == name_t else f.lit(None))
+                    .astype(cast_t)
+                    .alias(name_t)
                     for name_t, cast_t in name_cast.items()
                 ],
             ).alias("value"),

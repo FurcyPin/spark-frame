@@ -6,7 +6,9 @@ from pyspark.sql import functions as f
 from spark_frame.nested_functions_impl.aggregate import aggregate
 
 
-def sum(field_name: str, starting_level: Union[Column, DataFrame, None] = None) -> Column:
+def sum(
+    field_name: str, starting_level: Union[Column, DataFrame, None] = None
+) -> Column:
     """Recursively compute the sum of all elements in the given repeated field.
 
     !!! warning "Limitation: Dots, percents, and exclamation marks are not supported in field names"
@@ -39,7 +41,7 @@ def sum(field_name: str, starting_level: Union[Column, DataFrame, None] = None) 
          |-- projects!.tasks!.name: string (nullable = true)
          |-- projects!.tasks!.estimate: long (nullable = true)
         <BLANKLINE>
-        >>> employee_df.withColumn("projects", f.to_json("projects.tasks")).show(truncate=False)  # noqa: E501
+        >>> employee_df.withColumn("projects", f.to_json("projects.tasks")).show(truncate=False)
         +-----------+----------+---+-----------------------------------------------------------------------------------------------------------------------------------+
         |employee_id|name      |age|projects                                                                                                                           |
         +-----------+----------+---+-----------------------------------------------------------------------------------------------------------------------------------+
@@ -65,7 +67,8 @@ def sum(field_name: str, starting_level: Union[Column, DataFrame, None] = None) 
         ...     "name": None,
         ...     "age": None,
         ...     "total_task_estimate": nf.sum("projects!.tasks!.estimate"),
-        ...     "projects!.task_estimate_per_project": lambda project: nf.sum("tasks!.estimate", starting_level=project),
+        ...     "projects!.task_estimate_per_project":
+        ...         lambda project: nf.sum("tasks!.estimate", starting_level=project),
         ... }).show(truncate=False)
         +-----------+----------+---+-------------------+------------+
         |employee_id|name      |age|total_task_estimate|projects    |
@@ -140,10 +143,15 @@ def sum(field_name: str, starting_level: Union[Column, DataFrame, None] = None) 
         | 10|
         +---+
         <BLANKLINE>
-    """
+    """  # noqa: E501
     initial_value = f.lit(0).cast("BIGINT")
 
     def merge(acc: Column, x: Column) -> Column:
         return acc + x
 
-    return aggregate(field_name, initial_value=initial_value, merge=merge, starting_level=starting_level)
+    return aggregate(
+        field_name,
+        initial_value=initial_value,
+        merge=merge,
+        starting_level=starting_level,
+    )

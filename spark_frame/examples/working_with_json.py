@@ -20,7 +20,7 @@ def extracting_json_values() -> None:
          |-- raw_input: string (nullable = true)
          |-- raw_output: string (nullable = true)
         <BLANKLINE>
-        >>> df.show(truncate=False)  # noqa: E501 # doctest: +NORMALIZE_WHITESPACE
+        >>> df.show(truncate=False) # doctest: +NORMALIZE_WHITESPACE
         +-------+-----------------------------------------------------------------------------+---------------------------------------------------------+
         |call_id|raw_input                                                                    |raw_output                                               |
         +-------+-----------------------------------------------------------------------------+---------------------------------------------------------+
@@ -111,7 +111,7 @@ def extracting_json_values() -> None:
 
         As we can see, the order of the field is different, this is because Spark's automatic inference will always
         sort the json field by names.
-    """
+    """  # noqa: E501
     # This is a hacky way to have doctests that runs in the pipeline and are usable in the doc thanks to mkdocstrings
 
 

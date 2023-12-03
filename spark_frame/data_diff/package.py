@@ -22,7 +22,9 @@ class Predicates:
 
     @property
     def present_in_both(self) -> Column:
-        return f.col(f"{EXISTS_COL_NAME}.left_value") & f.col(f"{EXISTS_COL_NAME}.right_value")
+        return f.col(f"{EXISTS_COL_NAME}.left_value") & f.col(
+            f"{EXISTS_COL_NAME}.right_value"
+        )
 
     @property
     def in_left(self) -> Column:
@@ -34,11 +36,15 @@ class Predicates:
 
     @property
     def only_in_left(self) -> Column:
-        return f.col(f"{EXISTS_COL_NAME}.left_value") & (f.col(f"{EXISTS_COL_NAME}.right_value") == f.lit(False))
+        return f.col(f"{EXISTS_COL_NAME}.left_value") & (
+            f.col(f"{EXISTS_COL_NAME}.right_value") == f.lit(False)
+        )
 
     @property
     def only_in_right(self) -> Column:
-        return (f.col(f"{EXISTS_COL_NAME}.left_value") == f.lit(False)) & f.col(f"{EXISTS_COL_NAME}.right_value")
+        return (f.col(f"{EXISTS_COL_NAME}.left_value") == f.lit(False)) & f.col(
+            f"{EXISTS_COL_NAME}.right_value"
+        )
 
     @property
     def row_is_equal(self) -> Column:
@@ -69,7 +75,7 @@ def canonize_col(col: Column, schema_field: StructField) -> Column:
 def _get_test_diff_df() -> DataFrame:
     """
     >>> from spark_frame.data_diff.package import _get_test_diff_df
-    >>> _get_test_diff_df().show(truncate=False)  # noqa: E501
+    >>> _get_test_diff_df().show(truncate=False)
     +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
     |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
     +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
@@ -81,7 +87,7 @@ def _get_test_diff_df() -> DataFrame:
     |{NULL, 6, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 3, false, false, true}    |{false, true}|false       |
     +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
     <BLANKLINE>
-    """
+    """  # noqa: E501
     from pyspark.sql import SparkSession
 
     spark = SparkSession.builder.appName("doctest").getOrCreate()

@@ -6,7 +6,9 @@ from pyspark.sql.types import DataType
 from spark_frame.nested_impl.package import build_transformation_from_schema
 
 
-def transform_all_fields(df: DataFrame, transformation: Callable[[Column, DataType], Optional[Column]]) -> DataFrame:
+def transform_all_fields(
+    df: DataFrame, transformation: Callable[[Column, DataType], Optional[Column]]
+) -> DataFrame:
     """Apply a transformation to all nested fields of a DataFrame.
 
     !!! info
@@ -66,13 +68,15 @@ def transform_all_fields(df: DataFrame, transformation: Callable[[Column, DataTy
          |-- s4!.a!: double (nullable = false)
          |-- s5!.a!.b.c: double (nullable = false)
         <BLANKLINE>
-        >>> new_df.show(truncate=False)  # noqa: E501
+        >>> new_df.show(truncate=False)
         +----+--------------+------------------------+------------------+----------------------------+--------------------------------------------+
         |name|s1            |s2                      |s3                |s4                          |s5                                          |
         +----+--------------+------------------------+------------------+----------------------------+--------------------------------------------+
         |John|[{1.0}, {2.0}]|[[1.0, 2.0], [3.0, 4.0]]|[[{1.0}], [{2.0}]]|[{[1.0, 2.0]}, {[3.0, 4.0]}]|[{[{{1.0}}, {{2.0}}]}, {[{{3.0}}, {{4.0}}]}]|
         +----+--------------+------------------------+------------------+----------------------------+--------------------------------------------+
         <BLANKLINE>
-    """
-    root_transformation = build_transformation_from_schema(df.schema, column_transformation=transformation)
+    """  # noqa: E501
+    root_transformation = build_transformation_from_schema(
+        df.schema, column_transformation=transformation
+    )
     return df.select(*root_transformation(df))
