@@ -84,7 +84,8 @@ def build_transformation_from_schema(
         else:
             res = higher_order.recursive_struct_get(parent_structs)
         col_transformation = PrintableFunction(
-            lambda c: column_transformation_with_fallback(c, data_type), lambda s: str(s)
+            lambda c: column_transformation_with_fallback(c, data_type),
+            lambda s: str(s),
         )
         return fp.compose(col_transformation, res)
 
@@ -191,7 +192,10 @@ def _build_nested_struct_tree(column_transformations: Mapping[str, Optional[AnyK
     """
 
     def rec_insert(
-        node: OrderedTree, alias: str, column: Optional[AnyKindOfTransformation], is_map: bool = False
+        node: OrderedTree,
+        alias: str,
+        column: Optional[AnyKindOfTransformation],
+        is_map: bool = False,
     ) -> None:
         node_col, child_col = _split_string_and_keep_separator(alias, STRUCT_SEPARATOR, REPETITION_MARKER, MAP_MARKER)
         if child_col is not None and node_col == "":
@@ -214,7 +218,8 @@ def _build_nested_struct_tree(column_transformations: Mapping[str, Optional[AnyK
 
 
 def _convert_transformation_to_printable_function(
-    transformation: AnyKindOfTransformation, parent_structs: List[str]
+    transformation: AnyKindOfTransformation,
+    parent_structs: List[str],
 ) -> PrintableFunction:
     """Transform any kind of column transformation (str, Column, Callable[[Column], Column], PrintableFunction)
     into a PrintableFunction.
@@ -278,7 +283,8 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
         return [recurse_item(node, key, col_or_children, parent_structs) for key, col_or_children in node.items()]
 
     def recurse_node_with_one_item(
-        col_or_children: Union[AnyKindOfTransformation, OrderedTree], parent_structs: List[str]
+        col_or_children: Union[AnyKindOfTransformation, OrderedTree],
+        parent_structs: List[str],
     ) -> PrintableFunction:
         has_children = isinstance(col_or_children, Dict)
         if has_children:
@@ -288,7 +294,8 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
             return recurse_item(node, key, col_or_children, parent_structs)
         else:
             return _convert_transformation_to_printable_function(
-                cast(AnyKindOfTransformation, col_or_children), parent_structs
+                cast(AnyKindOfTransformation, col_or_children),
+                parent_structs,
             )
 
     def recurse_item(
@@ -312,7 +319,8 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
             return res
         elif key == MAP_MARKER:
             [key_transformation, value_transformation] = recurse_node_with_multiple_items(
-                col_or_children, parent_structs=[]
+                col_or_children,
+                parent_structs=[],
             )
             res = higher_order.boxed_transform_map(key_transformation, value_transformation, parent_structs)
             return res
@@ -521,7 +529,9 @@ def validate_is_map_field_known(field_name: str, known_map_fields: Set[str]) -> 
 
 
 def validate_nested_field_names(
-    *field_names: str, allow_maps: bool = True, known_fields: Optional[List[str]] = None
+    *field_names: str,
+    allow_maps: bool = True,
+    known_fields: Optional[List[str]] = None,
 ) -> None:
     """Perform various checks on the given nested field names and raise an `spark_frame.utils.AnalysisException`
     if any is found.
@@ -658,7 +668,9 @@ def _get_deepest_unnested_field(col_names: List[str]) -> str:
 
 
 def unnest_fields(
-    df: DataFrame, fields: Union[str, List[str]], keep_fields: Optional[List[str]] = None
+    df: DataFrame,
+    fields: Union[str, List[str]],
+    keep_fields: Optional[List[str]] = None,
 ) -> Dict[str, DataFrame]:
     """Given a DataFrame, return a list of DataFrames where all the specified columns have been recursively
     unnested (a.k.a. exploded). This produce one DataFrame for each possible granularity.
@@ -878,7 +890,10 @@ def unnest_fields(
             yield from recurse_item(node, key, children, current_df, prefix, quoted_prefix)
 
     def recurse_node_with_one_item(
-        children: Optional[OrderedTree], current_df: DataFrame, prefix: str, quoted_prefix: str
+        children: Optional[OrderedTree],
+        current_df: DataFrame,
+        prefix: str,
+        quoted_prefix: str,
     ) -> Generator[Tuple[DataFrame, Column], None, None]:
         has_children = children is not None
         if has_children:
@@ -901,7 +916,10 @@ def unnest_fields(
             has_children = children is not None
             assert_true(has_children, "Error, this should not happen: struct without children")
             yield from recurse_node_with_multiple_items(
-                children, current_df, prefix=prefix + key, quoted_prefix=quoted_prefix + key
+                children,
+                current_df,
+                prefix=prefix + key,
+                quoted_prefix=quoted_prefix + key,
             )
         elif key == REPETITION_MARKER:
             assert_true(len(node) == 1, "Error, this should not happen: tree node of type array with siblings")
@@ -914,11 +932,17 @@ def unnest_fields(
             ]
             new_df = current_df.select(*keep_cols, exploded_col)
             yield from recurse_node_with_one_item(
-                children, new_df, prefix=prefix + key, quoted_prefix=quote(prefix + key)
+                children,
+                new_df,
+                prefix=prefix + key,
+                quoted_prefix=quote(prefix + key),
             )
         else:
             yield from recurse_node_with_one_item(
-                children, current_df, prefix=prefix + key, quoted_prefix=quoted_prefix + quote(key)
+                children,
+                current_df,
+                prefix=prefix + key,
+                quoted_prefix=quoted_prefix + quote(key),
             )
 
     col_dict = {col: None for col in fields}

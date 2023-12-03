@@ -193,7 +193,7 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
         if cast_type is None:
             print(
                 "WARNING: The field {field_name} is of type {source_type} which is currently unsupported. "
-                "This field will be dropped.".format(field_name=field_name, source_type=source_type)
+                "This field will be dropped.".format(field_name=field_name, source_type=source_type),
             )
             return None
         name_type = cast_to_name.get(cast_type, cast_type)
@@ -206,7 +206,7 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
                 *[
                     (f.expr(field_name) if name_type == name_t else f.lit(None)).astype(cast_t).alias(name_t)
                     for name_t, cast_t in name_cast.items()
-                ]
+                ],
             ).alias("value"),
         )
 

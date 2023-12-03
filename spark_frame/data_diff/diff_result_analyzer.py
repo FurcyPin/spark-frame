@@ -36,10 +36,10 @@ class DiffResultAnalyzer:
                 if col_name not in join_cols
                 for col in [
                     diff_df[quote(col_name)]["left_value"].alias(
-                        f"{self.diff_format_options.left_df_alias}__{col_name}"
+                        f"{self.diff_format_options.left_df_alias}__{col_name}",
                     ),
                     diff_df[quote(col_name)]["right_value"].alias(
-                        f"{self.diff_format_options.right_df_alias}__{col_name}"
+                        f"{self.diff_format_options.right_df_alias}__{col_name}",
                     ),
                 ]
             ],
@@ -106,7 +106,7 @@ class DiffResultAnalyzer:
                 .select(*join_cols, *[quote(r[0]) for r in rows])
             )
             self._format_diff_df(join_cols, rows_that_changed_for_that_column).show(
-                self.diff_format_options.nb_diffed_rows
+                self.diff_format_options.nb_diffed_rows,
             )
 
     def _get_diff_per_col_df(
@@ -258,7 +258,7 @@ class DiffResultAnalyzer:
     def display_diff_results(self, diff_result: DiffResult, show_examples: bool) -> None:
         join_cols = diff_result.join_cols
         diff_per_col_df = diff_result.get_diff_per_col_df(
-            max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows
+            max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows,
         )
         diff_stats_shards = diff_result.diff_stats_shards
         if diff_result.is_ok:
@@ -273,7 +273,7 @@ class DiffResultAnalyzer:
             print(
                 "WARNING: This diff has multiple granularity levels, "
                 "we will print the results for each granularity level,\n"
-                "         but we recommend to export the results to html for a much more digest result.\n"
+                "         but we recommend to export the results to html for a much more digest result.\n",
             )
 
         for key, diff_stats_shard in diff_stats_shards.items():
@@ -298,7 +298,7 @@ class DiffResultAnalyzer:
 
     def get_diff_result_summary(self, diff_result: DiffResult) -> DiffResultSummary:
         diff_per_col_df = diff_result.get_diff_per_col_df(
-            max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows
+            max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows,
         )
         summary = DiffResultSummary(
             left_df_alias=self.diff_format_options.left_df_alias,

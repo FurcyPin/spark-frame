@@ -18,7 +18,7 @@ def test_with_fields(spark: SparkSession):
         STRUCT(7 as f) as s2,
         ARRAY(ARRAY(1, 2), ARRAY(3, 4)) as s3,
         ARRAY(ARRAY(STRUCT(1 as e, 2 as f)), ARRAY(STRUCT(3 as e, 4 as f))) as s4
-    """
+    """,
     )
     assert schema_string(df) == strip_margin(
         """
@@ -43,7 +43,7 @@ def test_with_fields(spark: SparkSession):
         | |    |    |-- element: struct (containsNull = false)
         | |    |    |    |-- e: integer (nullable = false)
         | |    |    |    |-- f: integer (nullable = false)
-        |"""
+        |""",
     )
     new_df = df.transform(nested.with_fields, {"s5.g": f.col("s2.f").cast("DOUBLE")})
     assert schema_string(new_df) == strip_margin(
@@ -71,5 +71,5 @@ def test_with_fields(spark: SparkSession):
         | |    |    |    |-- f: integer (nullable = false)
         | |-- s5: struct (nullable = false)
         | |    |-- g: double (nullable = false)
-        |"""
+        |""",
     )

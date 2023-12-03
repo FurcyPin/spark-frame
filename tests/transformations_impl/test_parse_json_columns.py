@@ -78,7 +78,7 @@ def test_parse_json_columns_with_empty_array(spark: SparkSession):
         [(1, '[{"a": 1}, {"a": 2}]'),
          (2, "[]"),
          (3, '[{"a": 3}, {"a": 6}]')],
-        "id INT, json1 STRING"
+        "id INT, json1 STRING",
     )
     df2 = transformations.parse_json_columns(df, ["json1"])
 
@@ -86,7 +86,7 @@ def test_parse_json_columns_with_empty_array(spark: SparkSession):
         [(1, [{"a": 1}, {"a": 2}]),
          (2, []),
          (3, [{"a": 3}, {"a": 6}])],
-        "id INT, json1 ARRAY<STRUCT<a: BIGINT>>"
+        "id INT, json1 ARRAY<STRUCT<a: BIGINT>>",
     )
     # fmt: on
 
@@ -104,7 +104,7 @@ def test_parse_json_columns_with_nulls(spark: SparkSession):
         [(1, '[{"a": 1}, {"a": 2}]'),
          (2, None),
          (3, '[{"a": 3}, {"a": 6}]')],
-        "id INT, json1 STRING"
+        "id INT, json1 STRING",
     )
     df2 = transformations.parse_json_columns(df, ["json1"])
 
@@ -112,7 +112,7 @@ def test_parse_json_columns_with_nulls(spark: SparkSession):
         [(1, [{"a": 1}, {"a": 2}]),
          (2, None),
          (3, [{"a": 3}, {"a": 6}])],
-        "id INT, json1 ARRAY<STRUCT<a: BIGINT>>"
+        "id INT, json1 ARRAY<STRUCT<a: BIGINT>>",
     )
     # fmt: on
 

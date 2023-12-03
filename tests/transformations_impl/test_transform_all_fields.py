@@ -7,7 +7,7 @@ from spark_frame import nested
 from spark_frame.transformations import transform_all_fields
 from spark_frame.utils import show_string, strip_margin
 
-WEIRD_CHARS = "_!:;,?./§*ù%µ$£&é" "(-è_çà)=#{[|^@]}"
+WEIRD_CHARS = "_!:;,?./§*ù%µ$£&é(-è_çà)=#{[|^@]}"
 
 
 def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
@@ -28,7 +28,7 @@ def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
                 STRUCT(STRUCT(4 as `c{WEIRD_CHARS}`) as `b{WEIRD_CHARS}`)
             ) `a{WEIRD_CHARS}`)
         ) as s5
-    """
+    """,
     )
     assert nested.schema_string(df) == strip_margin(
         f"""
@@ -39,7 +39,7 @@ def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
         | |-- s3!!.a{WEIRD_CHARS}: integer (nullable = false)
         | |-- s4!.a{WEIRD_CHARS}!: integer (nullable = false)
         | |-- s5!.a{WEIRD_CHARS}!.b{WEIRD_CHARS}.c{WEIRD_CHARS}: integer (nullable = false)
-        |"""
+        |""",
     )
     assert show_string(df, truncate=False) == strip_margin(
         """
@@ -48,7 +48,7 @@ def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
         |+----+----------+----------------+--------------+--------------------+------------------------------------+
         ||John|[{1}, {2}]|[[1, 2], [3, 4]]|[[{1}], [{2}]]|[{[1, 2]}, {[3, 4]}]|[{[{{1}}, {{2}}]}, {[{{3}}, {{4}}]}]|
         |+----+----------+----------------+--------------+--------------------+------------------------------------+
-        |"""
+        |""",
     )
 
     def cast_int_as_double(col: Column, data_type: DataType) -> Optional[Column]:
@@ -65,7 +65,7 @@ def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
         | |-- s3!!.a{WEIRD_CHARS}: double (nullable = false)
         | |-- s4!.a{WEIRD_CHARS}!: double (nullable = false)
         | |-- s5!.a{WEIRD_CHARS}!.b{WEIRD_CHARS}.c{WEIRD_CHARS}: double (nullable = false)
-        |"""
+        |""",
     )
     assert show_string(actual.select("name", "s1", "s2", "s3"), truncate=False) == strip_margin(
         """
@@ -74,7 +74,7 @@ def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
         |+----+--------------+------------------------+------------------+
         ||John|[{1.0}, {2.0}]|[[1.0, 2.0], [3.0, 4.0]]|[[{1.0}], [{2.0}]]|
         |+----+--------------+------------------------+------------------+
-        |"""
+        |""",
     )
     assert show_string(actual.select("name", "s4", "s5"), truncate=False) == strip_margin(
         """
@@ -83,7 +83,7 @@ def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
         |+----+----------------------------+--------------------------------------------+
         ||John|[{[1.0, 2.0]}, {[3.0, 4.0]}]|[{[{{1.0}}, {{2.0}}]}, {[{{3.0}}, {{4.0}}]}]|
         |+----+----------------------------+--------------------------------------------+
-        |"""
+        |""",
     )
 
 
@@ -93,7 +93,7 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
         "John" as `name{WEIRD_CHARS}`,
         MAP(1, 2) as `m1{WEIRD_CHARS}`,
         MAP(STRUCT(1 as `a{WEIRD_CHARS}`), STRUCT(2 as `b{WEIRD_CHARS}`)) as `m2{WEIRD_CHARS}`
-    """
+    """,
     )
     assert nested.schema_string(df) == strip_margin(
         f"""
@@ -103,7 +103,7 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
         | |-- m1{WEIRD_CHARS}%value: integer (nullable = false)
         | |-- m2{WEIRD_CHARS}%key.a{WEIRD_CHARS}: integer (nullable = false)
         | |-- m2{WEIRD_CHARS}%value.b{WEIRD_CHARS}: integer (nullable = false)
-        |"""
+        |""",
     )
     renamed_df = (
         df.withColumnRenamed(f"name{WEIRD_CHARS}", "name")
@@ -117,7 +117,7 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
         |+----+--------+------------+
         ||John|{1 -> 2}|{{1} -> {2}}|
         |+----+--------+------------+
-        |"""
+        |""",
     )
 
     def cast_int_as_double(col: Column, data_type: DataType) -> Optional[Column]:
@@ -138,7 +138,7 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
         | |-- m1{WEIRD_CHARS}%value: double (nullable = false)
         | |-- m2{WEIRD_CHARS}%key.a{WEIRD_CHARS}: double (nullable = false)
         | |-- m2{WEIRD_CHARS}%value.b{WEIRD_CHARS}: double (nullable = false)
-        |"""
+        |""",
     )
     assert show_string(renamed_actual, truncate=False) == strip_margin(
         """
@@ -147,5 +147,5 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
         |+----+------------+----------------+
         ||John|{1.0 -> 2.0}|{{1.0} -> {2.0}}|
         |+----+------------+----------------+
-        |"""
+        |""",
     )

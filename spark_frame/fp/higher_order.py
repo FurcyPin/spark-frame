@@ -11,7 +11,7 @@ from spark_frame.utils import str_to_col as _str_to_col
 
 def alias(name: str) -> PrintableFunction:
     """Return a PrintableFunction version of the `pyspark.sql.Column.alias` method"""
-    return PrintableFunction(lambda s: s.alias(name), lambda s: str(s) + f".alias({repr(name)})")
+    return PrintableFunction(lambda s: s.alias(name), lambda s: str(s) + f".alias({name!r})")
 
 
 identity = PrintableFunction(lambda s: s, lambda s: str(s))
@@ -44,9 +44,9 @@ def struct_get(key: str) -> PrintableFunction:
 
     def _safe_struct_get_alias(s: Optional[str], field: str) -> str:
         if s is None:
-            return f"f.col({repr(field)})"
+            return f"f.col({field!r})"
         else:
-            return f"{s}[{repr(field)}]"
+            return f"{s}[{field!r}]"
 
     return PrintableFunction(lambda s: _safe_struct_get(s, key), lambda s: _safe_struct_get_alias(s, key))
 
@@ -118,7 +118,9 @@ def boxed_transform(transformation: PrintableFunction, parents: List[str]) -> Pr
 
 
 def boxed_transform_map(
-    key_transformation: PrintableFunction, value_transformation: PrintableFunction, parents: List[str]
+    key_transformation: PrintableFunction,
+    value_transformation: PrintableFunction,
+    parents: List[str],
 ) -> PrintableFunction:
     """Return a PrintableFunction version of the `pyspark.sql.functions.transform_keys` method,
     which applies the given transformation to any array column.

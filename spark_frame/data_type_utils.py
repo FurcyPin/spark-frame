@@ -119,12 +119,13 @@ def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:
     sc = spark.sparkContext
 
     def _to_java_type(t: DataType) -> object:
-        return getattr(spark, "_jsparkSession").parseDataType(t.json())
+        return spark._jsparkSession.parseDataType(t.json())
 
     jt1 = _to_java_type(t1)
     jt2 = _to_java_type(t2)
     j_type_coercion = getattr(
-        getattr(getattr(sc, "_jvm").org.apache.spark.sql.catalyst.analysis, "TypeCoercion$"), "MODULE$"
+        getattr(sc._jvm.org.apache.spark.sql.catalyst.analysis, "TypeCoercion$"),
+        "MODULE$",
     )
     wider_type = j_type_coercion.findWiderTypeForTwo(jt1, jt2)
     if wider_type.nonEmpty():
@@ -193,7 +194,10 @@ def flatten_schema(
     """
 
     def flatten_data_type(
-        data_type: DataType, nullable: bool, metadata: Dict[str, str], prefix: str
+        data_type: DataType,
+        nullable: bool,
+        metadata: Dict[str, str],
+        prefix: str,
     ) -> Generator[StructField, None, None]:
         if isinstance(data_type, StructType):
             if keep_non_leaf_fields:
@@ -203,7 +207,10 @@ def flatten_schema(
             if keep_non_leaf_fields:
                 yield StructField(prefix, data_type, nullable, metadata)
             yield from flatten_data_type(
-                data_type.elementType, nullable or data_type.containsNull, metadata, prefix + repetition_marker
+                data_type.elementType,
+                nullable or data_type.containsNull,
+                metadata,
+                prefix + repetition_marker,
             )
         elif isinstance(data_type, MapType) and explode:
             if keep_non_leaf_fields:
@@ -219,11 +226,16 @@ def flatten_schema(
             yield StructField(prefix, data_type, nullable, metadata)
 
     def flatten_struct_type(
-        struct_type: StructType, previous_nullable: bool = False, prefix: str = ""
+        struct_type: StructType,
+        previous_nullable: bool = False,
+        prefix: str = "",
     ) -> Generator[StructField, None, None]:
         for field in struct_type:
             yield from flatten_data_type(
-                field.dataType, previous_nullable or is_nullable(field), field.metadata, prefix + field.name
+                field.dataType,
+                previous_nullable or is_nullable(field),
+                field.metadata,
+                prefix + field.name,
             )
 
     return StructType(list(flatten_struct_type(schema)))

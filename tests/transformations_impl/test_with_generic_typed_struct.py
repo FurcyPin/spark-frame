@@ -28,7 +28,7 @@ def test_with_generic_typed_struct(spark: SparkSession):
             (2, {"name": "Paris"}, {"first_name": "Michel", "last_name": "Roger", "is_adult": False}),
             (3, {"name": "Paris"}, {"first_name": "Marie", "last_name": "De La Rue", "is_adult": True}),
         ],
-        "id INT, location STRUCT<name:STRING>, " "person STRUCT<first_name:STRING, last_name:STRING, is_adult:BOOLEAN>",
+        "id INT, location STRUCT<name:STRING>, person STRUCT<first_name:STRING, last_name:STRING, is_adult:BOOLEAN>",
     )
     expected_df = spark.createDataFrame(
         [
@@ -47,7 +47,7 @@ def test_with_generic_typed_struct(spark: SparkSession):
                             string="Paris",
                             timestamp=None,
                         ),
-                    )
+                    ),
                 ],
                 person=[
                     Row(
@@ -80,7 +80,13 @@ def test_with_generic_typed_struct(spark: SparkSession):
                         key="is_adult",
                         type="boolean",
                         value=Row(
-                            boolean=True, bytes=None, date=None, float=None, int=None, string=None, timestamp=None
+                            boolean=True,
+                            bytes=None,
+                            date=None,
+                            float=None,
+                            int=None,
+                            string=None,
+                            timestamp=None,
                         ),
                     ),
                 ],
@@ -100,7 +106,7 @@ def test_with_generic_typed_struct(spark: SparkSession):
                             string="Paris",
                             timestamp=None,
                         ),
-                    )
+                    ),
                 ],
                 person=[
                     Row(
@@ -133,7 +139,13 @@ def test_with_generic_typed_struct(spark: SparkSession):
                         key="is_adult",
                         type="boolean",
                         value=Row(
-                            boolean=False, bytes=None, date=None, float=None, int=None, string=None, timestamp=None
+                            boolean=False,
+                            bytes=None,
+                            date=None,
+                            float=None,
+                            int=None,
+                            string=None,
+                            timestamp=None,
                         ),
                     ),
                 ],
@@ -153,7 +165,7 @@ def test_with_generic_typed_struct(spark: SparkSession):
                             string="Paris",
                             timestamp=None,
                         ),
-                    )
+                    ),
                 ],
                 person=[
                     Row(
@@ -186,7 +198,13 @@ def test_with_generic_typed_struct(spark: SparkSession):
                         key="is_adult",
                         type="boolean",
                         value=Row(
-                            boolean=True, bytes=None, date=None, float=None, int=None, string=None, timestamp=None
+                            boolean=True,
+                            bytes=None,
+                            date=None,
+                            float=None,
+                            int=None,
+                            string=None,
+                            timestamp=None,
                         ),
                     ),
                 ],
@@ -216,14 +234,26 @@ def test_with_generic_typed_struct_with_decimal_types(spark: SparkSession):
                         key="a",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="A", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="A",
+                            bytes=None,
                         ),
                     ),
                     Row(
                         key="decimal_col",
                         type="float",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=1.1, boolean=None, string=None, bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=1.1,
+                            boolean=None,
+                            string=None,
+                            bytes=None,
                         ),
                     ),
                 ],
@@ -235,14 +265,26 @@ def test_with_generic_typed_struct_with_decimal_types(spark: SparkSession):
                         key="a",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="B", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="B",
+                            bytes=None,
                         ),
                     ),
                     Row(
                         key="decimal_col",
                         type="float",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=2.2, boolean=None, string=None, bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=2.2,
+                            boolean=None,
+                            string=None,
+                            bytes=None,
                         ),
                     ),
                 ],
@@ -254,14 +296,26 @@ def test_with_generic_typed_struct_with_decimal_types(spark: SparkSession):
                         key="a",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="C", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="C",
+                            bytes=None,
                         ),
                     ),
                     Row(
                         key="decimal_col",
                         type="float",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=3.3, boolean=None, string=None, bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=3.3,
+                            boolean=None,
+                            string=None,
+                            bytes=None,
                         ),
                     ),
                 ],
@@ -291,7 +345,13 @@ def test_with_generic_typed_struct_with_unsupported_types(spark: SparkSession):
                         key="a",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="A", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="A",
+                            bytes=None,
                         ),
                     ),
                 ],
@@ -303,7 +363,13 @@ def test_with_generic_typed_struct_with_unsupported_types(spark: SparkSession):
                         key="a",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="B", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="B",
+                            bytes=None,
                         ),
                     ),
                 ],
@@ -315,7 +381,13 @@ def test_with_generic_typed_struct_with_unsupported_types(spark: SparkSession):
                         key="a",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="C", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="C",
+                            bytes=None,
                         ),
                     ),
                 ],
@@ -345,7 +417,13 @@ def test_with_generic_typed_struct_with_weird_column_names(spark: SparkSession):
                         key="c.`.d",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="A", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="A",
+                            bytes=None,
                         ),
                     ),
                 ],
@@ -357,7 +435,13 @@ def test_with_generic_typed_struct_with_weird_column_names(spark: SparkSession):
                         key="c.`.d",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="B", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="B",
+                            bytes=None,
                         ),
                     ),
                 ],
@@ -369,7 +453,13 @@ def test_with_generic_typed_struct_with_weird_column_names(spark: SparkSession):
                         key="c.`.d",
                         type="string",
                         value=Row(
-                            date=None, timestamp=None, int=None, float=None, boolean=None, string="C", bytes=None
+                            date=None,
+                            timestamp=None,
+                            int=None,
+                            float=None,
+                            boolean=None,
+                            string="C",
+                            bytes=None,
                         ),
                     ),
                 ],

@@ -99,7 +99,7 @@ def generic_struct(*columns: str, col_name_alias: str = "name", col_value_alias:
         *[
             f.struct(f.lit(c).alias(col_name_alias), f.col(quote(c)).astype(StringType()).alias(col_value_alias))
             for c in columns
-        ]
+        ],
     )
 
 

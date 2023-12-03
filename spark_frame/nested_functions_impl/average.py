@@ -154,5 +154,10 @@ def average(field_name: str, starting_level: Union[Column, DataFrame, None] = No
         return f.when(acc["count"] > 0, acc["sum"] / acc["count"])
 
     return aggregate(
-        field_name, initial_value=initial_value, merge=merge, start=start, finish=finish, starting_level=starting_level
+        field_name,
+        initial_value=initial_value,
+        merge=merge,
+        start=start,
+        finish=finish,
+        starting_level=starting_level,
     )

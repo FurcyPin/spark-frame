@@ -245,7 +245,7 @@ def _ascending_forest_traversal(
         new_node_id_col = f.col("a." + node_id_col_name).alias(node_id_col_name)
         # 1. Each node replaces its parent with its parent's parent,
         new_parent_id_col = f.coalesce(f.col("b." + parent_id_col_name), f.col("a." + parent_id_col_name)).alias(
-            parent_id_col_name
+            parent_id_col_name,
         )
 
         # 2. If a node and their parent are not "done" and have the same "highest_parent_id", then a cycle has been
@@ -257,12 +257,14 @@ def _ascending_forest_traversal(
         )
         #    Otherwise, their "highest_parent_id" becomes the highest value between theirs and their parents.
         new_highest_parent_id = f.greatest(
-            f.col("a." + highest_parent_id_col_name), f.col("b." + highest_parent_id_col_name)
+            f.col("a." + highest_parent_id_col_name),
+            f.col("b." + highest_parent_id_col_name),
         ).alias(highest_parent_id_col_name)
         # 3. If its parent is "done", it is marked as "done" too. If its parent is "cycle", it is marked as "cycle" too.
         new_status = (
             f.when(
-                f.col("b." + status_col_name).isin([done_status_col, cycle_status_col]), f.col("b." + status_col_name)
+                f.col("b." + status_col_name).isin([done_status_col, cycle_status_col]),
+                f.col("b." + status_col_name),
             )
             .when(
                 # If the parent_id does not exist as node_id, we consider that we're done
@@ -317,7 +319,10 @@ def _ascending_forest_traversal(
 
 
 def ascending_forest_traversal(
-    input_df: DataFrame, node_id: str, parent_id: str, keep_labels: bool = False
+    input_df: DataFrame,
+    node_id: str,
+    parent_id: str,
+    keep_labels: bool = False,
 ) -> DataFrame:
     """Given a DataFrame representing a labeled forest with columns `id`, `parent_id` and other label columns,
     performs a graph traversal that will return a DataFrame with the same schema that gives for each node
@@ -426,7 +431,8 @@ def ascending_forest_traversal(
         <BLANKLINE>
     """
     assert_true(
-        node_id in input_df.columns, "Could not find column %s in Dataframe's columns: %s" % (node_id, input_df.columns)
+        node_id in input_df.columns,
+        "Could not find column %s in Dataframe's columns: %s" % (node_id, input_df.columns),
     )
     assert_true(
         parent_id in input_df.columns,
@@ -436,11 +442,15 @@ def ascending_forest_traversal(
     parent_id_col_name = "parent_id"
     status_col_name = "status"
     df = input_df.select(
-        f.col(quote(node_id)).alias(node_id_col_name), f.col(quote(parent_id)).alias(parent_id_col_name)
+        f.col(quote(node_id)).alias(node_id_col_name),
+        f.col(quote(parent_id)).alias(parent_id_col_name),
     )
 
     res_df = _ascending_forest_traversal(
-        df, node_id_col_name=node_id_col_name, parent_id_col_name=parent_id_col_name, status_col_name=status_col_name
+        df,
+        node_id_col_name=node_id_col_name,
+        parent_id_col_name=parent_id_col_name,
+        status_col_name=status_col_name,
     )
     res_df = res_df.select(
         f.col(node_id_col_name).alias(node_id),

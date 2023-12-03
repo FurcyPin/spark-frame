@@ -97,6 +97,6 @@ def _get_sample_data() -> DataFrame:
             1 as id,
             STRUCT("Bulbasaur" as english, "Bulbizarre" as french) as name,
             ARRAY("Grass", "Poison") as types
-    """
+    """,
     )
     return df

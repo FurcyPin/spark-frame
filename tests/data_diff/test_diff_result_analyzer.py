@@ -20,7 +20,7 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
             STRUCT(2 as id, "b" as col1),
             STRUCT(3 as id, "c" as col1)
         ))
-        """
+        """,
     )
     df2 = spark.sql(
         """
@@ -29,12 +29,18 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
             STRUCT(2 as id, "b1" as col1),
             STRUCT(3 as id, "c1" as col1)
         ))
-        """
+        """,
     )
     join_cols = ["id"]
     diff_result: DiffResult = compare_dataframes(df1, df2, join_cols)
     expected_diff_stats = DiffStats(
-        total=3, no_change=0, changed=3, in_left=3, in_right=3, only_in_left=0, only_in_right=0
+        total=3,
+        no_change=0,
+        changed=3,
+        in_left=3,
+        in_right=3,
+        only_in_left=0,
+        only_in_right=0,
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
@@ -52,7 +58,7 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
         ||id         |no_change|2         |2          |1  |3              |2      |
         ||id         |no_change|3         |3          |1  |3              |3      |
         |+-----------+---------+----------+-----------+---+---------------+-------+
-        |"""
+        |""",
     )
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
@@ -66,7 +72,7 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
         ||0            |id         |{3, 0, 3, 0, 0}|{[], [{1, 1}], [], []}    |
         ||1            |col1       |{3, 3, 0, 0, 0}|{[{a, a1, 1}], [], [], []}|
         |+-------------+-----------+---------------+--------------------------+
-        |"""
+        |""",
     )
 
 
@@ -84,7 +90,7 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(spark: Spark
             STRUCT(2 as id, "aayyyy" as col1),
             STRUCT(3 as id, "aazzzz" as col1)
         ))
-        """
+        """,
     )
     df2 = spark.sql(
         """
@@ -93,12 +99,18 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(spark: Spark
             STRUCT(2 as id, "AAYYYY" as col1),
             STRUCT(3 as id, "AAZZZZ" as col1)
         ))
-        """
+        """,
     )
     join_cols = ["id"]
     diff_result: DiffResult = compare_dataframes(df1, df2, join_cols)
     expected_diff_stats = DiffStats(
-        total=3, no_change=0, changed=3, in_left=3, in_right=3, only_in_left=0, only_in_right=0
+        total=3,
+        no_change=0,
+        changed=3,
+        in_left=3,
+        in_right=3,
+        only_in_left=0,
+        only_in_right=0,
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
@@ -120,7 +132,7 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(spark: Spark
         ||id         |no_change|2         |2          |1  |3              |2      |
         ||id         |no_change|3         |3          |1  |3              |3      |
         |+-----------+---------+----------+-----------+---+---------------+-------+
-        |"""
+        |""",
     )
     assert show_string(diff_per_col_df.select("column_number", "diff"), truncate=False) == strip_margin(
         """
@@ -130,5 +142,5 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(spark: Spark
         ||0            |{[], [{1, 1}, {2, 1}, {3, 1}], [], []}                                       |
         ||1            |{[{aaxxxx, AAXXXX, 1}, {aayyyy, AAYYYY, 1}, {aazzzz, AAZZZZ, 1}], [], [], []}|
         |+-------------+-----------------------------------------------------------------------------+
-        |"""
+        |""",
     )

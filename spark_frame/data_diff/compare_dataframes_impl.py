@@ -118,7 +118,8 @@ def _get_self_join_growth_estimate(df: DataFrame, cols: Union[str, List[str]]) -
         cols = [cols]
     df1 = df.groupby(quote_columns(cols)).agg(f.count(f.lit(1)).alias("nb"))
     df2 = df1.agg(
-        f.sum(f.col("nb")).alias("nb_rows"), f.sum(f.col("nb") * f.col("nb")).alias("nb_rows_after_self_join")
+        f.sum(f.col("nb")).alias("nb_rows"),
+        f.sum(f.col("nb") * f.col("nb")).alias("nb_rows_after_self_join"),
     )
     res = df2.take(1)[0]
     nb_rows = res["nb_rows"]
@@ -169,11 +170,11 @@ def _get_eligible_columns_for_join(df: DataFrame) -> Dict[str, float]:
         [
             (
                 f.when(f.count(f.lit(1)) == f.lit(0), f.lit(False)).otherwise(
-                    f.approx_count_distinct(quote(col)) * f.lit(100.0) / f.count(f.lit(1)) > distinct_count_threshold
+                    f.approx_count_distinct(quote(col)) * f.lit(100.0) / f.count(f.lit(1)) > distinct_count_threshold,
                 )
             ).alias(col)
             for col in eligible_cols
-        ]
+        ],
     )
     columns_with_high_distinct_count = [key for key, value in eligibility_df.collect()[0].asDict().items() if value]
     cols_with_duplicates = {col: _get_self_join_growth_estimate(df, col) for col in columns_with_high_distinct_count}
@@ -265,14 +266,14 @@ def _get_join_cols(left_df: DataFrame, right_df: DataFrame, join_cols: Optional[
     if join_cols is None:
         print(
             "No join_cols provided: "
-            "trying to automatically infer a column that can be used for joining the two DataFrames"
+            "trying to automatically infer a column that can be used for joining the two DataFrames",
         )
         inferred_join_col, self_join_growth_estimate = _automatically_infer_join_col(left_df, right_df)
         if inferred_join_col is None or self_join_growth_estimate is None:
             raise DataframeComparatorException(
                 "Could not automatically infer a column sufficiently "
                 "unique to join the two DataFrames and perform a comparison. "
-                "Please specify manually the columns to use with the join_cols parameter"
+                "Please specify manually the columns to use with the join_cols parameter",
             )
         else:
             print(f"Found the following column: {inferred_join_col}")
@@ -285,7 +286,9 @@ def _get_join_cols(left_df: DataFrame, right_df: DataFrame, join_cols: Optional[
 
 
 def _check_join_cols(
-    specified_join_cols: Optional[List[str]], join_cols: List[str], self_join_growth_estimate: float
+    specified_join_cols: Optional[List[str]],
+    join_cols: List[str],
+    self_join_growth_estimate: float,
 ) -> None:
     """Check the self_join_growth_estimate and raise an Exception if it is bigger than 2.
 
@@ -309,17 +312,17 @@ def _check_join_cols(
         raise CombinatorialExplosionError(
             f"Performing a join with the {inferred_provided_str} column{plural_str} {join_cols_str} "
             f"would increase the size of the table by a factor of {self_join_growth_estimate}. "
-            f"Please provide join_cols that are truly unique for both DataFrames."
+            f"Please provide join_cols that are truly unique for both DataFrames.",
         )
     print(
         f"Generating the diff by joining the DataFrames together "
-        f"using the {inferred_provided_str} column{plural_str}: {join_cols_str}"
+        f"using the {inferred_provided_str} column{plural_str}: {join_cols_str}",
     )
     if self_join_growth_estimate > 1.0:
         print(
             f"WARNING: duplicates have been detected in the joining key, the resulting DataFrame "
             f"will be {self_join_growth_estimate} bigger which might affect the diff results. "
-            f"Please consider providing join_cols that are truly unique for both DataFrames."
+            f"Please consider providing join_cols that are truly unique for both DataFrames.",
         )
 
 
@@ -337,7 +340,10 @@ def _build_null_safe_join_clause(left_df: DataFrame, right_df: DataFrame, join_c
 
 
 def _build_diff_dataframe(
-    left_df: DataFrame, right_df: DataFrame, column_names_diff: Dict[str, DiffPrefix], join_cols: List[str]
+    left_df: DataFrame,
+    right_df: DataFrame,
+    column_names_diff: Dict[str, DiffPrefix],
+    join_cols: List[str],
 ) -> DataFrame:
     """Perform a column-by-column comparison between two DataFrames.
     The two DataFrames must have the same columns with the same ordering.
@@ -718,11 +724,17 @@ def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optio
 
     global_schema_diff_result = diff_dataframe_schemas(left_df, right_df, join_cols)
     left_df, right_df = _harmonize_and_normalize_dataframes(
-        left_df, right_df, skip_make_dataframes_comparable=global_schema_diff_result.same_schema
+        left_df,
+        right_df,
+        skip_make_dataframes_comparable=global_schema_diff_result.same_schema,
     )
 
     diff_dataframe_shards = _build_diff_dataframe_shards(
-        left_df, right_df, global_schema_diff_result, join_cols, specified_join_cols
+        left_df,
+        right_df,
+        global_schema_diff_result,
+        join_cols,
+        specified_join_cols,
     )
     diff_result = DiffResult(global_schema_diff_result, diff_dataframe_shards, join_cols)
 
@@ -741,7 +753,7 @@ def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:
             STRUCT(2 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c)) as my_array),
             STRUCT(3 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c)) as my_array)
         ))
-    """
+    """,
     )
     df2 = spark.sql(
         """
@@ -750,6 +762,6 @@ def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:
             STRUCT(2 as id, ARRAY(STRUCT(2 as a, 2 as b, 3 as c, 4 as d)) as my_array),
             STRUCT(4 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array)
        ))
-    """
+    """,
     )
     return df1, df2

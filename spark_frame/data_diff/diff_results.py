@@ -282,10 +282,10 @@ class DiffResult:
         res_df = diff_df_shard.select(
             f.count(f.lit(1)).alias("total"),
             f.sum(f.when(PREDICATES.present_in_both & PREDICATES.row_is_equal, f.lit(1)).otherwise(f.lit(0))).alias(
-                "no_change"
+                "no_change",
             ),
             f.sum(f.when(PREDICATES.present_in_both & PREDICATES.row_changed, f.lit(1)).otherwise(f.lit(0))).alias(
-                "changed"
+                "changed",
             ),
             f.sum(f.when(PREDICATES.in_left, f.lit(1)).otherwise(f.lit(0))).alias("in_left"),
             f.sum(f.when(PREDICATES.in_right, f.lit(1)).otherwise(f.lit(0))).alias("in_right"),
@@ -392,7 +392,9 @@ class DiffResult:
             "diff.right_value",
         ).where(exists_in_left_or_right)
         window = Window.partitionBy("column_name", "state").orderBy(
-            f.col("nb").desc(), f.col("left_value"), f.col("right_value")
+            f.col("nb").desc(),
+            f.col("left_value"),
+            f.col("right_value"),
         )
         df = (
             df_2.groupBy("column_name", "state", "left_value", "right_value")
@@ -403,7 +405,9 @@ class DiffResult:
         return df
 
     def display(
-        self, show_examples: bool = False, diff_format_options: DiffFormatOptions = DiffFormatOptions()
+        self,
+        show_examples: bool = False,
+        diff_format_options: DiffFormatOptions = DiffFormatOptions(),
     ) -> None:
         """Print a summary of the results in the standard output
 
@@ -488,6 +492,6 @@ def _get_test_intersection_diff_df() -> DataFrame:
                 ) as c2
             )
         ))
-    """
+    """,
     )
     return diff_df

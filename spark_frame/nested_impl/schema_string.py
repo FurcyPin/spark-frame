@@ -12,7 +12,7 @@ def _flat_schema_to_tree_string(schema: List[StructField]) -> str:
     def str_gen_schema_field(struct_field: StructField, prefix: str) -> List[str]:
         res = [
             f"{prefix}{struct_field.name}: {struct_field.dataType.typeName()} "
-            f"(nullable = {str(struct_field.nullable).lower()})"
+            f"(nullable = {str(struct_field.nullable).lower()})",
         ]
         return res
 

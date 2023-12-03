@@ -203,6 +203,6 @@ def _get_test_diff_df() -> DataFrame:
                 FALSE as __IS_EQUAL__
             )
         ))
-    """
+    """,
     )
     return diff_df

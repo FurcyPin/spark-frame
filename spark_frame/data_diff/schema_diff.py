@@ -155,7 +155,7 @@ def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame, join_cols: L
                 and not is_parent_field_of_any(field.name, join_cols)
                 and not isinstance(field.dataType, StructType)
                 and not field.name.endswith(REPETITION_MARKER)
-            ]
+            ],
         )
 
     left_schema_flat_exploded = explode_schema_according_to_join_cols(left_df.schema)

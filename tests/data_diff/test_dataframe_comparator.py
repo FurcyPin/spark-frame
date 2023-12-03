@@ -15,7 +15,7 @@ def test_dataframe_comparator_is_deprecated(spark: SparkSession):
             STRUCT(2 as col1, "b" as col2),
             STRUCT(3 as col1, NULL as col2)
         ))
-        """
+        """,
     )
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
@@ -25,7 +25,13 @@ def test_dataframe_comparator_is_deprecated(spark: SparkSession):
     # Check that the deprecated method still runs
     diff_result: DiffResult = df_comparator.compare_df(df, df)
     expected_diff_stats = DiffStats(
-        total=3, no_change=3, changed=0, in_left=3, in_right=3, only_in_left=0, only_in_right=0
+        total=3,
+        no_change=3,
+        changed=0,
+        in_left=3,
+        in_right=3,
+        only_in_left=0,
+        only_in_right=0,
     )
     assert diff_result.same_schema is True
     assert diff_result.is_ok is True

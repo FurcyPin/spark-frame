@@ -313,7 +313,7 @@ def strip_margin(text: str) -> str:
 
 def get_instantiated_spark_session() -> SparkSession:
     """Get the instantiated SparkSession. Raises an AssertionError if it does not exists."""
-    optional_spark = getattr(SparkSession, "_instantiatedSession")
+    optional_spark = SparkSession._instantiatedSession
     assert_true(optional_spark is not None)
     spark = cast(SparkSession, optional_spark)
     return spark
@@ -374,7 +374,8 @@ def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, v
     assert_true(isinstance(n, (int, bool)), TypeError("Parameter 'n' (number of rows) must be an int"))
     assert_true(isinstance(vertical, bool), TypeError("Parameter 'vertical' must be a bool"))
     assert_true(
-        isinstance(truncate, (int, bool)), TypeError(f"Parameter 'truncate={truncate}' should be either bool or int.")
+        isinstance(truncate, (int, bool)),
+        TypeError(f"Parameter 'truncate={truncate}' should be either bool or int."),
     )
 
     if isinstance(truncate, bool) and truncate:
@@ -445,7 +446,7 @@ def assert_true(assertion: bool, error: Optional[Union[str, BaseException]] = No
         elif isinstance(error, str):
             raise AssertionError(error)
         else:
-            raise AssertionError()
+            raise AssertionError
 
 
 def load_external_module(module_name: str) -> ModuleType:
@@ -480,7 +481,7 @@ def load_external_module(module_name: str) -> ModuleType:
             f"Module '{module_name}' not found.\n"
             f"To keep {PROJECT_NAME} as light, flexible and secure as possible, "
             "it was not included in its dependencies.\n"
-            "Please add it to your project dependencies to use this method."
+            "Please add it to your project dependencies to use this method.",
         )
 
     return module

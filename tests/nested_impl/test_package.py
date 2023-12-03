@@ -17,7 +17,7 @@ from spark_frame.utils import schema_string, show_string, strip_margin
 
 
 def replace_named_functions_with_functions(
-    transformations: Dict[str, PrintableFunction]
+    transformations: Dict[str, PrintableFunction],
 ) -> Dict[str, Callable[[Column], Column]]:
     return {alias: transformation.func for alias, transformation in transformations.items()}
 
@@ -61,8 +61,9 @@ class TestBuildTransformationFromTree:
         """
         named_transformations = {
             "a": PrintableFunction(
-                lambda s: f.col("a").alias("other_alias"), lambda s: 'f.col("a").alias("other_alias")'
-            )
+                lambda s: f.col("a").alias("other_alias"),
+                lambda s: 'f.col("a").alias("other_alias")',
+            ),
         }
         transformations = {"a": f.col("a").alias("other_alias")}
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
@@ -77,7 +78,9 @@ class TestBuildTransformationFromTree:
         THEN the result should be human-readable
         """
         named_transformations = {
-            "s.a": PrintableFunction(lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""")
+            "s.a": PrintableFunction(
+                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")"""
+            ),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(actual_named) == """lambda x: [f.struct([f.col("s.a").cast("DOUBLE").alias('a')]).alias('s')]"""
@@ -89,7 +92,9 @@ class TestBuildTransformationFromTree:
         THEN the result should be human-readable
         """
         named_transformations = {
-            "s.a": PrintableFunction(lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""")
+            "s.a": PrintableFunction(
+                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")"""
+            ),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(actual_named) == """lambda x: [f.struct([f.col("s.a").cast("DOUBLE").alias('a')]).alias('s')]"""
@@ -111,7 +116,7 @@ class TestBuildTransformationFromTree:
         THEN the result should be human-readable
         """
         named_transformations = {
-            "s!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+            "s!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(actual_named) == (
@@ -126,8 +131,9 @@ class TestBuildTransformationFromTree:
         """
         named_transformations = {
             "s1.s2.a": PrintableFunction(
-                lambda s: f.col("s1")["s2"]["a"].cast("DOUBLE"), lambda s: 'f.col("s1")["s2"]["a"].cast("DOUBLE")'
-            )
+                lambda s: f.col("s1")["s2"]["a"].cast("DOUBLE"),
+                lambda s: 'f.col("s1")["s2"]["a"].cast("DOUBLE")',
+            ),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(actual_named) == (
@@ -213,7 +219,7 @@ class TestBuildTransformationFromTree:
         THEN the result should be human-readable
         """
         named_transformations = {
-            "s1!.e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')
+            "s1!.e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")'),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(actual_named) == (
@@ -228,7 +234,7 @@ class TestBuildTransformationFromTree:
         THEN the result should be human-readable
         """
         named_transformations = {
-            "s1!.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+            "s1!.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
         assert str(actual_named) == (
@@ -265,7 +271,8 @@ class TestBuildTransformationFromTree:
         named_transformations = {
             "s1!.s2!.a": PrintableFunction(lambda s2: s2["a"], lambda s2: f'{s2}["a"]'),
             "s1!.s2!.s3.b": PrintableFunction(
-                lambda s2: s2["a"].cast("DOUBLE"), lambda s2: f'{s2}["a"].cast("DOUBLE")'
+                lambda s2: s2["a"].cast("DOUBLE"),
+                lambda s2: f'{s2}["a"].cast("DOUBLE")',
             ),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
@@ -285,7 +292,8 @@ class TestBuildTransformationFromTree:
         named_transformations = {
             "s1!.s2.s3!.s4.a": PrintableFunction(lambda s3: s3["s4"]["a"], lambda s3: f'{s3}["s4"]["a"]'),
             "s1!.s2.s3!.s4.s5.b": PrintableFunction(
-                lambda s3: s3["s4"]["a"].cast("DOUBLE"), lambda s3: f'{s3}["s4"]["a"].cast("DOUBLE")'
+                lambda s3: s3["s4"]["a"].cast("DOUBLE"),
+                lambda s3: f'{s3}["s4"]["a"].cast("DOUBLE")',
             ),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
@@ -306,7 +314,8 @@ class TestBuildTransformationFromTree:
         named_transformations = {
             "m1%key": identity,
             "m1%value.a": PrintableFunction(
-                lambda value: value["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'
+                lambda value: value["a"].cast("DOUBLE"),
+                lambda s: f'{s}["a"].cast("DOUBLE")',
             ),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
@@ -316,7 +325,8 @@ class TestBuildTransformationFromTree:
         )
 
     def test_struct_in_map_values_in_array_struct_with_transformation_using_field_from_first_array(
-        self, spark: SparkSession
+        self,
+        spark: SparkSession,
     ):
         """
         GIVEN a DataFrame with a struct inside map values inside an array<struct>
@@ -369,7 +379,7 @@ class TestResolveNestedFields:
             |+---+
             ||  1|
             |+---+
-            |"""
+            |""",
         )
         named_transformations = {"a": PrintableFunction(lambda s: "a", lambda s: '"a"')}
         transformations = {"a": "a"}
@@ -380,7 +390,7 @@ class TestResolveNestedFields:
             |+---+
             ||  1|
             |+---+
-            |"""
+            |""",
         )
         assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
         assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
@@ -399,7 +409,7 @@ class TestResolveNestedFields:
             |+---+
             ||  1|
             |+---+
-            |"""
+            |""",
         )
         named_transformations = {"a": PrintableFunction(lambda s: f.col("a"), lambda s: 'f.col("a")')}
         transformations = {"a": f.col("a")}
@@ -410,7 +420,7 @@ class TestResolveNestedFields:
             |+---+
             ||  1|
             |+---+
-            |"""
+            |""",
         )
         assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
         assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
@@ -429,12 +439,13 @@ class TestResolveNestedFields:
             |+---+
             ||  1|
             |+---+
-            |"""
+            |""",
         )
         named_transformations = {
             "a": PrintableFunction(
-                lambda s: f.col("a").alias("other_alias"), lambda s: 'f.col("a").alias("other_alias")'
-            )
+                lambda s: f.col("a").alias("other_alias"),
+                lambda s: 'f.col("a").alias("other_alias")',
+            ),
         }
         transformations = {"a": f.col("a").alias("other_alias")}
         expected = strip_margin(
@@ -444,7 +455,7 @@ class TestResolveNestedFields:
             |+---+
             ||  1|
             |+---+
-            |"""
+            |""",
         )
         assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
         assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
@@ -463,7 +474,7 @@ class TestResolveNestedFields:
             |+---+
             ||  1|
             |+---+
-            |"""
+            |""",
         )
         named_transformations = {"a": PrintableFunction(lambda r: r["a"], lambda r: f'{r}["a"]')}
         transformations = replace_named_functions_with_functions(named_transformations)
@@ -474,7 +485,7 @@ class TestResolveNestedFields:
             |+---+
             ||  1|
             |+---+
-            |"""
+            |""",
         )
         assert show_string(df.select(*resolve_nested_fields(named_transformations, starting_level=df))) == expected
         assert show_string(df.select(*resolve_nested_fields(transformations, starting_level=df))) == expected
@@ -493,10 +504,12 @@ class TestResolveNestedFields:
             |+---+
             ||{2}|
             |+---+
-            |"""
+            |""",
         )
         named_transformations = {
-            "s.a": PrintableFunction(lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""")
+            "s.a": PrintableFunction(
+                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")"""
+            ),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
         expected = strip_margin(
@@ -506,7 +519,7 @@ class TestResolveNestedFields:
             |+-----+
             ||{2.0}|
             |+-----+
-            |"""
+            |""",
         )
         assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
         assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
@@ -525,10 +538,12 @@ class TestResolveNestedFields:
             |+---+
             ||{2}|
             |+---+
-            |"""
+            |""",
         )
         named_transformations = {
-            "s.a": PrintableFunction(lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""")
+            "s.a": PrintableFunction(
+                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")"""
+            ),
         }
         transformations = {"s.a": f.col("s.a").cast("DOUBLE")}
         expected = strip_margin(
@@ -538,7 +553,7 @@ class TestResolveNestedFields:
             |+-----+
             ||{2.0}|
             |+-----+
-            |"""
+            |""",
         )
         assert show_string(df.select(*resolve_nested_fields(named_transformations))) == expected
         assert show_string(df.select(*resolve_nested_fields(transformations))) == expected
@@ -555,7 +570,7 @@ class TestResolveNestedFields:
             |root
             | |-- e: array (nullable = false)
             | |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -564,7 +579,7 @@ class TestResolveNestedFields:
             |+------+
             ||[2, 3]|
             |+------+
-            |"""
+            |""",
         )
         named_transformations = {"e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')}
         transformations = replace_named_functions_with_functions(named_transformations)
@@ -573,7 +588,7 @@ class TestResolveNestedFields:
             |root
             | |-- e: array (nullable = false)
             | |    |-- element: double (containsNull = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -582,7 +597,7 @@ class TestResolveNestedFields:
             |+----------+
             ||[2.0, 3.0]|
             |+----------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -603,7 +618,7 @@ class TestResolveNestedFields:
             |root
             | |-- e: array (nullable = false)
             | |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -612,7 +627,7 @@ class TestResolveNestedFields:
             |+------+
             ||[2, 3]|
             |+------+
-            |"""
+            |""",
         )
         named_transformations = {"e!": None}
         expected_schema = strip_margin(
@@ -620,7 +635,7 @@ class TestResolveNestedFields:
             |root
             | |-- e: array (nullable = false)
             | |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -629,7 +644,7 @@ class TestResolveNestedFields:
             |+------+
             ||[2, 3]|
             |+------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         assert schema_string(actual_named) == expected_schema
@@ -650,7 +665,7 @@ class TestResolveNestedFields:
             | |-- id: integer (nullable = false)
             | |-- e: array (nullable = false)
             | |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -659,7 +674,7 @@ class TestResolveNestedFields:
             |+---+------+
             ||  1|[2, 3]|
             |+---+------+
-            |"""
+            |""",
         )
         named_transformations = {"id": None, "e!": "id"}
         expected_schema = strip_margin(
@@ -668,7 +683,7 @@ class TestResolveNestedFields:
             | |-- id: integer (nullable = false)
             | |-- e: array (nullable = false)
             | |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -677,7 +692,7 @@ class TestResolveNestedFields:
             |+---+------+
             ||  1|[1, 1]|
             |+---+------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         assert schema_string(actual_named) == expected_schema
@@ -695,7 +710,7 @@ class TestResolveNestedFields:
             |root
             | |-- e: array (nullable = false)
             | |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -704,7 +719,7 @@ class TestResolveNestedFields:
             |+------+
             ||[2, 3]|
             |+------+
-            |"""
+            |""",
         )
         named_transformations = {"e!": f.lit(1)}
         expected_schema = strip_margin(
@@ -712,7 +727,7 @@ class TestResolveNestedFields:
             |root
             | |-- e: array (nullable = false)
             | |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -721,7 +736,7 @@ class TestResolveNestedFields:
             |+------+
             ||[1, 1]|
             |+------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         assert schema_string(actual_named) == expected_schema
@@ -740,7 +755,7 @@ class TestResolveNestedFields:
             | |-- s: array (nullable = false)
             | |    |-- element: struct (containsNull = false)
             | |    |    |-- a: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -749,10 +764,10 @@ class TestResolveNestedFields:
             |+-----+
             ||[{2}]|
             |+-----+
-            |"""
+            |""",
         )
         named_transformations = {
-            "s!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+            "s!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
         expected_schema = strip_margin(
@@ -761,7 +776,7 @@ class TestResolveNestedFields:
             | |-- s: array (nullable = false)
             | |    |-- element: struct (containsNull = false)
             | |    |    |-- a: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -770,7 +785,7 @@ class TestResolveNestedFields:
             |+-------+
             ||[{2.0}]|
             |+-------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -792,7 +807,7 @@ class TestResolveNestedFields:
             | |-- s1: struct (nullable = false)
             | |    |-- s2: struct (nullable = false)
             | |    |    |-- a: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -801,12 +816,13 @@ class TestResolveNestedFields:
             |+-----+
             ||{{2}}|
             |+-----+
-            |"""
+            |""",
         )
         named_transformations = {
             "s1.s2.a": PrintableFunction(
-                lambda s: f.col("s1")["s2"]["a"].cast("DOUBLE"), lambda s: 'f.col("s1")["s2"]["a"].cast("DOUBLE")'
-            )
+                lambda s: f.col("s1")["s2"]["a"].cast("DOUBLE"),
+                lambda s: 'f.col("s1")["s2"]["a"].cast("DOUBLE")',
+            ),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
         expected_schema = strip_margin(
@@ -815,7 +831,7 @@ class TestResolveNestedFields:
             | |-- s1: struct (nullable = false)
             | |    |-- s2: struct (nullable = false)
             | |    |    |-- a: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -824,7 +840,7 @@ class TestResolveNestedFields:
             |+-------+
             ||{{2.0}}|
             |+-------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -846,7 +862,7 @@ class TestResolveNestedFields:
             | |-- s1: struct (nullable = false)
             | |    |-- e: array (nullable = false)
             | |    |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -855,7 +871,7 @@ class TestResolveNestedFields:
             |+--------+
             ||{[2, 3]}|
             |+--------+
-            |"""
+            |""",
         )
         named_transformations = {
             "s1.e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")'),
@@ -867,7 +883,7 @@ class TestResolveNestedFields:
             | |-- s1: struct (nullable = false)
             | |    |-- e: array (nullable = false)
             | |    |    |-- element: double (containsNull = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -876,7 +892,7 @@ class TestResolveNestedFields:
             |+------------+
             ||{[2.0, 3.0]}|
             |+------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -899,7 +915,7 @@ class TestResolveNestedFields:
             | |    |-- s2: array (nullable = false)
             | |    |    |-- element: struct (containsNull = false)
             | |    |    |    |-- a: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -908,7 +924,7 @@ class TestResolveNestedFields:
             |+-------+
             ||{[{2}]}|
             |+-------+
-            |"""
+            |""",
         )
         named_transformations = {
             "s1.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
@@ -921,7 +937,7 @@ class TestResolveNestedFields:
             | |    |-- s2: array (nullable = false)
             | |    |    |-- element: struct (containsNull = false)
             | |    |    |    |-- a: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -930,7 +946,7 @@ class TestResolveNestedFields:
             |+---------+
             ||{[{2.0}]}|
             |+---------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -952,7 +968,7 @@ class TestResolveNestedFields:
             | |-- e: array (nullable = false)
             | |    |-- element: array (containsNull = false)
             | |    |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -961,7 +977,7 @@ class TestResolveNestedFields:
             |+-----+
             ||[[1]]|
             |+-----+
-            |"""
+            |""",
         )
         named_transformations = {"e!!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')}
         transformations = replace_named_functions_with_functions(named_transformations)
@@ -971,7 +987,7 @@ class TestResolveNestedFields:
             | |-- e: array (nullable = false)
             | |    |-- element: array (containsNull = false)
             | |    |    |-- element: double (containsNull = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -980,7 +996,7 @@ class TestResolveNestedFields:
             |+-------+
             ||[[1.0]]|
             |+-------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -1003,7 +1019,7 @@ class TestResolveNestedFields:
             | |    |-- element: array (containsNull = false)
             | |    |    |-- element: struct (containsNull = false)
             | |    |    |    |-- a: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1012,7 +1028,7 @@ class TestResolveNestedFields:
             |+-------+
             ||[[{1}]]|
             |+-------+
-            |"""
+            |""",
         )
         named_transformations = {
             "s!!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
@@ -1025,7 +1041,7 @@ class TestResolveNestedFields:
             | |    |-- element: array (containsNull = false)
             | |    |    |-- element: struct (containsNull = false)
             | |    |    |    |-- a: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1034,7 +1050,7 @@ class TestResolveNestedFields:
             |+---------+
             ||[[{1.0}]]|
             |+---------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -1058,7 +1074,7 @@ class TestResolveNestedFields:
             | |    |    |-- a: integer (nullable = false)
             | |    |    |-- s2: struct (nullable = false)
             | |    |    |    |-- b: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1067,7 +1083,7 @@ class TestResolveNestedFields:
             |+----------+
             ||[{1, {2}}]|
             |+----------+
-            |"""
+            |""",
         )
         # Here, the lambda function is applied to the elements of `s1`, not `s2`
         named_transformations = {
@@ -1083,7 +1099,7 @@ class TestResolveNestedFields:
             | |    |    |-- a: integer (nullable = false)
             | |    |    |-- s2: struct (nullable = false)
             | |    |    |    |-- b: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1092,7 +1108,7 @@ class TestResolveNestedFields:
             |+------------+
             ||[{1, {1.0}}]|
             |+------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -1115,7 +1131,7 @@ class TestResolveNestedFields:
             | |    |-- element: struct (containsNull = false)
             | |    |    |-- e: array (nullable = false)
             | |    |    |    |-- element: integer (containsNull = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1124,10 +1140,10 @@ class TestResolveNestedFields:
             |+----------+
             ||[{[2, 3]}]|
             |+----------+
-            |"""
+            |""",
         )
         named_transformations = {
-            "s1!.e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")')
+            "s1!.e!": PrintableFunction(lambda e: e.cast("DOUBLE"), lambda e: f'{e}.cast("DOUBLE")'),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
         expected_schema = strip_margin(
@@ -1137,7 +1153,7 @@ class TestResolveNestedFields:
             | |    |-- element: struct (containsNull = false)
             | |    |    |-- e: array (nullable = false)
             | |    |    |    |-- element: double (containsNull = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1146,7 +1162,7 @@ class TestResolveNestedFields:
             |+--------------+
             ||[{[2.0, 3.0]}]|
             |+--------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -1170,7 +1186,7 @@ class TestResolveNestedFields:
             | |    |    |-- s2: array (nullable = false)
             | |    |    |    |-- element: struct (containsNull = false)
             | |    |    |    |    |-- a: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1179,10 +1195,10 @@ class TestResolveNestedFields:
             |+---------+
             ||[{[{2}]}]|
             |+---------+
-            |"""
+            |""",
         )
         named_transformations = {
-            "s1!.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")')
+            "s1!.s2!.a": PrintableFunction(lambda s: s["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
         expected_schema = strip_margin(
@@ -1193,7 +1209,7 @@ class TestResolveNestedFields:
             | |    |    |-- s2: array (nullable = false)
             | |    |    |    |-- element: struct (containsNull = false)
             | |    |    |    |    |-- a: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1202,7 +1218,7 @@ class TestResolveNestedFields:
             |+-----------+
             ||[{[{2.0}]}]|
             |+-----------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -1227,7 +1243,7 @@ class TestResolveNestedFields:
             | |    |    |-- s2: array (nullable = false)
             | |    |    |    |-- element: struct (containsNull = false)
             | |    |    |    |    |-- b: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1236,7 +1252,7 @@ class TestResolveNestedFields:
             |+------------+
             ||[{1, [{2}]}]|
             |+------------+
-            |"""
+            |""",
         )
         named_transformations = {
             "s1!.a": PrintableFunction(lambda s1: s1["a"], lambda s1: f'{s1}["a"]'),
@@ -1255,7 +1271,7 @@ class TestResolveNestedFields:
             | |    |    |-- s2: array (nullable = false)
             | |    |    |    |-- element: struct (containsNull = false)
             | |    |    |    |    |-- b: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1264,7 +1280,7 @@ class TestResolveNestedFields:
             |+--------------+
             ||[{1, [{3.0}]}]|
             |+--------------+
-            |"""
+            |""",
         )
         df.select(
             f.transform(
@@ -1272,11 +1288,12 @@ class TestResolveNestedFields:
                 lambda x1: f.struct(
                     [
                         f.transform(
-                            x1["s2"], lambda x2: f.struct([(x1["a"] + x2["b"]).cast("DOUBLE").alias("b")])
-                        ).alias("s2")
-                    ]
+                            x1["s2"],
+                            lambda x2: f.struct([(x1["a"] + x2["b"]).cast("DOUBLE").alias("b")]),
+                        ).alias("s2"),
+                    ],
                 ),
-            ).alias("s1")
+            ).alias("s1"),
         ).show()
 
         actual_named = df.select(*resolve_nested_fields(named_transformations))
@@ -1299,7 +1316,7 @@ class TestResolveNestedFields:
             |root
             | |-- s1!.s2!.a: integer (nullable = false)
             | |-- s1!.s2!.s3.b: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1308,13 +1325,14 @@ class TestResolveNestedFields:
             |+--------------+
             ||[{[{1, {2}}]}]|
             |+--------------+
-            |"""
+            |""",
         )
         # Here, the lambda function is applied to the elements of `s2`, not `s3`
         named_transformations = {
             "s1!.s2!.a": PrintableFunction(lambda s2: s2["a"], lambda s2: f'{s2}["a"]'),
             "s1!.s2!.s3.b": PrintableFunction(
-                lambda s2: s2["a"].cast("DOUBLE"), lambda s2: f'{s2}["a"].cast("DOUBLE")'
+                lambda s2: s2["a"].cast("DOUBLE"),
+                lambda s2: f'{s2}["a"].cast("DOUBLE")',
             ),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
@@ -1323,7 +1341,7 @@ class TestResolveNestedFields:
             |root
             | |-- s1!.s2!.a: integer (nullable = false)
             | |-- s1!.s2!.s3.b: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1332,7 +1350,7 @@ class TestResolveNestedFields:
             |+----------------+
             ||[{[{1, {1.0}}]}]|
             |+----------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -1352,14 +1370,14 @@ class TestResolveNestedFields:
             ARRAY(STRUCT(STRUCT(
                 ARRAY(STRUCT(STRUCT(1 as a, STRUCT(2 as b) as s5) as s4)) as s3
             ) as s2)) as s1
-        """
+        """,
         )
         assert nested.schema_string(df) == strip_margin(
             """
             |root
             | |-- s1!.s2.s3!.s4.a: integer (nullable = false)
             | |-- s1!.s2.s3!.s4.s5.b: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1368,13 +1386,14 @@ class TestResolveNestedFields:
             |+------------------+
             ||[{{[{{1, {2}}}]}}]|
             |+------------------+
-            |"""
+            |""",
         )
         # Here, the lambda function is applied to the elements of `s3`, not `s4` or `s5`
         named_transformations = {
             "s1!.s2.s3!.s4.a": PrintableFunction(lambda s3: s3["s4"]["a"], lambda s3: f'{s3}["s4"]["a"]'),
             "s1!.s2.s3!.s4.s5.b": PrintableFunction(
-                lambda s3: s3["s4"]["a"].cast("DOUBLE"), lambda s3: f'{s3}["s4"]["a"].cast("DOUBLE")'
+                lambda s3: s3["s4"]["a"].cast("DOUBLE"),
+                lambda s3: f'{s3}["s4"]["a"].cast("DOUBLE")',
             ),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
@@ -1383,7 +1402,7 @@ class TestResolveNestedFields:
             |root
             | |-- s1!.s2.s3!.s4.a: integer (nullable = false)
             | |-- s1!.s2.s3!.s4.s5.b: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1392,7 +1411,7 @@ class TestResolveNestedFields:
             |+--------------------+
             ||[{{[{{1, {1.0}}}]}}]|
             |+--------------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual = df.select(*resolve_nested_fields(transformations))
@@ -1412,14 +1431,14 @@ class TestResolveNestedFields:
             ARRAY(STRUCT(STRUCT(
                 ARRAY(STRUCT(STRUCT(1 as a, STRUCT(2 as b) as s5) as s4)) as s3
             ) as s2)) as s1
-        """
+        """,
         )
         assert nested.schema_string(df) == strip_margin(
             """
             |root
             | |-- s1!.s2.s3!.s4.a: integer (nullable = false)
             | |-- s1!.s2.s3!.s4.s5.b: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1428,7 +1447,7 @@ class TestResolveNestedFields:
             |+------------------+
             ||[{{[{{1, {2}}}]}}]|
             |+------------------+
-            |"""
+            |""",
         )
         # Here, the lambda function is applied to the elements of `s3`, not `s4` or `s5`
         named_transformations = {"s1!.s2.s3!.s4.a": None, "s1!.s2.s3!.s4.s5.b": None}
@@ -1437,7 +1456,7 @@ class TestResolveNestedFields:
             |root
             | |-- s1!.s2.s3!.s4.a: integer (nullable = false)
             | |-- s1!.s2.s3!.s4.s5.b: integer (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1446,7 +1465,7 @@ class TestResolveNestedFields:
             |+------------------+
             ||[{{[{{1, {2}}}]}}]|
             |+------------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         assert nested.schema_string(actual_named) == expected_schema
@@ -1466,7 +1485,7 @@ class TestResolveNestedFields:
             | |    |-- key: string
             | |    |-- value: struct (valueContainsNull = false)
             | |    |    |-- a: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1475,12 +1494,13 @@ class TestResolveNestedFields:
             |+----------+
             ||{a -> {2}}|
             |+----------+
-            |"""
+            |""",
         )
         named_transformations = {
             "m1%key": identity,
             "m1%value.a": PrintableFunction(
-                lambda value: value["a"].cast("DOUBLE"), lambda s: f'{s}["a"].cast("DOUBLE")'
+                lambda value: value["a"].cast("DOUBLE"),
+                lambda s: f'{s}["a"].cast("DOUBLE")',
             ),
         }
         expected_schema = strip_margin(
@@ -1490,7 +1510,7 @@ class TestResolveNestedFields:
             | |    |-- key: string
             | |    |-- value: struct (valueContainsNull = false)
             | |    |    |-- a: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1499,14 +1519,15 @@ class TestResolveNestedFields:
             |+------------+
             ||{a -> {2.0}}|
             |+------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         assert schema_string(actual_named) == expected_schema
         assert show_string(actual_named) == expected
 
     def test_struct_in_map_values_in_array_struct_with_transformation_using_field_from_first_array(
-        self, spark: SparkSession
+        self,
+        spark: SparkSession,
     ):
         """
         GIVEN a DataFrame with a struct inside map values inside an array<struct>
@@ -1520,7 +1541,7 @@ class TestResolveNestedFields:
             | |-- s1!.a: integer (nullable = false)
             | |-- s1!.m1%key.b: integer (nullable = false)
             | |-- s1!.m1%value.c: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df) == strip_margin(
             """
@@ -1529,7 +1550,7 @@ class TestResolveNestedFields:
             |+-------------------+
             ||[{1, {{2} -> {3}}}]|
             |+-------------------+
-            |"""
+            |""",
         )
         named_transformations = {
             "s1!.a": None,
@@ -1548,7 +1569,7 @@ class TestResolveNestedFields:
             | |-- s1!.a: integer (nullable = false)
             | |-- s1!.m1%key.b: double (nullable = false)
             | |-- s1!.m1%value.c: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1557,14 +1578,15 @@ class TestResolveNestedFields:
             |+-----------------------+
             ||[{1, {{3.0} -> {4.0}}}]|
             |+-----------------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         assert nested.schema_string(actual_named) == expected_schema
         assert show_string(actual_named, truncate=False) == expected
 
     def test_struct_in_array_struct_in_map_values_with_transformation_using_field_from_first_map(
-        self, spark: SparkSession
+        self,
+        spark: SparkSession,
     ):
         """
         GIVEN a DataFrame with a struct inside an array<struct> inside map values
@@ -1576,7 +1598,7 @@ class TestResolveNestedFields:
             STRUCT(1 as a, ARRAY(STRUCT(2 as b)) as s1),
             STRUCT(3 as c, ARRAY(STRUCT(2 as d)) as s2)
         ) as m1
-        """
+        """,
         )
         assert nested.schema_string(df) == strip_margin(
             """
@@ -1585,7 +1607,7 @@ class TestResolveNestedFields:
             | |-- m1%key.s1!.b: integer (nullable = false)
             | |-- m1%value.c: integer (nullable = false)
             | |-- m1%value.s2!.d: integer (nullable = false)
-            |"""
+            |""",
         )
         assert show_string(df, truncate=False) == strip_margin(
             """
@@ -1594,7 +1616,7 @@ class TestResolveNestedFields:
             |+--------------------------+
             ||{{1, [{2}]} -> {3, [{2}]}}|
             |+--------------------------+
-            |"""
+            |""",
         )
         named_transformations = {
             "m1%key.a": None,
@@ -1615,7 +1637,7 @@ class TestResolveNestedFields:
             | |-- m1%key.s1!.b: double (nullable = false)
             | |-- m1%value.c: integer (nullable = false)
             | |-- m1%value.s2!.d: double (nullable = false)
-            |"""
+            |""",
         )
         expected = strip_margin(
             """
@@ -1624,7 +1646,7 @@ class TestResolveNestedFields:
             |+------------------------------+
             ||{{1, [{3.0}]} -> {3, [{5.0}]}}|
             |+------------------------------+
-            |"""
+            |""",
         )
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         assert nested.schema_string(actual_named) == expected_schema
