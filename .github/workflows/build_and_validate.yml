@@ -46,16 +46,10 @@ jobs:
       - name: Install project
         run: poetry install
 
-      - name: Linter black
-        run: poetry run black --diff --check .
-      - name: Linter isort
-        run: poetry run isort --check-only ${{ env.PROJECT_NAME }} tests
-      - name: Linter flake8
-        run: poetry run flake8 ${{ env.PROJECT_NAME }} tests
+      - name: Linter ruff (replaces black, isort, flake8 and safety)
+        run: poetry run ruff check .
       - name: Linter mypy
         run: poetry run mypy ${{ env.PROJECT_NAME }}
-      - name: Security bandit
-        run: poetry run bandit .
       - name: Security safety
         run: poetry run safety check
         # We run safety but ignore the warning as some require to drop support for Python 3.7.
