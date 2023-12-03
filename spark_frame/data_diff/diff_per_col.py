@@ -1,14 +1,16 @@
 from functools import lru_cache
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as f
 
 from spark_frame import nested
-from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.special_characters import (
     _restore_special_characters_from_col,
 )
+
+if TYPE_CHECKING:
+    from spark_frame.data_diff.diff_results import DiffResult
 
 
 def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
@@ -227,7 +229,7 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
 
 
 @lru_cache()
-def _get_diff_per_col_df_with_cache(diff_result: DiffResult, max_nb_rows_per_col_state: int) -> DataFrame:
+def _get_diff_per_col_df_with_cache(diff_result: "DiffResult", max_nb_rows_per_col_state: int) -> DataFrame:
     from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
 
     return _get_diff_per_col_df(
