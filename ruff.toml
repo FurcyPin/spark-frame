@@ -81,6 +81,16 @@ ignore = [
     # return C
     #
 
+    "SIM108", # Replace multiline if then else with one-liners
+    # # Personally, I find this:
+    # if predicate():
+    #     x = 1
+    # else:
+    #     x = 2
+    #
+    # # More readable than this:
+    # x = 1 if predicate() else 2
+
     "FBT001", # Boolean-typed positional argument in function definition
     "FBT002", # Boolean default positional argument in function definition
     # These rules makes sense but there are several cases where working around it makes the code more confusing than less
@@ -92,8 +102,10 @@ ignore = [
     "ANN101", # Missing type annotation for `self` in method
     # This rule is not necessary when self is automatically infered by smart type checkers
 
-    "T201", # Do no use 'print': TODO refactor the code to use logging instead
-    "ANN201", # TODO
+    # TODO: These warnings might be fixable but it will take some effort
+    "T201", # `print` found
+    "ANN201", # Missing return type annotation for public function
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
 ]
 
 fixable = [
@@ -145,10 +157,10 @@ known-first-party = ["spark_frame"]
 "tests/**/*.py" = [
     # at least this three should be fine in tests:
     "S101", # asserts allowed in tests...
+    "PLR2004", # Magic value used in comparison
 #    "ARG", # Unused function args -> fixtures nevertheless are functionally relevant...
 #    "FBT", # Don't care about booleans as positional arguments in tests, e.g. via @pytest.mark.parametrize()
 #    # The below are debateable
-#    "PLR2004", # Magic value used in comparison, ...
 #    "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
 ]
 
