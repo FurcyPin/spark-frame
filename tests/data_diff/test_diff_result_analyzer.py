@@ -1,10 +1,14 @@
+from typing import TYPE_CHECKING
+
 from pyspark.sql import SparkSession
 
 from spark_frame.data_diff import compare_dataframes
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
-from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.utils import show_string, strip_margin
+
+if TYPE_CHECKING:
+    from spark_frame.data_diff.diff_results import DiffResult
 
 
 def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
