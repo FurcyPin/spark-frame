@@ -66,7 +66,7 @@ def _build_struct_from_tree(
         else:
             fields = _build_struct_from_tree(value, separator, prefix + key + separator)
             # We don't want structs where all fields are null so we check for this
-            all_fields_are_null = f.lit(True)
+            all_fields_are_null = f.lit(col=True)
             for field in fields:
                 all_fields_are_null = all_fields_are_null & f.isnull(field)
 

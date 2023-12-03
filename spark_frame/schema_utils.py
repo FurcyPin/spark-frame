@@ -103,7 +103,7 @@ def schema_from_simple_string(schema_string: str) -> DataType:
         pyspark.sql.utils.ParseException:...
 
     """
-    sc = SparkContext._active_spark_context
+    sc = SparkContext._active_spark_context  # noqa: SLF001
     assert_true(sc is not None, "No SparkContext has been instantiated yet")
     return _parse_datatype_string(schema_string)
 

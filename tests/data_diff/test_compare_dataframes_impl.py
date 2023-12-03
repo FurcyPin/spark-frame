@@ -185,7 +185,7 @@ def test_compare_df_with_structs(spark: SparkSession):
     diff_result.display()
     export_diff_result_to_html(diff_result)
     analyzer = DiffResultAnalyzer()
-    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
+    diff_per_col_df = analyzer.get_diff_per_col_df(diff_result)
     # We make sure that the displayed column name is 'a.c' and not 'a__STRUCT__c'
     assert diff_per_col_df.collect()[3].asDict().get("column_name") == "a.c"
 
@@ -358,7 +358,7 @@ def test_compare_df_with_missing_empty_and_null_arrays(spark: SparkSession):
     diff_result.display()
     export_diff_result_to_html(diff_result)
     analyzer = DiffResultAnalyzer()
-    diff_per_col_df = analyzer._get_diff_per_col_df(diff_result)
+    diff_per_col_df = analyzer.get_diff_per_col_df(diff_result)
     assert diff_per_col_df.count() == 2
 
 
@@ -558,7 +558,13 @@ def test_compare_df_with_multiple_arrays_of_structs_not_ok(spark: SparkSession):
         "": DiffStats(total=2, no_change=2, changed=0, in_left=2, in_right=2, only_in_left=0, only_in_right=0),
         "s1": DiffStats(total=6, no_change=6, changed=0, in_left=6, in_right=6, only_in_left=0, only_in_right=0),
         "s1!.ss": DiffStats(
-            total=13, no_change=10, changed=1, in_left=12, in_right=12, only_in_left=1, only_in_right=1
+            total=13,
+            no_change=10,
+            changed=1,
+            in_left=12,
+            in_right=12,
+            only_in_left=1,
+            only_in_right=1,
         ),
     }
     assert diff_result.same_schema is True

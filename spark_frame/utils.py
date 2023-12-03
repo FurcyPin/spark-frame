@@ -313,7 +313,7 @@ def strip_margin(text: str) -> str:
 
 def get_instantiated_spark_session() -> SparkSession:
     """Get the instantiated SparkSession. Raises an AssertionError if it does not exists."""
-    optional_spark = SparkSession._instantiatedSession
+    optional_spark = SparkSession._instantiatedSession  # noqa: SLF001
     assert_true(optional_spark is not None)
     spark = cast(SparkSession, optional_spark)
     return spark
@@ -379,9 +379,9 @@ def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, v
     )
 
     if isinstance(truncate, bool) and truncate:
-        return df._jdf.showString(n, 20, vertical)
+        return df._jdf.showString(n, 20, vertical)  # noqa: SLF001
     else:
-        return df._jdf.showString(n, int(truncate), vertical)
+        return df._jdf.showString(n, int(truncate), vertical)  # noqa: SLF001
 
 
 def schema_string(df: DataFrame) -> str:
@@ -410,7 +410,7 @@ def schema_string(df: DataFrame) -> str:
          |-- name: string (nullable = false)
         <BLANKLINE>
     """
-    return df._jdf.schema().treeString()
+    return df._jdf.schema().treeString()  # noqa: SLF001
 
 
 def assert_true(assertion: bool, error: Optional[Union[str, BaseException]] = None) -> None:

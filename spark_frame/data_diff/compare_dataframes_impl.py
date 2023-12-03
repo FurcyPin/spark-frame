@@ -180,7 +180,7 @@ def _get_eligible_columns_for_join(df: DataFrame) -> Dict[str, float]:
     eligibility_df = df.select(
         [
             (
-                f.when(f.count(f.lit(1)) == f.lit(0), f.lit(False)).otherwise(
+                f.when(f.count(f.lit(1)) == f.lit(0), f.lit(col=False)).otherwise(
                     f.approx_count_distinct(quote(col)) * f.lit(100.0) / f.count(f.lit(1)) > distinct_count_threshold,
                 )
             ).alias(col)
@@ -445,8 +445,8 @@ def _build_diff_dataframe(
     """  # noqa: E501
     column_names_diff = {_replace_special_characters(col_name): diff for col_name, diff in column_names_diff.items()}
 
-    left_df = left_df.withColumn(EXISTS_COL_NAME, f.lit(True))
-    right_df = right_df.withColumn(EXISTS_COL_NAME, f.lit(True))
+    left_df = left_df.withColumn(EXISTS_COL_NAME, f.lit(col=True))
+    right_df = right_df.withColumn(EXISTS_COL_NAME, f.lit(col=True))
 
     null_safe_join_clause = _build_null_safe_join_clause(left_df, right_df, join_cols)
     diff = left_df.join(right_df, null_safe_join_clause, "full")
@@ -458,27 +458,27 @@ def _build_diff_dataframe(
         if diff_prefix == DiffPrefix.ADDED:
             left_col = f.lit(None)
             left_col_str = left_col
-            exists_left = f.lit(False)
+            exists_left = f.lit(col=False)
         else:
             left_col = left_df[col_name]
             left_col_str = canonize_col(left_col, left_df_fields[col_name])
-            exists_left = f.coalesce(left_df[EXISTS_COL_NAME], f.lit(False))
+            exists_left = f.coalesce(left_df[EXISTS_COL_NAME], f.lit(col=False))
 
         if diff_prefix == DiffPrefix.REMOVED:
             right_col = f.lit(None)
             right_col_str = right_col
-            exists_right = f.lit(False)
+            exists_right = f.lit(col=False)
         else:
             right_col = right_df[col_name]
             right_col_str = canonize_col(right_col, right_df_fields[col_name])
-            exists_right = f.coalesce(right_df[EXISTS_COL_NAME], f.lit(False))
+            exists_right = f.coalesce(right_df[EXISTS_COL_NAME], f.lit(col=False))
 
         if diff_prefix == DiffPrefix.UNCHANGED:
             is_equal_col = (left_col_str.isNull() & right_col_str.isNull()) | (
                 left_col_str.isNotNull() & right_col_str.isNotNull() & (left_col_str == right_col_str)
             )
         else:
-            is_equal_col = f.lit(False)
+            is_equal_col = f.lit(col=False)
 
         return f.struct(
             left_col.alias("left_value"),
@@ -495,12 +495,12 @@ def _build_diff_dataframe(
             if col_name in diff.columns
         ],
         f.struct(
-            f.coalesce(left_df[EXISTS_COL_NAME], f.lit(False)).alias("left_value"),
-            f.coalesce(right_df[EXISTS_COL_NAME], f.lit(False)).alias("right_value"),
+            f.coalesce(left_df[EXISTS_COL_NAME], f.lit(col=False)).alias("left_value"),
+            f.coalesce(right_df[EXISTS_COL_NAME], f.lit(col=False)).alias("right_value"),
         ).alias(EXISTS_COL_NAME),
     )
 
-    row_is_equal = f.lit(True)
+    row_is_equal = f.lit(col=True)
     for col_name, diff_prefix in column_names_diff.items():
         if diff_prefix == DiffPrefix.UNCHANGED and col_name in diff_df.columns:
             row_is_equal = row_is_equal & f.col(f"{col_name}.is_equal")

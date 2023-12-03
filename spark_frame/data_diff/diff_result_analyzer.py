@@ -114,12 +114,6 @@ class DiffResultAnalyzer:
                 self.diff_format_options.nb_diffed_rows,
             )
 
-    def _get_diff_per_col_df(
-        self,
-        diff_result: DiffResult,
-    ) -> DataFrame:
-        return diff_result.get_diff_per_col_df(self.diff_format_options.nb_diffed_rows)
-
     @staticmethod
     def _display_changed(diff_per_col_df: DataFrame) -> None:
         """Displays the results of the diff analysis.
@@ -341,6 +335,12 @@ class DiffResultAnalyzer:
             total_nb_rows=diff_result.total_nb_rows,
         )
         return summary
+
+    def get_diff_per_col_df(
+        self,
+        diff_result: DiffResult,
+    ) -> DataFrame:
+        return diff_result.get_diff_per_col_df(self.diff_format_options.nb_diffed_rows)
 
 
 def _get_test_diff_per_col_df() -> DataFrame:

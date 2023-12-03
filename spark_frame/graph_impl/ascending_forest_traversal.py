@@ -176,21 +176,21 @@ def _ascending_forest_traversal(
         +-------+---------+------+
         <BLANKLINE>
     """
-    # node_id_col_name = "node_id"
-    # parent_id_col_name = "parent_id"
-    # highest_parent_id_col_name = "highest_parent_id"
-    # status_col_name = "status"
-    # incomplete_status = 0
-    # done_status = 1
-    # cycle_status = -1
-    # input_df = spark.sql('''
-    #     SELECT
-    #       col1 as `node_id`,
-    #       col2 as `parent_id`
-    #     FROM VALUES (1, 2), (2, 3), (3, 3), (11, 12), (12, 13), (13, 11)
-    # ''')
+    # EXAMPLE: # node_id_col_name = "node_id"
+    # EXAMPLE: # parent_id_col_name = "parent_id"
+    # EXAMPLE: # highest_parent_id_col_name = "highest_parent_id"
+    # EXAMPLE: # status_col_name = "status"
+    # EXAMPLE: # incomplete_status = 0
+    # EXAMPLE: # done_status = 1
+    # EXAMPLE: # cycle_status = -1
+    # EXAMPLE: # input_df = spark.sql('''
+    # EXAMPLE: #     SELECT
+    # EXAMPLE: #       col1 as `node_id`,
+    # EXAMPLE: #       col2 as `parent_id`
+    # EXAMPLE: #     FROM VALUES (1, 2), (2, 3), (3, 3), (11, 12), (12, 13), (13, 11)
+    # EXAMPLE: # ''')
     df = input_df
-    # df.show()
+    # EXAMPLE: # df.show()
     # +-------+---------+
     # |node_id|parent_id|
     # +-------+---------+
@@ -217,7 +217,7 @@ def _ascending_forest_traversal(
         status_col_name,
         f.when(node_id_col == parent_id_col, done_status_col).otherwise(incomplete_status_col).alias(status_col_name),
     )
-    # df.show()
+    # EXAMPLE: # df.show()
     # +-------+---------+-----------------+------+
     # |node_id|parent_id|highest_parent_id|status|
     # +-------+---------+-----------------+------+
@@ -230,9 +230,7 @@ def _ascending_forest_traversal(
     # +-------+---------+-----------------+------+
 
     df_done = df.where(status_col.isin([done_status_col, cycle_status_col]))
-    # df_done.show()
     df_incomplete = df.where(~status_col.isin([done_status_col, cycle_status_col])).localCheckpoint()
-    # df_incomplete.show()
 
     # Algorithm loop:
     do_continue = True
@@ -288,7 +286,7 @@ def _ascending_forest_traversal(
         df_done = df_done.union(new_df_done).localCheckpoint()
 
     res_df = df_done
-    # res_df.show()
+    # EXAMPLE: # res_df.show()
     # +-------+---------+-----------------+------+
     # |node_id|parent_id|highest_parent_id|status|
     # +-------+---------+-----------------+------+
@@ -304,7 +302,7 @@ def _ascending_forest_traversal(
         f.when(status_col == cycle_status_col, f.lit(None)).otherwise(parent_id_col).alias(parent_id_col_name),
         status_col,
     )
-    # res_df.show()
+    # EXAMPLE: # res_df.show()
     # +-------+---------+------+
     # |node_id|parent_id|status|
     # +-------+---------+------+

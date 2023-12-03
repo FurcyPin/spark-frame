@@ -36,11 +36,11 @@ class Predicates:
 
     @property
     def only_in_left(self) -> Column:
-        return f.col(f"{EXISTS_COL_NAME}.left_value") & (f.col(f"{EXISTS_COL_NAME}.right_value") == f.lit(False))
+        return f.col(f"{EXISTS_COL_NAME}.left_value") & (f.col(f"{EXISTS_COL_NAME}.right_value") == f.lit(col=False))
 
     @property
     def only_in_right(self) -> Column:
-        return (f.col(f"{EXISTS_COL_NAME}.left_value") == f.lit(False)) & f.col(
+        return (f.col(f"{EXISTS_COL_NAME}.left_value") == f.lit(col=False)) & f.col(
             f"{EXISTS_COL_NAME}.right_value",
         )
 
@@ -50,7 +50,7 @@ class Predicates:
 
     @property
     def row_changed(self) -> Column:
-        return f.col(IS_EQUAL_COL_NAME) == f.lit(False)
+        return f.col(IS_EQUAL_COL_NAME) == f.lit(col=False)
 
 
 PREDICATES = Predicates()
