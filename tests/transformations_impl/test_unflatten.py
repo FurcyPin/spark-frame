@@ -9,7 +9,7 @@ def test_unflatten(spark: SparkSession):
         [(1, 1, 2, 3),
          (2, None, None, None),
          (3, 1, 2, 3)],
-        "id INT, `s.a` INT, `s.b.c` INT, `s.b.d` INT"
+        "id INT, `s.a` INT, `s.b.c` INT, `s.b.d` INT",
     )
 
     df2 = transformations.unflatten(df)

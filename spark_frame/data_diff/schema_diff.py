@@ -155,7 +155,7 @@ def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame, join_cols: L
                 and not is_parent_field_of_any(field.name, join_cols)
                 and not isinstance(field.dataType, StructType)
                 and not field.name.endswith(REPETITION_MARKER)
-            ]
+            ],
         )
 
     left_schema_flat_exploded = explode_schema_according_to_join_cols(left_df.schema)
@@ -191,8 +191,8 @@ def _remove_potential_duplicates_from_diff(diff: List[str]) -> List[str]:
         [' id', ' col1', ' col2', ' col3', ' col4']
 
     """
-    plus = set([row[1:] for row in diff if row[0] == DiffPrefix.ADDED])
-    minus = set([row[1:] for row in diff if row[0] == DiffPrefix.REMOVED])
+    plus = {row[1:] for row in diff if row[0] == DiffPrefix.ADDED}
+    minus = {row[1:] for row in diff if row[0] == DiffPrefix.REMOVED}
     both = plus.intersection(minus)
     return [
         DiffPrefix.UNCHANGED + row[1:] if row[1:] in both else row

@@ -1,10 +1,16 @@
-from typing import List
+from functools import lru_cache
+from typing import TYPE_CHECKING, List
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as f
 
 from spark_frame import nested
-from spark_frame.data_diff.special_characters import _restore_special_characters_from_col
+from spark_frame.data_diff.special_characters import (
+    _restore_special_characters_from_col,
+)
+
+if TYPE_CHECKING:
+    from spark_frame.data_diff.diff_results import DiffResult
 
 
 def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
@@ -30,13 +36,20 @@ def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
         +-------------+-----------+
         <BLANKLINE>
     """
-    col_df = spark.createDataFrame(list(enumerate(columns)), "column_number INT, column_name STRING").withColumn(
-        "column_name", _restore_special_characters_from_col(f.col("column_name"))
+    col_df = spark.createDataFrame(
+        list(enumerate(columns)),
+        "column_number INT, column_name STRING",
+    ).withColumn(
+        "column_name",
+        _restore_special_characters_from_col(f.col("column_name")),
     )
     return col_df
 
 
-def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: int) -> DataFrame:
+def _get_pivoted_df(
+    top_per_col_state_df: DataFrame,
+    max_nb_rows_per_col_state: int,
+) -> DataFrame:
     """Pivot the top_per_col_state_df
 
     Examples:
@@ -71,7 +84,7 @@ def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: 
         +-----------+-------------+----------+-----------+---+---------------+-------+
         <BLANKLINE>
 
-        >>> _get_pivoted_df(diff_result.top_per_col_state_df, max_nb_rows_per_col_state=10).show(truncate=False)  # noqa: E501
+        >>> _get_pivoted_df(diff_result.top_per_col_state_df, max_nb_rows_per_col_state=10).show(truncate=False)
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         |column_name|changed_nb|changed_diff          |no_change_nb|no_change_diff                              |only_in_left_nb|only_in_left_diff                         |only_in_right_nb|only_in_right_diff                        |
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
@@ -82,17 +95,20 @@ def _get_pivoted_df(top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: 
         |id         |NULL      |[]                    |4           |[{1, 1, 1}, {2, 2, 1}, {3, 3, 1}, {4, 4, 1}]|1              |[{5, NULL, 1}]                            |1               |[{NULL, 6, 1}]                            |
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         <BLANKLINE>
-    """
+    """  # noqa: E501
     pivoted_df = (
         top_per_col_state_df.groupBy("column_name")
-        .pivot("state", values=["changed", "no_change", "only_in_left", "only_in_right"])
+        .pivot(
+            "state",
+            values=["changed", "no_change", "only_in_left", "only_in_right"],
+        )
         .agg(
             f.sum("nb").alias("nb"),
             f.expr(
                 f"""
             ARRAY_AGG(
                 CASE WHEN row_num <= {max_nb_rows_per_col_state} THEN STRUCT(left_value, right_value, nb) END
-            )"""
+            )""",
             ).alias("diff"),
         )
     )
@@ -121,7 +137,7 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
         |            4|         c4|
         +-------------+-----------+
         <BLANKLINE>
-        >>> pivoted_df.show(truncate=False)  # noqa: E501
+        >>> pivoted_df.show(truncate=False)
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
         |column_name|changed_nb|changed_diff          |no_change_nb|no_change_diff                              |only_in_left_nb|only_in_left_diff                         |only_in_right_nb|only_in_right_diff                        |
         +-----------+----------+----------------------+------------+--------------------------------------------+---------------+------------------------------------------+----------------+------------------------------------------+
@@ -163,7 +179,7 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
         |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{1, 2}, {2, 2}, {3, 1}]}                    |
         +-------------+-----------+---------------+----------------------------------------------------------+
         <BLANKLINE>
-    """
+    """  # noqa: E501
     coalesced_df = col_df.join(pivoted_df, "column_name", "left").withColumns(
         {
             "changed_nb": f.coalesce(f.col("changed_nb"), f.lit(0)),
@@ -174,7 +190,7 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
             "no_change_diff": f.coalesce(f.col("no_change_diff"), f.array()),
             "only_in_left_diff": f.coalesce(f.col("only_in_left_diff"), f.array()),
             "only_in_right_diff": f.coalesce(f.col("only_in_right_diff"), f.array()),
-        }
+        },
     )
     total_col = f.col("changed_nb") + f.col("no_change_nb") + f.col("only_in_left_nb") + f.col("only_in_right_nb")
     renamed_df = coalesced_df.select(
@@ -212,8 +228,21 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
     return formatted_df
 
 
+@lru_cache()
+def _get_diff_per_col_df_with_cache(diff_result: "DiffResult", max_nb_rows_per_col_state: int) -> DataFrame:
+    from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
+
+    return _get_diff_per_col_df(
+        top_per_col_state_df=diff_result.top_per_col_state_df,
+        columns=diff_result.schema_diff_result.column_names,
+        max_nb_rows_per_col_state=max_nb_rows_per_col_state,
+    ).localCheckpoint()
+
+
 def _get_diff_per_col_df(
-    top_per_col_state_df: DataFrame, columns: List[str], max_nb_rows_per_col_state: int
+    top_per_col_state_df: DataFrame,
+    columns: List[str],
+    max_nb_rows_per_col_state: int,
 ) -> DataFrame:
     """Given a top_per_col_state_df, return a DataFrame that gives for each column and each
     column state (changed, no_change, only_in_left, only_in_right) the total number of occurences
@@ -261,7 +290,7 @@ def _get_diff_per_col_df(
         >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
         >>> diff_df = diff_result.diff_df_shards[""]
-        >>> diff_df.show(truncate=False)  # noqa: E501
+        >>> diff_df.show(truncate=False)
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
@@ -325,7 +354,7 @@ def _get_diff_per_col_df(
          |-- diff.only_in_right!.value: string (nullable = true)
          |-- diff.only_in_right!.nb: long (nullable = false)
         <BLANKLINE>
-        >>> diff_per_col_df.show(truncate=False)  # noqa: E501
+        >>> diff_per_col_df.show(truncate=False)
         +-------------+-----------+---------------+----------------------------------------------------------+
         |column_number|column_name|counts         |diff                                                      |
         +-------------+-----------+---------------+----------------------------------------------------------+
@@ -343,7 +372,7 @@ def _get_diff_per_col_df(
         ...     diff_result.top_per_col_state_df.orderBy("nb"),
         ...     diff_result.schema_diff_result.column_names,
         ...     max_nb_rows_per_col_state=10
-        ... ).show(truncate=False)  # noqa: E501
+        ... ).show(truncate=False)
         +-------------+-----------+---------------+----------------------------------------------------------+
         |column_number|column_name|counts         |diff                                                      |
         +-------------+-----------+---------------+----------------------------------------------------------+
@@ -354,7 +383,7 @@ def _get_diff_per_col_df(
         |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{3, 1}, {1, 2}, {2, 2}]}                    |
         +-------------+-----------+---------------+----------------------------------------------------------+
         <BLANKLINE>
-    """
+    """  # noqa: E501
     spark = top_per_col_state_df.sparkSession
     pivoted_df = _get_pivoted_df(top_per_col_state_df, max_nb_rows_per_col_state)
     col_df = _get_col_df(columns, spark)

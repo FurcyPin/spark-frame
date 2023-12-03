@@ -170,7 +170,8 @@ def _get_sample_pokemon_data() -> DataFrame:
             }
           }
     """.replace(
-        "\n", ""
+        "\n",
+        "",
     )
     df = spark.createDataFrame([(json_str,)], "value STRING").repartition(1)
     df = parse_json_columns(df, "value").select("value.*")

@@ -18,14 +18,15 @@ pyspark = "~3.5.0"
 
 types-setuptools = "^65.6.0.3"
 
-black = "^22.6.0"
-isort = "^5.10.1"
-flake8 = "^6.0.0"
+black = "^23.11.0"
+ruff = "^0.1.6"
 mypy = "^0.971"
-bandit = "^1.7.4"
 safety = "^2.1.1"
+
 pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
+tox = "^4.11.3"
+
 pipdeptree = "2.2.1"
 
 mkdocs = "^1.5.3"
@@ -33,7 +34,8 @@ mkdocstrings = {extras = ["python"], version = "^0.23.0"}
 mkdocs-material = "^9.4.6"
 mkdocs-include-markdown-plugin = "^6.0.3"
 
-tox = "^4.11.3"
+[tool.black]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core==1.1.14"]
@@ -53,16 +55,6 @@ output = "coverage.xml"
 exclude_also = [
     "if TYPE_CHECKING:"
 ]
-
-
-
-[tool.black]
-line-length = 120
-
-[tool.isort]
-line_length = 120
-profile = "black"
-known_first_party = "spark_frame"
 
 
 [tool.mypy]

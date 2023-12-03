@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional
 
 import pkg_resources
@@ -44,7 +45,7 @@ def export_html_diff_report(
     )
 
     # Save the rendered HTML to a file
-    with open(output_file_path, "w", encoding=encoding) as f:
+    with Path(output_file_path).open(mode="w", encoding=encoding) as f:
         f.write(html)
 
     print(f"Report exported as {output_file_path}")

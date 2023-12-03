@@ -10,7 +10,7 @@ from spark_frame.data_diff.diff_results import DiffResult
 class DataframeComparator:
     def __init__(self) -> None:
         warning_message = (
-            "The class DataFrame is deprecated since version 0.3.4. "
+            "The class DataframeComparator is deprecated since version 0.3.4. "
             "Please use spark_frame.data_diff.compare_df directly instead."
         )
         warnings.warn(warning_message, category=DeprecationWarning)

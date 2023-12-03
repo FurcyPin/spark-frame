@@ -91,9 +91,9 @@ def unpivot(df: DataFrame, pivot_columns: List[str], key_alias: str = "key", val
 
     # Create and explode an array of (column_name, column_value) structs
     kvs = f.explode(
-        f.array(*[f.struct(f.lit(c).alias(key_alias), f.col(quote(c)).alias(value_alias)) for c in cols])
+        f.array(*[f.struct(f.lit(c).alias(key_alias), f.col(quote(c)).alias(value_alias)) for c in cols]),
     ).alias("kvs")
 
     return df.select([f.col(c) for c in quote_columns(pivot_columns)] + [kvs]).select(
-        quote_columns(pivot_columns) + ["kvs.*"]
+        [*quote_columns(pivot_columns), "kvs.*"],
     )

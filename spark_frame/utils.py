@@ -59,7 +59,7 @@ def is_sub_field_or_equal_to_any(sub_field: str, fields: List[str]) -> bool:
     False
 
     """
-    return any([is_sub_field_or_equal(sub_field, field) for field in fields])
+    return any(is_sub_field_or_equal(sub_field, field) for field in fields)
 
 
 def group_by_key(items: Iterable[Tuple[K, V]]) -> Dict[K, List[V]]:
@@ -313,7 +313,7 @@ def strip_margin(text: str) -> str:
 
 def get_instantiated_spark_session() -> SparkSession:
     """Get the instantiated SparkSession. Raises an AssertionError if it does not exists."""
-    optional_spark = getattr(SparkSession, "_instantiatedSession")
+    optional_spark = SparkSession._instantiatedSession  # noqa: SLF001
     assert_true(optional_spark is not None)
     spark = cast(SparkSession, optional_spark)
     return spark
@@ -374,13 +374,14 @@ def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, v
     assert_true(isinstance(n, (int, bool)), TypeError("Parameter 'n' (number of rows) must be an int"))
     assert_true(isinstance(vertical, bool), TypeError("Parameter 'vertical' must be a bool"))
     assert_true(
-        isinstance(truncate, (int, bool)), TypeError(f"Parameter 'truncate={truncate}' should be either bool or int.")
+        isinstance(truncate, (int, bool)),
+        TypeError(f"Parameter 'truncate={truncate}' should be either bool or int."),
     )
 
     if isinstance(truncate, bool) and truncate:
-        return df._jdf.showString(n, 20, vertical)
+        return df._jdf.showString(n, 20, vertical)  # noqa: SLF001
     else:
-        return df._jdf.showString(n, int(truncate), vertical)
+        return df._jdf.showString(n, int(truncate), vertical)  # noqa: SLF001
 
 
 def schema_string(df: DataFrame) -> str:
@@ -409,7 +410,7 @@ def schema_string(df: DataFrame) -> str:
          |-- name: string (nullable = false)
         <BLANKLINE>
     """
-    return df._jdf.schema().treeString()
+    return df._jdf.schema().treeString()  # noqa: SLF001
 
 
 def assert_true(assertion: bool, error: Optional[Union[str, BaseException]] = None) -> None:
@@ -445,7 +446,7 @@ def assert_true(assertion: bool, error: Optional[Union[str, BaseException]] = No
         elif isinstance(error, str):
             raise AssertionError(error)
         else:
-            raise AssertionError()
+            raise AssertionError
 
 
 def load_external_module(module_name: str) -> ModuleType:
@@ -476,12 +477,13 @@ def load_external_module(module_name: str) -> ModuleType:
     try:
         module = importlib.import_module(module_name)
     except ImportError:
-        raise ImportError(
+        error_message = (
             f"Module '{module_name}' not found.\n"
             f"To keep {PROJECT_NAME} as light, flexible and secure as possible, "
             "it was not included in its dependencies.\n"
             "Please add it to your project dependencies to use this method."
         )
+        raise ImportError(error_message)
 
     return module
 
@@ -545,7 +547,7 @@ def has_same_granularity_as_any(field: str, other_fields: List[str]) -> bool:
     False
 
     """
-    return any([has_same_granularity(field, other_field) for other_field in other_fields])
+    return any(has_same_granularity(field, other_field) for other_field in other_fields)
 
 
 def is_direct_sub_field(direct_sub_field: str, field: str) -> bool:
@@ -594,7 +596,7 @@ def is_direct_sub_field_of_any(direct_sub_field: str, fields: List[str]) -> bool
     False
 
     """
-    return any([is_direct_sub_field(direct_sub_field, field) for field in fields])
+    return any(is_direct_sub_field(direct_sub_field, field) for field in fields)
 
 
 def is_parent_field_of_any(field: str, other_fields: List[str]) -> bool:
@@ -617,7 +619,7 @@ def is_parent_field_of_any(field: str, other_fields: List[str]) -> bool:
     False
 
     """
-    return any([is_parent_field(field, other_field) for other_field in other_fields])
+    return any(is_parent_field(field, other_field) for other_field in other_fields)
 
 
 def is_parent_field(field: str, other_field: str) -> bool:
@@ -637,7 +639,7 @@ def is_parent_field(field: str, other_field: str) -> bool:
     False
 
     """
-    return other_field.startswith(field + ".") or other_field.startswith(field + "!.")
+    return other_field.startswith((field + ".", field + "!."))
 
 
 def substring_before_last_occurrence(s: str, sep: str) -> str:
@@ -655,3 +657,7 @@ def substring_before_last_occurrence(s: str, sep: str) -> str:
         return ""
     else:
         return s[0:index]
+
+
+def _ref(_: object) -> None:
+    """Dummy function used to prevent 'optimize import' from dropping the methods imported"""

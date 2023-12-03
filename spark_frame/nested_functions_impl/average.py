@@ -6,7 +6,10 @@ from pyspark.sql import functions as f
 from spark_frame.nested_functions_impl.aggregate import aggregate
 
 
-def average(field_name: str, starting_level: Union[Column, DataFrame, None] = None) -> Column:
+def average(
+    field_name: str,
+    starting_level: Union[Column, DataFrame, None] = None,
+) -> Column:
     """Recursively compute the average of all elements in the given repeated field.
 
     !!! warning "Limitation: Dots, percents, and exclamation marks are not supported in field names"
@@ -39,7 +42,7 @@ def average(field_name: str, starting_level: Union[Column, DataFrame, None] = No
          |-- projects!.tasks!.name: string (nullable = true)
          |-- projects!.tasks!.estimate: long (nullable = true)
         <BLANKLINE>
-        >>> employee_df.withColumn("projects", f.to_json("projects.tasks")).show(truncate=False)  # noqa: E501
+        >>> employee_df.withColumn("projects", f.to_json("projects.tasks")).show(truncate=False)
         +-----------+----------+---+-----------------------------------------------------------------------------------------------------------------------------------+
         |employee_id|name      |age|projects                                                                                                                           |
         +-----------+----------+---+-----------------------------------------------------------------------------------------------------------------------------------+
@@ -141,18 +144,29 @@ def average(field_name: str, starting_level: Union[Column, DataFrame, None] = No
         |    2.5|
         +-------+
         <BLANKLINE>
-    """
-    initial_value = f.struct(f.lit(0).cast("BIGINT").alias("sum"), f.lit(0).cast("BIGINT").alias("count"))
+    """  # noqa: E501
+    initial_value = f.struct(
+        f.lit(0).cast("BIGINT").alias("sum"),
+        f.lit(0).cast("BIGINT").alias("count"),
+    )
 
     def start(x: Column) -> Column:
         return f.struct(x.alias("sum"), f.lit(1).alias("count"))
 
     def merge(acc: Column, x: Column) -> Column:
-        return f.struct((acc["sum"] + x["sum"]).alias("sum"), (acc["count"] + x["count"]).alias("count"))
+        return f.struct(
+            (acc["sum"] + x["sum"]).alias("sum"),
+            (acc["count"] + x["count"]).alias("count"),
+        )
 
     def finish(acc: Column) -> Column:
         return f.when(acc["count"] > 0, acc["sum"] / acc["count"])
 
     return aggregate(
-        field_name, initial_value=initial_value, merge=merge, start=start, finish=finish, starting_level=starting_level
+        field_name,
+        initial_value=initial_value,
+        merge=merge,
+        start=start,
+        finish=finish,
+        starting_level=starting_level,
     )

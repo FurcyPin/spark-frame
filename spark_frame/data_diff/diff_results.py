@@ -1,4 +1,4 @@
-from functools import cached_property, lru_cache
+from functools import cached_property
 from typing import Dict, Generator, List, Optional, cast
 
 from pyspark.sql import DataFrame, Window
@@ -8,6 +8,7 @@ from pyspark.sql.types import StructType
 from spark_frame import transformations as df_transformations
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
+from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df_with_cache
 from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.data_diff.export import (
     DEFAULT_HTML_REPORT_ENCODING,
@@ -57,10 +58,16 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
     diff_df = diff_df.select(
         *[
             f.struct(
-                canonize_col(diff_df[field.name + ".left_value"], cast(StructType, field.dataType).fields[0])
+                canonize_col(
+                    diff_df[field.name + ".left_value"],
+                    cast(StructType, field.dataType).fields[0],
+                )
                 .cast("STRING")
                 .alias("left_value"),
-                canonize_col(diff_df[field.name + ".right_value"], cast(StructType, field.dataType).fields[0])
+                canonize_col(
+                    diff_df[field.name + ".right_value"],
+                    cast(StructType, field.dataType).fields[0],
+                )
                 .cast("STRING")
                 .alias("right_value"),
                 diff_df[quote(field.name) + ".is_equal"].alias("is_equal"),
@@ -71,11 +78,20 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
         ],
     )
 
-    unpivoted_df = df_transformations.unpivot(diff_df, pivot_columns=[], key_alias="column_name", value_alias="diff")
+    unpivoted_df = df_transformations.unpivot(
+        diff_df,
+        pivot_columns=[],
+        key_alias="column_name",
+        value_alias="diff",
+    )
     unpivoted_df = unpivoted_df.withColumn(
         "column_name",
         f.regexp_replace(
-            f.regexp_replace(f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, STRUCT_SEPARATOR),
+            f.regexp_replace(
+                f.col("column_name"),
+                STRUCT_SEPARATOR_REPLACEMENT,
+                STRUCT_SEPARATOR,
+            ),
             REPETITION_MARKER_REPLACEMENT,
             REPETITION_MARKER,
         ),
@@ -110,12 +126,16 @@ class DiffResult:
 
     @cached_property
     def same_data(self) -> bool:
-        return self.top_per_col_state_df.where(f.col("state") != f.lit("no_change")).isEmpty()
+        return self.top_per_col_state_df.where(
+            f.col("state") != f.lit("no_change"),
+        ).isEmpty()
 
     @cached_property
     def total_nb_rows(self) -> int:
-        a_join_col = [col for col in self.join_cols if REPETITION_MARKER not in col][0]
-        return self.top_per_col_state_df.where(f.col("column_name") == f.lit(a_join_col)).count()
+        a_join_col = next(col for col in self.join_cols if REPETITION_MARKER not in col)
+        return self.top_per_col_state_df.where(
+            f.col("column_name") == f.lit(a_join_col),
+        ).count()
 
     @property
     def is_ok(self) -> bool:
@@ -139,7 +159,6 @@ class DiffResult:
 
         return union_dataframes(*generate()).localCheckpoint()
 
-    @lru_cache()
     def get_diff_per_col_df(self, max_nb_rows_per_col_state: int) -> DataFrame:
         """Return a Dict[str, int] that gives for each column and each column state (changed, no_change, only_in_left,
         only_in_right) the total number of occurences and the most frequent occurrences.
@@ -178,7 +197,7 @@ class DiffResult:
         Examples:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
             >>> diff_result = _get_test_diff_result()
-            >>> diff_result.diff_df_shards[''].show(truncate=False)  # noqa: E501
+            >>> diff_result.diff_df_shards[''].show(truncate=False)
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
             |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
@@ -250,14 +269,8 @@ class DiffResult:
             |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{1, 2}, {2, 2}, {3, 1}]}                    |
             +-------------+-----------+---------------+----------------------------------------------------------+
             <BLANKLINE>
-        """
-        from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
-
-        return _get_diff_per_col_df(
-            top_per_col_state_df=self.top_per_col_state_df,
-            columns=self.schema_diff_result.column_names,
-            max_nb_rows_per_col_state=max_nb_rows_per_col_state,
-        ).localCheckpoint()
+        """  # noqa: E501
+        return _get_diff_per_col_df_with_cache(self, max_nb_rows_per_col_state)
 
     def _compute_diff_stats_shard(self, diff_df_shard: DataFrame) -> DiffStats:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
@@ -281,19 +294,39 @@ class DiffResult:
         """
         res_df = diff_df_shard.select(
             f.count(f.lit(1)).alias("total"),
-            f.sum(f.when(PREDICATES.present_in_both & PREDICATES.row_is_equal, f.lit(1)).otherwise(f.lit(0))).alias(
-                "no_change"
+            f.sum(
+                f.when(
+                    PREDICATES.present_in_both & PREDICATES.row_is_equal,
+                    f.lit(1),
+                ).otherwise(f.lit(0)),
+            ).alias(
+                "no_change",
             ),
-            f.sum(f.when(PREDICATES.present_in_both & PREDICATES.row_changed, f.lit(1)).otherwise(f.lit(0))).alias(
-                "changed"
+            f.sum(
+                f.when(
+                    PREDICATES.present_in_both & PREDICATES.row_changed,
+                    f.lit(1),
+                ).otherwise(f.lit(0)),
+            ).alias(
+                "changed",
             ),
-            f.sum(f.when(PREDICATES.in_left, f.lit(1)).otherwise(f.lit(0))).alias("in_left"),
-            f.sum(f.when(PREDICATES.in_right, f.lit(1)).otherwise(f.lit(0))).alias("in_right"),
-            f.sum(f.when(PREDICATES.only_in_left, f.lit(1)).otherwise(f.lit(0))).alias("only_in_left"),
-            f.sum(f.when(PREDICATES.only_in_right, f.lit(1)).otherwise(f.lit(0))).alias("only_in_right"),
+            f.sum(f.when(PREDICATES.in_left, f.lit(1)).otherwise(f.lit(0))).alias(
+                "in_left",
+            ),
+            f.sum(f.when(PREDICATES.in_right, f.lit(1)).otherwise(f.lit(0))).alias(
+                "in_right",
+            ),
+            f.sum(f.when(PREDICATES.only_in_left, f.lit(1)).otherwise(f.lit(0))).alias(
+                "only_in_left",
+            ),
+            f.sum(f.when(PREDICATES.only_in_right, f.lit(1)).otherwise(f.lit(0))).alias(
+                "only_in_right",
+            ),
         )
         res = res_df.collect()
-        return DiffStats(**{k: (v if v is not None else 0) for k, v in res[0].asDict().items()})
+        return DiffStats(
+            **{k: (v if v is not None else 0) for k, v in res[0].asDict().items()},
+        )
 
     def _compute_diff_stats(self) -> Dict[str, DiffStats]:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
@@ -333,7 +366,7 @@ class DiffResult:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
             >>> _diff_result = _get_test_diff_result()
             >>> diff_df = _diff_result.diff_df_shards['']
-            >>> diff_df.show(truncate=False)  # noqa: E501
+            >>> diff_df.show(truncate=False)
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
             |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
@@ -374,7 +407,7 @@ class DiffResult:
             |         id|only_in_right|      NULL|          6|  1|              1|      1|
             +-----------+-------------+----------+-----------+---+---------------+-------+
             <BLANKLINE>
-        """
+        """  # noqa: E501
         unpivoted_diff_df = _unpivot(diff_df.drop(IS_EQUAL_COL_NAME, EXISTS_COL_NAME))
 
         only_in_left = f.col("diff")["exists_left"] & ~f.col("diff")["exists_right"]
@@ -392,18 +425,25 @@ class DiffResult:
             "diff.right_value",
         ).where(exists_in_left_or_right)
         window = Window.partitionBy("column_name", "state").orderBy(
-            f.col("nb").desc(), f.col("left_value"), f.col("right_value")
+            f.col("nb").desc(),
+            f.col("left_value"),
+            f.col("right_value"),
         )
         df = (
             df_2.groupBy("column_name", "state", "left_value", "right_value")
             .agg(f.count(f.lit(1)).alias("nb"))
-            .withColumn("col_state_total", f.sum("nb").over(Window.partitionBy("column_name", "state")))
+            .withColumn(
+                "col_state_total",
+                f.sum("nb").over(Window.partitionBy("column_name", "state")),
+            )
             .withColumn("row_num", f.row_number().over(window))
         )
         return df
 
     def display(
-        self, show_examples: bool = False, diff_format_options: DiffFormatOptions = DiffFormatOptions()
+        self,
+        show_examples: bool = False,
+        diff_format_options: Optional[DiffFormatOptions] = None,
     ) -> None:
         """Print a summary of the results in the standard output
 
@@ -411,6 +451,8 @@ class DiffResult:
             show_examples: If true, display example of rows for each type of change
             diff_format_options: Formatting options
         """
+        if diff_format_options is None:
+            diff_format_options = DiffFormatOptions()
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
         self.schema_diff_result.display()
@@ -422,7 +464,7 @@ class DiffResult:
         title: Optional[str] = None,
         output_file_path: str = DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
         encoding: str = DEFAULT_HTML_REPORT_ENCODING,
-        diff_format_options: DiffFormatOptions = DiffFormatOptions(),
+        diff_format_options: Optional[DiffFormatOptions] = None,
     ) -> None:
         """Generate an HTML report of this diff result.
 
@@ -435,11 +477,18 @@ class DiffResult:
             output_file_path: Path of the file to write to
             diff_format_options: Formatting options
         """
+        if diff_format_options is None:
+            diff_format_options = DiffFormatOptions()
         from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
         analyzer = DiffResultAnalyzer(diff_format_options)
         diff_result_summary = analyzer.get_diff_result_summary(self)
-        export_html_diff_report(diff_result_summary, title=title, output_file_path=output_file_path, encoding=encoding)
+        export_html_diff_report(
+            diff_result_summary,
+            title=title,
+            output_file_path=output_file_path,
+            encoding=encoding,
+        )
 
 
 def _get_test_diff_result() -> "DiffResult":
@@ -461,7 +510,11 @@ def _get_test_diff_result() -> "DiffResult":
         right_schema_str="",
         column_names_diff=column_names_diff,
     )
-    return DiffResult(schema_diff_result, diff_df_shards={"": _diff_df}, join_cols=["id"])
+    return DiffResult(
+        schema_diff_result,
+        diff_df_shards={"": _diff_df},
+        join_cols=["id"],
+    )
 
 
 def _get_test_intersection_diff_df() -> DataFrame:
@@ -488,6 +541,6 @@ def _get_test_intersection_diff_df() -> DataFrame:
                 ) as c2
             )
         ))
-    """
+    """,
     )
     return diff_df

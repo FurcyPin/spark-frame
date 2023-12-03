@@ -5,8 +5,17 @@ from pyspark.sql import functions as f
 from pyspark.sql.types import IntegerType, LongType, StringType
 
 from spark_frame.data_diff.diff_results import DiffResult
-from spark_frame.data_diff.package import EXISTS_COL_NAME, IS_EQUAL_COL_NAME, STRUCT_SEPARATOR_REPLACEMENT, canonize_col
-from spark_frame.data_diff.schema_diff import DiffPrefix, SchemaDiffResult, diff_dataframe_schemas
+from spark_frame.data_diff.package import (
+    EXISTS_COL_NAME,
+    IS_EQUAL_COL_NAME,
+    STRUCT_SEPARATOR_REPLACEMENT,
+    canonize_col,
+)
+from spark_frame.data_diff.schema_diff import (
+    DiffPrefix,
+    SchemaDiffResult,
+    diff_dataframe_schemas,
+)
 from spark_frame.data_diff.special_characters import (
     _replace_special_characters,
     _replace_special_characters_from_col_names,
@@ -15,7 +24,9 @@ from spark_frame.data_diff.special_characters import (
 from spark_frame.data_type_utils import is_repeated
 from spark_frame.nested_impl.package import unnest_fields
 from spark_frame.transformations import flatten
-from spark_frame.transformations_impl.convert_all_maps_to_arrays import convert_all_maps_to_arrays
+from spark_frame.transformations_impl.convert_all_maps_to_arrays import (
+    convert_all_maps_to_arrays,
+)
 from spark_frame.transformations_impl.harmonize_dataframes import harmonize_dataframes
 from spark_frame.transformations_impl.sort_all_arrays import sort_all_arrays
 from spark_frame.utils import quote, quote_columns
@@ -62,7 +73,7 @@ def _get_common_root_column_names(common_fields: Dict[str, Optional[str]]) -> Li
         ['id', 'array']
 
     """
-    root_columns = [col.split("!")[0] for col in common_fields.keys()]
+    root_columns = [col.split("!")[0] for col in common_fields]
     return _deduplicate_list_while_conserving_ordering(root_columns)
 
 
@@ -118,7 +129,8 @@ def _get_self_join_growth_estimate(df: DataFrame, cols: Union[str, List[str]]) -
         cols = [cols]
     df1 = df.groupby(quote_columns(cols)).agg(f.count(f.lit(1)).alias("nb"))
     df2 = df1.agg(
-        f.sum(f.col("nb")).alias("nb_rows"), f.sum(f.col("nb") * f.col("nb")).alias("nb_rows_after_self_join")
+        f.sum(f.col("nb")).alias("nb_rows"),
+        f.sum(f.col("nb") * f.col("nb")).alias("nb_rows_after_self_join"),
     )
     res = df2.take(1)[0]
     nb_rows = res["nb_rows"]
@@ -163,24 +175,27 @@ def _get_eligible_columns_for_join(df: DataFrame) -> Dict[str, float]:
         if col.dataType in [StringType(), IntegerType(), LongType()] and not is_repeated(col)
     ]
     if len(eligible_cols) == 0:
-        return dict()
+        return {}
     distinct_count_threshold = f.lit(90.0)
     eligibility_df = df.select(
         [
             (
-                f.when(f.count(f.lit(1)) == f.lit(0), f.lit(False)).otherwise(
-                    f.approx_count_distinct(quote(col)) * f.lit(100.0) / f.count(f.lit(1)) > distinct_count_threshold
+                f.when(f.count(f.lit(1)) == f.lit(0), f.lit(col=False)).otherwise(
+                    f.approx_count_distinct(quote(col)) * f.lit(100.0) / f.count(f.lit(1)) > distinct_count_threshold,
                 )
             ).alias(col)
             for col in eligible_cols
-        ]
+        ],
     )
     columns_with_high_distinct_count = [key for key, value in eligibility_df.collect()[0].asDict().items() if value]
     cols_with_duplicates = {col: _get_self_join_growth_estimate(df, col) for col in columns_with_high_distinct_count}
     return cols_with_duplicates
 
 
-def _merge_growth_estimate_dicts(left_dict: Dict[str, float], right_dict: Dict[str, float]) -> Dict[str, float]:
+def _merge_growth_estimate_dicts(
+    left_dict: Dict[str, float],
+    right_dict: Dict[str, float],
+) -> Dict[str, float]:
     """Merge together two dicts giving for each column name the corresponding growth_estimate
 
     >>> _merge_growth_estimate_dicts({"a": 10.0, "b": 1.0}, {"a": 1.0, "c": 1.0})
@@ -199,7 +214,10 @@ def _merge_growth_estimate_dicts(left_dict: Dict[str, float], right_dict: Dict[s
     return res
 
 
-def _automatically_infer_join_col(left_df: DataFrame, right_df: DataFrame) -> Tuple[Optional[str], Optional[float]]:
+def _automatically_infer_join_col(
+    left_df: DataFrame,
+    right_df: DataFrame,
+) -> Tuple[Optional[str], Optional[float]]:
     """Identify the column with the least duplicates, in order to use it as the id for the comparison join.
 
     Eligible columns are all columns of type String, Int or Bigint that have an approximate distinct count of 90%
@@ -245,13 +263,20 @@ def _automatically_infer_join_col(left_df: DataFrame, right_df: DataFrame) -> Tu
     merged_col_dict = _merge_growth_estimate_dicts(left_col_dict, right_col_dict)
 
     if len(merged_col_dict) > 0:
-        col, self_join_growth_estimate = sorted(merged_col_dict.items(), key=lambda x: x[1])[0]
+        col, self_join_growth_estimate = sorted(
+            merged_col_dict.items(),
+            key=lambda x: x[1],
+        )[0]
         return col, self_join_growth_estimate
     else:
         return None, None
 
 
-def _get_join_cols(left_df: DataFrame, right_df: DataFrame, join_cols: Optional[List[str]]) -> Tuple[List[str], float]:
+def _get_join_cols(
+    left_df: DataFrame,
+    right_df: DataFrame,
+    join_cols: Optional[List[str]],
+) -> Tuple[List[str], float]:
     """Performs an in-depth analysis between two DataFrames with the same columns and prints the differences found.
     We first attempt to identify columns that look like ids.
     For that we choose all the columns with an approximate_count_distinct greater than 90% of the row count.
@@ -265,15 +290,19 @@ def _get_join_cols(left_df: DataFrame, right_df: DataFrame, join_cols: Optional[
     if join_cols is None:
         print(
             "No join_cols provided: "
-            "trying to automatically infer a column that can be used for joining the two DataFrames"
+            "trying to automatically infer a column that can be used for joining the two DataFrames",
         )
-        inferred_join_col, self_join_growth_estimate = _automatically_infer_join_col(left_df, right_df)
+        inferred_join_col, self_join_growth_estimate = _automatically_infer_join_col(
+            left_df,
+            right_df,
+        )
         if inferred_join_col is None or self_join_growth_estimate is None:
-            raise DataframeComparatorException(
+            error_message = (
                 "Could not automatically infer a column sufficiently "
                 "unique to join the two DataFrames and perform a comparison. "
                 "Please specify manually the columns to use with the join_cols parameter"
             )
+            raise DataframeComparatorException(error_message)
         else:
             print(f"Found the following column: {inferred_join_col}")
             join_cols = [inferred_join_col]
@@ -285,7 +314,9 @@ def _get_join_cols(left_df: DataFrame, right_df: DataFrame, join_cols: Optional[
 
 
 def _check_join_cols(
-    specified_join_cols: Optional[List[str]], join_cols: List[str], self_join_growth_estimate: float
+    specified_join_cols: Optional[List[str]],
+    join_cols: List[str],
+    self_join_growth_estimate: float,
 ) -> None:
     """Check the self_join_growth_estimate and raise an Exception if it is bigger than 2.
 
@@ -306,24 +337,29 @@ def _check_join_cols(
     join_cols_str = _restore_special_characters(join_cols_str)
 
     if self_join_growth_estimate >= 2.0:
-        raise CombinatorialExplosionError(
+        error_message = (
             f"Performing a join with the {inferred_provided_str} column{plural_str} {join_cols_str} "
             f"would increase the size of the table by a factor of {self_join_growth_estimate}. "
             f"Please provide join_cols that are truly unique for both DataFrames."
         )
+        raise CombinatorialExplosionError(error_message)
     print(
         f"Generating the diff by joining the DataFrames together "
-        f"using the {inferred_provided_str} column{plural_str}: {join_cols_str}"
+        f"using the {inferred_provided_str} column{plural_str}: {join_cols_str}",
     )
     if self_join_growth_estimate > 1.0:
         print(
             f"WARNING: duplicates have been detected in the joining key, the resulting DataFrame "
             f"will be {self_join_growth_estimate} bigger which might affect the diff results. "
-            f"Please consider providing join_cols that are truly unique for both DataFrames."
+            f"Please consider providing join_cols that are truly unique for both DataFrames.",
         )
 
 
-def _build_null_safe_join_clause(left_df: DataFrame, right_df: DataFrame, join_cols: List[str]) -> Column:
+def _build_null_safe_join_clause(
+    left_df: DataFrame,
+    right_df: DataFrame,
+    join_cols: List[str],
+) -> Column:
     """Generates a join clause that matches NULL values for the given join_cols"""
 
     def join_clause_for_single_column(column: str) -> Column:
@@ -337,7 +373,10 @@ def _build_null_safe_join_clause(left_df: DataFrame, right_df: DataFrame, join_c
 
 
 def _build_diff_dataframe(
-    left_df: DataFrame, right_df: DataFrame, column_names_diff: Dict[str, DiffPrefix], join_cols: List[str]
+    left_df: DataFrame,
+    right_df: DataFrame,
+    column_names_diff: Dict[str, DiffPrefix],
+    join_cols: List[str],
 ) -> DataFrame:
     """Perform a column-by-column comparison between two DataFrames.
     The two DataFrames must have the same columns with the same ordering.
@@ -405,11 +444,11 @@ def _build_diff_dataframe(
         |{NULL, 4, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 5, false, false, true}    |{false, true}|false       |
         +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
         <BLANKLINE>
-    """
+    """  # noqa: E501
     column_names_diff = {_replace_special_characters(col_name): diff for col_name, diff in column_names_diff.items()}
 
-    left_df = left_df.withColumn(EXISTS_COL_NAME, f.lit(True))
-    right_df = right_df.withColumn(EXISTS_COL_NAME, f.lit(True))
+    left_df = left_df.withColumn(EXISTS_COL_NAME, f.lit(col=True))
+    right_df = right_df.withColumn(EXISTS_COL_NAME, f.lit(col=True))
 
     null_safe_join_clause = _build_null_safe_join_clause(left_df, right_df, join_cols)
     diff = left_df.join(right_df, null_safe_join_clause, "full")
@@ -421,27 +460,27 @@ def _build_diff_dataframe(
         if diff_prefix == DiffPrefix.ADDED:
             left_col = f.lit(None)
             left_col_str = left_col
-            exists_left = f.lit(False)
+            exists_left = f.lit(col=False)
         else:
             left_col = left_df[col_name]
             left_col_str = canonize_col(left_col, left_df_fields[col_name])
-            exists_left = f.coalesce(left_df[EXISTS_COL_NAME], f.lit(False))
+            exists_left = f.coalesce(left_df[EXISTS_COL_NAME], f.lit(col=False))
 
         if diff_prefix == DiffPrefix.REMOVED:
             right_col = f.lit(None)
             right_col_str = right_col
-            exists_right = f.lit(False)
+            exists_right = f.lit(col=False)
         else:
             right_col = right_df[col_name]
             right_col_str = canonize_col(right_col, right_df_fields[col_name])
-            exists_right = f.coalesce(right_df[EXISTS_COL_NAME], f.lit(False))
+            exists_right = f.coalesce(right_df[EXISTS_COL_NAME], f.lit(col=False))
 
         if diff_prefix == DiffPrefix.UNCHANGED:
             is_equal_col = (left_col_str.isNull() & right_col_str.isNull()) | (
                 left_col_str.isNotNull() & right_col_str.isNotNull() & (left_col_str == right_col_str)
             )
         else:
-            is_equal_col = f.lit(False)
+            is_equal_col = f.lit(col=False)
 
         return f.struct(
             left_col.alias("left_value"),
@@ -458,12 +497,12 @@ def _build_diff_dataframe(
             if col_name in diff.columns
         ],
         f.struct(
-            f.coalesce(left_df[EXISTS_COL_NAME], f.lit(False)).alias("left_value"),
-            f.coalesce(right_df[EXISTS_COL_NAME], f.lit(False)).alias("right_value"),
+            f.coalesce(left_df[EXISTS_COL_NAME], f.lit(col=False)).alias("left_value"),
+            f.coalesce(right_df[EXISTS_COL_NAME], f.lit(col=False)).alias("right_value"),
         ).alias(EXISTS_COL_NAME),
     )
 
-    row_is_equal = f.lit(True)
+    row_is_equal = f.lit(col=True)
     for col_name, diff_prefix in column_names_diff.items():
         if diff_prefix == DiffPrefix.UNCHANGED and col_name in diff_df.columns:
             row_is_equal = row_is_equal & f.col(f"{col_name}.is_equal")
@@ -476,7 +515,11 @@ def _harmonize_and_normalize_dataframes(
     skip_make_dataframes_comparable: bool,
 ) -> Tuple[DataFrame, DataFrame]:
     if not skip_make_dataframes_comparable:
-        left_flat, right_flat = harmonize_dataframes(left_flat, right_flat, keep_missing_columns=True)
+        left_flat, right_flat = harmonize_dataframes(
+            left_flat,
+            right_flat,
+            keep_missing_columns=True,
+        )
     left_flat = sort_all_arrays(left_flat)
     right_flat = sort_all_arrays(right_flat)
     return left_flat, right_flat
@@ -500,10 +543,20 @@ def _build_diff_dataframe_shards(
         if diff_prefix in [DiffPrefix.UNCHANGED, DiffPrefix.ADDED]
     ]
 
-    unnested_left_dfs = unnest_fields(left_df, left_fields_to_unnest, keep_fields=join_cols)
-    unnested_right_dfs = unnest_fields(right_df, right_fields_to_unnest, keep_fields=join_cols)
+    unnested_left_dfs = unnest_fields(
+        left_df,
+        left_fields_to_unnest,
+        keep_fields=join_cols,
+    )
+    unnested_right_dfs = unnest_fields(
+        right_df,
+        right_fields_to_unnest,
+        keep_fields=join_cols,
+    )
 
-    common_keys = sorted(set(unnested_left_dfs.keys()).intersection(set(unnested_right_dfs.keys())))
+    common_keys = sorted(
+        set(unnested_left_dfs.keys()).intersection(set(unnested_right_dfs.keys())),
+    )
 
     def build_shard(key: str) -> DataFrame:
         l_df = unnested_left_dfs[key]
@@ -513,15 +566,28 @@ def _build_diff_dataframe_shards(
         schema_diff_result = diff_dataframe_schemas(l_df, r_df, join_cols)
         new_join_cols = [_replace_special_characters(col) for col in join_cols]
         new_join_cols = [col for col in new_join_cols if col in l_df.columns]
-        new_join_cols, self_join_growth_estimate = _get_join_cols(l_df, r_df, new_join_cols)
+        new_join_cols, self_join_growth_estimate = _get_join_cols(
+            l_df,
+            r_df,
+            new_join_cols,
+        )
         _check_join_cols(specified_join_cols, new_join_cols, self_join_growth_estimate)
-        diff_df = _build_diff_dataframe(l_df, r_df, schema_diff_result.column_names_diff, new_join_cols)
+        diff_df = _build_diff_dataframe(
+            l_df,
+            r_df,
+            schema_diff_result.column_names_diff,
+            new_join_cols,
+        )
         return diff_df
 
     return {key: build_shard(key) for key in common_keys}
 
 
-def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optional[List[str]] = None) -> DiffResult:
+def compare_dataframes(
+    left_df: DataFrame,
+    right_df: DataFrame,
+    join_cols: Optional[List[str]] = None,
+) -> DiffResult:
     """Compares two DataFrames and print out the differences.
 
     We first compare the DataFrame schemas. If the schemas are different, we adapt the DataFrames to make them
@@ -562,7 +628,7 @@ def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optio
         >>> from spark_frame.data_diff.compare_dataframes_impl import __get_test_dfs
         >>> from spark_frame.data_diff import compare_dataframes
         >>> df1, df2 = __get_test_dfs()
-        >>> diff_result = compare_dataframes(df1, df2)  # noqa: E501
+        >>> diff_result = compare_dataframes(df1, df2)
         <BLANKLINE>
         Analyzing differences...
         No join_cols provided: trying to automatically infer a column that can be used for joining the two DataFrames
@@ -613,7 +679,7 @@ def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optio
         +-----------+---------------------------+---+
         <BLANKLINE>
 
-        >>> diff_result_exploded = compare_dataframes(df1, df2, join_cols=["id", "my_array!.a"])  # noqa: E501
+        >>> diff_result_exploded = compare_dataframes(df1, df2, join_cols=["id", "my_array!.a"])
         <BLANKLINE>
         Analyzing differences...
         Generating the diff by joining the DataFrames together using the provided column: id
@@ -714,17 +780,31 @@ def compare_dataframes(left_df: DataFrame, right_df: DataFrame, join_cols: Optio
     if join_cols is None:
         left_flat = flatten(left_df, struct_separator=STRUCT_SEPARATOR_REPLACEMENT)
         right_flat = flatten(right_df, struct_separator=STRUCT_SEPARATOR_REPLACEMENT)
-        join_cols, self_join_growth_estimate = _get_join_cols(left_flat, right_flat, join_cols)
+        join_cols, self_join_growth_estimate = _get_join_cols(
+            left_flat,
+            right_flat,
+            join_cols,
+        )
 
     global_schema_diff_result = diff_dataframe_schemas(left_df, right_df, join_cols)
     left_df, right_df = _harmonize_and_normalize_dataframes(
-        left_df, right_df, skip_make_dataframes_comparable=global_schema_diff_result.same_schema
+        left_df,
+        right_df,
+        skip_make_dataframes_comparable=global_schema_diff_result.same_schema,
     )
 
     diff_dataframe_shards = _build_diff_dataframe_shards(
-        left_df, right_df, global_schema_diff_result, join_cols, specified_join_cols
+        left_df,
+        right_df,
+        global_schema_diff_result,
+        join_cols,
+        specified_join_cols,
     )
-    diff_result = DiffResult(global_schema_diff_result, diff_dataframe_shards, join_cols)
+    diff_result = DiffResult(
+        global_schema_diff_result,
+        diff_dataframe_shards,
+        join_cols,
+    )
 
     return diff_result
 
@@ -741,7 +821,7 @@ def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:
             STRUCT(2 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c)) as my_array),
             STRUCT(3 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c)) as my_array)
         ))
-    """
+    """,
     )
     df2 = spark.sql(
         """
@@ -750,6 +830,6 @@ def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:
             STRUCT(2 as id, ARRAY(STRUCT(2 as a, 2 as b, 3 as c, 4 as d)) as my_array),
             STRUCT(4 as id, ARRAY(STRUCT(1 as a, 2 as b, 3 as c, 4 as d)) as my_array)
        ))
-    """
+    """,
     )
     return df1, df2

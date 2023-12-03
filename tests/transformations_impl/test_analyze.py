@@ -15,7 +15,7 @@ field_to_index = {
 }
 
 
-def test_analyze(spark: SparkSession):
+def test_analyze():
     df = __get_test_df()
     actual = analyze(df)
     assert show_string(actual, truncate=False) == strip_margin(
@@ -29,7 +29,7 @@ def test_analyze(spark: SparkSession):
         ||3            |evolution.can_evolve  |BOOLEAN    |9    |2             |0         |false    |true     |
         ||4            |evolution.evolves_from|INTEGER    |9    |6             |3         |1        |8        |
         |+-------------+----------------------+-----------+-----+--------------+----------+---------+---------+
-        |"""
+        |""",
     )
 
 
@@ -47,7 +47,7 @@ def test_analyze_with_keyword_column_names(spark: SparkSession):
         ||            0|       FROM|    INTEGER|    1|             1|         0|  1|  1|
         ||            1|  UNION.ALL|     STRING|    1|             1|         0|  a|  a|
         |+-------------+-----------+-----------+-----+--------------+----------+---+---+
-        |"""
+        |""",
     )
 
 
@@ -67,7 +67,7 @@ def test_analyze_with_array_struct_array(spark: SparkSession):
         |+-------------+-----------+-----------+-----+--------------+----------+---+---+
         ||            0|      a!.b!|    INTEGER|    3|             3|         0|  1|  3|
         |+-------------+-----------+-----------+-----+--------------+----------+---+---+
-        |"""
+        |""",
     )
 
 
@@ -87,7 +87,7 @@ def test_analyze_with_bytes(spark: SparkSession):
         |+-------------+-----------+-----------+-----+--------------+----------+----+----+
         ||            0|          s|     BINARY|    1|             1|         0|/+A=|/+A=|
         |+-------------+-----------+-----------+-----+--------------+----------+----+----+
-        |"""
+        |""",
     )
 
 
@@ -109,7 +109,7 @@ def test_analyze_with_nested_field_in_group_and_array_column(spark: SparkSession
         ||  {2}|            2|        a.c|    INTEGER|    1|             1|         0|  3|  3|
         ||  {2}|            3|       arr!|    INTEGER|    3|             3|         0|  1|  3|
         |+-----+-------------+-----------+-----------+-----+--------------+----------+---+---+
-        |"""
+        |""",
     )
 
 
@@ -130,5 +130,5 @@ def test_analyze_with_struct_in_group_and_array_column(spark: SparkSession):
         ||{{2, 3}}|            0|         id|    INTEGER|    1|             1|         0|  1|  1|
         ||{{2, 3}}|            3|       arr!|    INTEGER|    3|             3|         0|  1|  3|
         |+--------+-------------+-----------+-----------+-----+--------------+----------+---+---+
-        |"""
+        |""",
     )

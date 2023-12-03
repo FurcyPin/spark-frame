@@ -37,7 +37,11 @@ def _build_nested_struct_tree(columns: List[str], struct_separator: str) -> Orde
     return tree
 
 
-def _build_struct_from_tree(node: OrderedTree, separator: str, prefix: str = "") -> List[Column]:
+def _build_struct_from_tree(
+    node: OrderedTree,
+    separator: str,
+    prefix: str = "",
+) -> List[Column]:
     """Given an intermediate tree representing a nested struct, build a Spark Column
     that represents this nested structure.
 
@@ -47,14 +51,14 @@ def _build_struct_from_tree(node: OrderedTree, separator: str, prefix: str = "")
     ...      ('c', None),
     ...      ('d', None)
     ...    ]))])
-    >>> _build_struct_from_tree(tree, ".") # noqa: E501
+    >>> _build_struct_from_tree(tree, ".")
     [Column<'CASE WHEN ((true AND (`b!.c` AS c IS NULL)) AND (`b!.d` AS d IS NULL)) THEN NULL ELSE struct(`b!.c` AS c, `b!.d` AS d) END AS `b!`'>]
 
     :param node:
     :param separator:
     :param prefix:
     :return:
-    """
+    """  # noqa: E501
     cols = []
     for key, value in node.items():
         if value is None:
@@ -62,7 +66,7 @@ def _build_struct_from_tree(node: OrderedTree, separator: str, prefix: str = "")
         else:
             fields = _build_struct_from_tree(value, separator, prefix + key + separator)
             # We don't want structs where all fields are null so we check for this
-            all_fields_are_null = f.lit(True)
+            all_fields_are_null = f.lit(col=True)
             for field in fields:
                 all_fields_are_null = all_fields_are_null & f.isnull(field)
 

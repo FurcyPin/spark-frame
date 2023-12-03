@@ -71,10 +71,10 @@ def flatten(df: DataFrame, struct_separator: str = ".") -> DataFrame:
         for field in struct:
             if isinstance(field.dataType, StructType):
                 struct_field = field.dataType
-                expand_struct(struct_field, col_stack + [field.name])
+                expand_struct(struct_field, [*col_stack, field.name])
             else:
-                column = f.col(".".join(quote_columns(col_stack + [field.name])))
-                cols.append(column.alias(struct_separator.join(col_stack + [field.name])))
+                column = f.col(".".join(quote_columns([*col_stack, field.name])))
+                cols.append(column.alias(struct_separator.join([*col_stack, field.name])))
 
     expand_struct(df.schema, col_stack=[])
     return df.select(cols)
