@@ -175,7 +175,7 @@ def _get_eligible_columns_for_join(df: DataFrame) -> Dict[str, float]:
         if col.dataType in [StringType(), IntegerType(), LongType()] and not is_repeated(col)
     ]
     if len(eligible_cols) == 0:
-        return dict()
+        return {}
     distinct_count_threshold = f.lit(90.0)
     eligibility_df = df.select(
         [
