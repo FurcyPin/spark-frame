@@ -1,9 +1,11 @@
+from functools import lru_cache
 from typing import List
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as f
 
 from spark_frame import nested
+from spark_frame.data_diff.diff_results import DiffResult
 from spark_frame.data_diff.special_characters import (
     _restore_special_characters_from_col,
 )
@@ -222,6 +224,17 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
         },
     )
     return formatted_df
+
+
+@lru_cache()
+def _get_diff_per_col_df_with_cache(diff_result: DiffResult, max_nb_rows_per_col_state: int) -> DataFrame:
+    from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
+
+    return _get_diff_per_col_df(
+        top_per_col_state_df=diff_result.top_per_col_state_df,
+        columns=diff_result.schema_diff_result.column_names,
+        max_nb_rows_per_col_state=max_nb_rows_per_col_state,
+    ).localCheckpoint()
 
 
 def _get_diff_per_col_df(

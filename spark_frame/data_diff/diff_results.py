@@ -1,4 +1,4 @@
-from functools import cached_property, lru_cache
+from functools import cached_property
 from typing import Dict, Generator, List, Optional, cast
 
 from pyspark.sql import DataFrame, Window
@@ -8,6 +8,7 @@ from pyspark.sql.types import StructType
 from spark_frame import transformations as df_transformations
 from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
+from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df_with_cache
 from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.data_diff.export import (
     DEFAULT_HTML_REPORT_ENCODING,
@@ -158,7 +159,6 @@ class DiffResult:
 
         return union_dataframes(*generate()).localCheckpoint()
 
-    @lru_cache()
     def get_diff_per_col_df(self, max_nb_rows_per_col_state: int) -> DataFrame:
         """Return a Dict[str, int] that gives for each column and each column state (changed, no_change, only_in_left,
         only_in_right) the total number of occurences and the most frequent occurrences.
@@ -270,13 +270,7 @@ class DiffResult:
             +-------------+-----------+---------------+----------------------------------------------------------+
             <BLANKLINE>
         """  # noqa: E501
-        from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
-
-        return _get_diff_per_col_df(
-            top_per_col_state_df=self.top_per_col_state_df,
-            columns=self.schema_diff_result.column_names,
-            max_nb_rows_per_col_state=max_nb_rows_per_col_state,
-        ).localCheckpoint()
+        return _get_diff_per_col_df_with_cache(self, max_nb_rows_per_col_state)
 
     def _compute_diff_stats_shard(self, diff_df_shard: DataFrame) -> DiffStats:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
