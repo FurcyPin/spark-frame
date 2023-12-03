@@ -132,7 +132,7 @@ class DiffResult:
 
     @cached_property
     def total_nb_rows(self) -> int:
-        a_join_col = [col for col in self.join_cols if REPETITION_MARKER not in col][0]
+        a_join_col = next(col for col in self.join_cols if REPETITION_MARKER not in col)
         return self.top_per_col_state_df.where(
             f.col("column_name") == f.lit(a_join_col),
         ).count()
