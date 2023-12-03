@@ -103,7 +103,7 @@ def _partial_box_right(func: Callable, args: Any) -> Callable:
     array, and pass it to the original function."""
     if isinstance(args, str):
         args = [args]
-    return lambda a: func(args + [a])
+    return lambda a: func([*args, a])
 
 
 def boxed_transform(transformation: PrintableFunction, parents: List[str]) -> PrintableFunction:

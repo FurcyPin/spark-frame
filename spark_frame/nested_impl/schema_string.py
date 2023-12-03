@@ -19,7 +19,7 @@ def _flat_schema_to_tree_string(schema: List[StructField]) -> str:
     def str_gen_schema(schema: List[StructField], prefix: str) -> List[str]:
         return [str for schema_field in schema for str in str_gen_schema_field(schema_field, prefix)]
 
-    res = ["root"] + str_gen_schema(schema, " |-- ")
+    res = ["root", *str_gen_schema(schema, " |-- ")]
 
     return "\n".join(res) + "\n"
 

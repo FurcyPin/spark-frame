@@ -73,7 +73,7 @@ def _get_common_root_column_names(common_fields: Dict[str, Optional[str]]) -> Li
         ['id', 'array']
 
     """
-    root_columns = [col.split("!")[0] for col in common_fields.keys()]
+    root_columns = [col.split("!")[0] for col in common_fields]
     return _deduplicate_list_while_conserving_ordering(root_columns)
 
 
@@ -297,11 +297,12 @@ def _get_join_cols(
             right_df,
         )
         if inferred_join_col is None or self_join_growth_estimate is None:
-            raise DataframeComparatorException(
+            error_message = (
                 "Could not automatically infer a column sufficiently "
                 "unique to join the two DataFrames and perform a comparison. "
-                "Please specify manually the columns to use with the join_cols parameter",
+                "Please specify manually the columns to use with the join_cols parameter"
             )
+            raise DataframeComparatorException(error_message)
         else:
             print(f"Found the following column: {inferred_join_col}")
             join_cols = [inferred_join_col]
@@ -336,11 +337,12 @@ def _check_join_cols(
     join_cols_str = _restore_special_characters(join_cols_str)
 
     if self_join_growth_estimate >= 2.0:
-        raise CombinatorialExplosionError(
+        error_message = (
             f"Performing a join with the {inferred_provided_str} column{plural_str} {join_cols_str} "
             f"would increase the size of the table by a factor of {self_join_growth_estimate}. "
-            f"Please provide join_cols that are truly unique for both DataFrames.",
+            f"Please provide join_cols that are truly unique for both DataFrames."
         )
+        raise CombinatorialExplosionError(error_message)
     print(
         f"Generating the diff by joining the DataFrames together "
         f"using the {inferred_provided_str} column{plural_str}: {join_cols_str}",

@@ -134,7 +134,7 @@ def build_transformation_from_schema(
         for field in struct:
             field_transformation = recurse_data_type(
                 field.dataType,
-                parent_structs + [field.name],
+                [*parent_structs, field.name],
             )
             res = fp.compose(
                 higher_order.alias(_name_transformation(field.name)),
@@ -424,7 +424,7 @@ def _build_transformation_from_tree(root: OrderedTree) -> PrintableFunction:
         else:
             child_transformation = recurse_node_with_one_item(
                 col_or_children,
-                parent_structs + [key],
+                [*parent_structs, key],
             )
             col = fp.compose(higher_order.alias(key), child_transformation)
             return col

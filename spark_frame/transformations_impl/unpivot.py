@@ -95,5 +95,5 @@ def unpivot(df: DataFrame, pivot_columns: List[str], key_alias: str = "key", val
     ).alias("kvs")
 
     return df.select([f.col(c) for c in quote_columns(pivot_columns)] + [kvs]).select(
-        quote_columns(pivot_columns) + ["kvs.*"],
+        [*quote_columns(pivot_columns), "kvs.*"],
     )

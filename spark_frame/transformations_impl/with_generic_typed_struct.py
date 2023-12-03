@@ -55,7 +55,8 @@ def _get_nested_col_type_from_schema(col_name: str, schema: StructType) -> DataT
         for field in fields:
             if field.name == col:
                 return field
-        raise ValueError(f'Cannot resolve column name "{col_name}"')
+        error_message = f'Cannot resolve column name "{col_name}"'
+        raise ValueError(error_message)
 
     struct: Union[StructType, DataType] = schema
     for col_part in col_parts:
@@ -173,7 +174,7 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
 
     name_cast = {cast_to_name.get(value, value): value for value in source_to_cast.values()}
     # We make sure the types are sorted
-    name_cast = {k: v for k, v in sorted(name_cast.items())}
+    name_cast = dict(sorted(name_cast.items()))
 
     def match_regex_types(source_type: str) -> Optional[str]:
         """Matches the source types against regexes to identify more complex types (like Decimal(x, y))"""

@@ -23,7 +23,7 @@ def _diff_nb_col() -> Column:
 
 
 class DiffResultAnalyzer:
-    def __init__(self, diff_format_options: DiffFormatOptions = DiffFormatOptions()):
+    def __init__(self, diff_format_options: DiffFormatOptions = DiffFormatOptions()) -> None:
         self.diff_format_options = diff_format_options
 
     def _format_diff_df(self, join_cols: List[str], diff_df: DataFrame) -> DataFrame:

@@ -59,7 +59,7 @@ def is_sub_field_or_equal_to_any(sub_field: str, fields: List[str]) -> bool:
     False
 
     """
-    return any([is_sub_field_or_equal(sub_field, field) for field in fields])
+    return any(is_sub_field_or_equal(sub_field, field) for field in fields)
 
 
 def group_by_key(items: Iterable[Tuple[K, V]]) -> Dict[K, List[V]]:
@@ -477,12 +477,13 @@ def load_external_module(module_name: str) -> ModuleType:
     try:
         module = importlib.import_module(module_name)
     except ImportError:
-        raise ImportError(
+        error_message = (
             f"Module '{module_name}' not found.\n"
             f"To keep {PROJECT_NAME} as light, flexible and secure as possible, "
             "it was not included in its dependencies.\n"
-            "Please add it to your project dependencies to use this method.",
+            "Please add it to your project dependencies to use this method."
         )
+        raise ImportError(error_message)
 
     return module
 
@@ -546,7 +547,7 @@ def has_same_granularity_as_any(field: str, other_fields: List[str]) -> bool:
     False
 
     """
-    return any([has_same_granularity(field, other_field) for other_field in other_fields])
+    return any(has_same_granularity(field, other_field) for other_field in other_fields)
 
 
 def is_direct_sub_field(direct_sub_field: str, field: str) -> bool:
@@ -595,7 +596,7 @@ def is_direct_sub_field_of_any(direct_sub_field: str, fields: List[str]) -> bool
     False
 
     """
-    return any([is_direct_sub_field(direct_sub_field, field) for field in fields])
+    return any(is_direct_sub_field(direct_sub_field, field) for field in fields)
 
 
 def is_parent_field_of_any(field: str, other_fields: List[str]) -> bool:
@@ -618,7 +619,7 @@ def is_parent_field_of_any(field: str, other_fields: List[str]) -> bool:
     False
 
     """
-    return any([is_parent_field(field, other_field) for other_field in other_fields])
+    return any(is_parent_field(field, other_field) for other_field in other_fields)
 
 
 def is_parent_field(field: str, other_field: str) -> bool:
@@ -638,7 +639,7 @@ def is_parent_field(field: str, other_field: str) -> bool:
     False
 
     """
-    return other_field.startswith(field + ".") or other_field.startswith(field + "!.")
+    return other_field.startswith((field + ".", field + "!."))
 
 
 def substring_before_last_occurrence(s: str, sep: str) -> str:
