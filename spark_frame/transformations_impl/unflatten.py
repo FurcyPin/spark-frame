@@ -38,7 +38,7 @@ def _build_nested_struct_tree(columns: List[str], struct_separator: str) -> Orde
 
 
 def _build_struct_from_tree(
-    node: OrderedTree, separator: str, prefix: str = ""
+    node: OrderedTree, separator: str, prefix: str = "",
 ) -> List[Column]:
     """Given an intermediate tree representing a nested struct, build a Spark Column
     that represents this nested structure.

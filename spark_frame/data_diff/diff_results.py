@@ -78,13 +78,13 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
     )
 
     unpivoted_df = df_transformations.unpivot(
-        diff_df, pivot_columns=[], key_alias="column_name", value_alias="diff"
+        diff_df, pivot_columns=[], key_alias="column_name", value_alias="diff",
     )
     unpivoted_df = unpivoted_df.withColumn(
         "column_name",
         f.regexp_replace(
             f.regexp_replace(
-                f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, STRUCT_SEPARATOR
+                f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, STRUCT_SEPARATOR,
             ),
             REPETITION_MARKER_REPLACEMENT,
             REPETITION_MARKER,
@@ -121,14 +121,14 @@ class DiffResult:
     @cached_property
     def same_data(self) -> bool:
         return self.top_per_col_state_df.where(
-            f.col("state") != f.lit("no_change")
+            f.col("state") != f.lit("no_change"),
         ).isEmpty()
 
     @cached_property
     def total_nb_rows(self) -> int:
         a_join_col = [col for col in self.join_cols if REPETITION_MARKER not in col][0]
         return self.top_per_col_state_df.where(
-            f.col("column_name") == f.lit(a_join_col)
+            f.col("column_name") == f.lit(a_join_col),
         ).count()
 
     @property
@@ -297,34 +297,34 @@ class DiffResult:
             f.count(f.lit(1)).alias("total"),
             f.sum(
                 f.when(
-                    PREDICATES.present_in_both & PREDICATES.row_is_equal, f.lit(1)
-                ).otherwise(f.lit(0))
+                    PREDICATES.present_in_both & PREDICATES.row_is_equal, f.lit(1),
+                ).otherwise(f.lit(0)),
             ).alias(
                 "no_change",
             ),
             f.sum(
                 f.when(
-                    PREDICATES.present_in_both & PREDICATES.row_changed, f.lit(1)
-                ).otherwise(f.lit(0))
+                    PREDICATES.present_in_both & PREDICATES.row_changed, f.lit(1),
+                ).otherwise(f.lit(0)),
             ).alias(
                 "changed",
             ),
             f.sum(f.when(PREDICATES.in_left, f.lit(1)).otherwise(f.lit(0))).alias(
-                "in_left"
+                "in_left",
             ),
             f.sum(f.when(PREDICATES.in_right, f.lit(1)).otherwise(f.lit(0))).alias(
-                "in_right"
+                "in_right",
             ),
             f.sum(f.when(PREDICATES.only_in_left, f.lit(1)).otherwise(f.lit(0))).alias(
-                "only_in_left"
+                "only_in_left",
             ),
             f.sum(f.when(PREDICATES.only_in_right, f.lit(1)).otherwise(f.lit(0))).alias(
-                "only_in_right"
+                "only_in_right",
             ),
         )
         res = res_df.collect()
         return DiffStats(
-            **{k: (v if v is not None else 0) for k, v in res[0].asDict().items()}
+            **{k: (v if v is not None else 0) for k, v in res[0].asDict().items()},
         )
 
     def _compute_diff_stats(self) -> Dict[str, DiffStats]:
@@ -509,7 +509,7 @@ def _get_test_diff_result() -> "DiffResult":
         column_names_diff=column_names_diff,
     )
     return DiffResult(
-        schema_diff_result, diff_df_shards={"": _diff_df}, join_cols=["id"]
+        schema_diff_result, diff_df_shards={"": _diff_df}, join_cols=["id"],
     )
 
 

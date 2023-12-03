@@ -7,7 +7,7 @@ from spark_frame.nested_functions_impl.aggregate import aggregate
 
 
 def sum(
-    field_name: str, starting_level: Union[Column, DataFrame, None] = None
+    field_name: str, starting_level: Union[Column, DataFrame, None] = None,
 ) -> Column:
     """Recursively compute the sum of all elements in the given repeated field.
 

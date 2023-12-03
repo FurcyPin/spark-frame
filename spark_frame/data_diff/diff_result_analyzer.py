@@ -49,7 +49,7 @@ class DiffResultAnalyzer:
         )
 
     def _display_diff_examples(
-        self, diff_df: DataFrame, diff_per_col_df: DataFrame, join_cols: List[str]
+        self, diff_df: DataFrame, diff_per_col_df: DataFrame, join_cols: List[str],
     ) -> None:
         """For each column that has differences, print examples of rows where such a difference occurs.
 
@@ -189,7 +189,7 @@ class DiffResultAnalyzer:
 
     @staticmethod
     def _display_only_in_left_or_right(
-        diff_per_col_df: DataFrame, left_or_right: str
+        diff_per_col_df: DataFrame, left_or_right: str,
     ) -> None:
         """Displays the results of the diff analysis.
 
@@ -259,7 +259,7 @@ class DiffResultAnalyzer:
 
         """
         df = diff_per_col_df.select(
-            "column_name", f.explode(f"diff.only_in_{left_or_right}").alias("diff")
+            "column_name", f.explode(f"diff.only_in_{left_or_right}").alias("diff"),
         )
         df = df.select(
             "column_name",
@@ -269,7 +269,7 @@ class DiffResultAnalyzer:
         df.show(MAX_JAVA_INT, truncate=False)
 
     def display_diff_results(
-        self, diff_result: DiffResult, show_examples: bool
+        self, diff_result: DiffResult, show_examples: bool,
     ) -> None:
         join_cols = diff_result.join_cols
         diff_per_col_df = diff_result.get_diff_per_col_df(
@@ -295,7 +295,7 @@ class DiffResultAnalyzer:
             if len(diff_stats_shards) > 1:
                 print("##############################################################")
                 print(
-                    f"Granularity : {'root' if key=='' else key} ({diff_stats_shard.total} rows)\n"
+                    f"Granularity : {'root' if key=='' else key} ({diff_stats_shard.total} rows)\n",
                 )
             print_diff_stats_shard(diff_stats_shard, left_df_alias, right_df_alias)
 
@@ -304,17 +304,17 @@ class DiffResultAnalyzer:
                 self._display_changed(diff_per_col_df)
                 if show_examples:
                     self._display_diff_examples(
-                        diff_result.diff_df_shards[key], diff_per_col_df, join_cols
+                        diff_result.diff_df_shards[key], diff_per_col_df, join_cols,
                     )
             if diff_stats_shard.only_in_left > 0:
                 print(
-                    f"{diff_stats_shard.only_in_left} rows were only found in '{left_df_alias}' :"
+                    f"{diff_stats_shard.only_in_left} rows were only found in '{left_df_alias}' :",
                 )
                 print(f"Most frequent values in '{left_df_alias}' for each column :")
                 self._display_only_in_left_or_right(diff_per_col_df, "left")
             if diff_stats_shard.only_in_right > 0:
                 print(
-                    f"{diff_stats_shard.only_in_left} rows were only found in '{right_df_alias}' :"
+                    f"{diff_stats_shard.only_in_left} rows were only found in '{right_df_alias}' :",
                 )
                 print(f"Most frequent values in '{right_df_alias}' for each column :")
                 self._display_only_in_left_or_right(diff_per_col_df, "right")

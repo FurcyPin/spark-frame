@@ -555,7 +555,7 @@ def _get_sample_employee_data() -> DataFrame:
     """
     schema = schema_from_json(json_schema)
     df = raw_df.withColumn("value", f.from_json(f.col("value"), schema)).select(
-        "value.*"
+        "value.*",
     )
     employee_df = df.select(f.explode("employees").alias("value")).select("value.*")
     return employee_df

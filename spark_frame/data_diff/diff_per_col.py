@@ -33,7 +33,7 @@ def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
         <BLANKLINE>
     """
     col_df = spark.createDataFrame(
-        list(enumerate(columns)), "column_number INT, column_name STRING"
+        list(enumerate(columns)), "column_number INT, column_name STRING",
     ).withColumn(
         "column_name",
         _restore_special_characters_from_col(f.col("column_name")),
@@ -42,7 +42,7 @@ def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
 
 
 def _get_pivoted_df(
-    top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: int
+    top_per_col_state_df: DataFrame, max_nb_rows_per_col_state: int,
 ) -> DataFrame:
     """Pivot the top_per_col_state_df
 
@@ -93,7 +93,7 @@ def _get_pivoted_df(
     pivoted_df = (
         top_per_col_state_df.groupBy("column_name")
         .pivot(
-            "state", values=["changed", "no_change", "only_in_left", "only_in_right"]
+            "state", values=["changed", "no_change", "only_in_left", "only_in_right"],
         )
         .agg(
             f.sum("nb").alias("nb"),

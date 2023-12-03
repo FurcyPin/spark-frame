@@ -196,7 +196,7 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
             print(
                 "WARNING: The field {field_name} is of type {source_type} which is currently unsupported. "
                 "This field will be dropped.".format(
-                    field_name=field_name, source_type=source_type
+                    field_name=field_name, source_type=source_type,
                 ),
             )
             return None

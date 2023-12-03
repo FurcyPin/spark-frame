@@ -79,7 +79,7 @@ class TestBuildTransformationFromTree:
         """
         named_transformations = {
             "s.a": PrintableFunction(
-                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")"""
+                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""",
             ),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
@@ -93,7 +93,7 @@ class TestBuildTransformationFromTree:
         """
         named_transformations = {
             "s.a": PrintableFunction(
-                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")"""
+                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""",
             ),
         }
         actual_named = _build_transformation_from_tree(_build_nested_struct_tree(named_transformations))
@@ -508,7 +508,7 @@ class TestResolveNestedFields:
         )
         named_transformations = {
             "s.a": PrintableFunction(
-                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")"""
+                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""",
             ),
         }
         transformations = replace_named_functions_with_functions(named_transformations)
@@ -542,7 +542,7 @@ class TestResolveNestedFields:
         )
         named_transformations = {
             "s.a": PrintableFunction(
-                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")"""
+                lambda s: f.col("s.a").cast("DOUBLE"), lambda s: """f.col("s.a").cast("DOUBLE")""",
             ),
         }
         transformations = {"s.a": f.col("s.a").cast("DOUBLE")}
