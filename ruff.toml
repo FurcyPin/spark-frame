@@ -152,6 +152,8 @@ max-complexity = 10
 [lint.isort]
 known-first-party = ["spark_frame"]
 
+[pylint]
+max-args = 8 # PLR0913:  Too many arguments in function definition (8 > 5)
 
 [per-file-ignores]
 "tests/**/*.py" = [
