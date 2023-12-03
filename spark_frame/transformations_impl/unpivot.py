@@ -81,7 +81,7 @@ def unpivot(df: DataFrame, pivot_columns: List[str], key_alias: str = "key", val
         <BLANKLINE>
     """
     pivoted_columns = [(c, t) for (c, t) in df.dtypes if c not in pivot_columns]
-    cols, types = zip(*pivoted_columns)
+    cols, types = zip(*pivoted_columns, strict=True)
 
     # Check that all columns have the same type.
     assert_true(
