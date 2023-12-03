@@ -82,7 +82,8 @@ ignore = [
     #
 
     "FBT001", # Boolean-typed positional argument in function definition
-    # This rule makes sense but there are several cases where working around it makes the code more confusing than less
+    "FBT002", # Boolean default positional argument in function definition
+    # These rules makes sense but there are several cases where working around it makes the code more confusing than less
     # Plus, the spark API does not follow this rule already (for instance, df.show(10, true) works)
 
     "PD901", # Avoid using the generic variable name `df` for DataFrames:
