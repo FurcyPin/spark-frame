@@ -31,9 +31,9 @@ def count_null(col: str, struct_field: StructField, col_num: int) -> Column:  # 
     return (f.count(f.lit(1)) - f.count(col)).alias("count_null")
 
 
-def min(col: str, struct_field: StructField, col_num: int) -> Column:  # noqa: ARG001, NOSONAR
+def min(col: str, struct_field: StructField, col_num: int) -> Column:  # noqa: ARG001, A001, NOSONAR
     return _to_string(f.min(col)).alias("min")
 
 
-def max(col: str, struct_field: StructField, col_num: int) -> Column:  # noqa: ARG001, NOSONAR
+def max(col: str, struct_field: StructField, col_num: int) -> Column:  # noqa: ARG001, A001, NOSONAR
     return _to_string(f.max(col)).alias("max")

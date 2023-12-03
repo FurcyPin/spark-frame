@@ -6,7 +6,7 @@ from pyspark.sql import functions as f
 from spark_frame.nested_functions_impl.aggregate import aggregate
 
 
-def sum(
+def sum(  # noqa: A001
     field_name: str,
     starting_level: Union[Column, DataFrame, None] = None,
 ) -> Column:
