@@ -656,3 +656,7 @@ def substring_before_last_occurrence(s: str, sep: str) -> str:
         return ""
     else:
         return s[0:index]
+
+
+def _ref(_: object) -> None:
+    """Dummy function used to prevent 'optimize import' from dropping the methods imported"""

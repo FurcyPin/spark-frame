@@ -29,10 +29,7 @@ class DiffResultAnalyzer:
     def _format_diff_df(self, join_cols: List[str], diff_df: DataFrame) -> DataFrame:
         """Given a diff DataFrame, rename the columns to prefix them with the left_df_alias and right_df_alias."""
         return diff_df.select(
-            *[
-                diff_df[quote(col_name)]["left_value"].alias(col_name)
-                for col_name in join_cols
-            ],
+            *[diff_df[quote(col_name)]["left_value"].alias(col_name) for col_name in join_cols],
             *[
                 col
                 for col_name in diff_df.columns
@@ -49,7 +46,10 @@ class DiffResultAnalyzer:
         )
 
     def _display_diff_examples(
-        self, diff_df: DataFrame, diff_per_col_df: DataFrame, join_cols: List[str],
+        self,
+        diff_df: DataFrame,
+        diff_per_col_df: DataFrame,
+        join_cols: List[str],
     ) -> None:
         """For each column that has differences, print examples of rows where such a difference occurs.
 
@@ -189,7 +189,8 @@ class DiffResultAnalyzer:
 
     @staticmethod
     def _display_only_in_left_or_right(
-        diff_per_col_df: DataFrame, left_or_right: str,
+        diff_per_col_df: DataFrame,
+        left_or_right: str,
     ) -> None:
         """Displays the results of the diff analysis.
 
@@ -259,7 +260,8 @@ class DiffResultAnalyzer:
 
         """
         df = diff_per_col_df.select(
-            "column_name", f.explode(f"diff.only_in_{left_or_right}").alias("diff"),
+            "column_name",
+            f.explode(f"diff.only_in_{left_or_right}").alias("diff"),
         )
         df = df.select(
             "column_name",
@@ -269,7 +271,9 @@ class DiffResultAnalyzer:
         df.show(MAX_JAVA_INT, truncate=False)
 
     def display_diff_results(
-        self, diff_result: DiffResult, show_examples: bool,
+        self,
+        diff_result: DiffResult,
+        show_examples: bool,
     ) -> None:
         join_cols = diff_result.join_cols
         diff_per_col_df = diff_result.get_diff_per_col_df(
@@ -304,7 +308,9 @@ class DiffResultAnalyzer:
                 self._display_changed(diff_per_col_df)
                 if show_examples:
                     self._display_diff_examples(
-                        diff_result.diff_df_shards[key], diff_per_col_df, join_cols,
+                        diff_result.diff_df_shards[key],
+                        diff_per_col_df,
+                        join_cols,
                     )
             if diff_stats_shard.only_in_left > 0:
                 print(

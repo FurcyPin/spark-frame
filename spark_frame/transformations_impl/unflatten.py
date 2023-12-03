@@ -38,7 +38,9 @@ def _build_nested_struct_tree(columns: List[str], struct_separator: str) -> Orde
 
 
 def _build_struct_from_tree(
-    node: OrderedTree, separator: str, prefix: str = "",
+    node: OrderedTree,
+    separator: str,
+    prefix: str = "",
 ) -> List[Column]:
     """Given an intermediate tree representing a nested struct, build a Spark Column
     that represents this nested structure.
@@ -68,11 +70,7 @@ def _build_struct_from_tree(
             for field in fields:
                 all_fields_are_null = all_fields_are_null & f.isnull(field)
 
-            struct_col = (
-                f.when(all_fields_are_null, f.lit(None))
-                .otherwise(f.struct(*fields))
-                .alias(key)
-            )
+            struct_col = f.when(all_fields_are_null, f.lit(None)).otherwise(f.struct(*fields)).alias(key)
             cols.append(struct_col)
     return cols
 

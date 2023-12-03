@@ -7,7 +7,8 @@ from spark_frame.nested_functions_impl.aggregate import aggregate
 
 
 def average(
-    field_name: str, starting_level: Union[Column, DataFrame, None] = None,
+    field_name: str,
+    starting_level: Union[Column, DataFrame, None] = None,
 ) -> Column:
     """Recursively compute the average of all elements in the given repeated field.
 
@@ -145,7 +146,8 @@ def average(
         <BLANKLINE>
     """  # noqa: E501
     initial_value = f.struct(
-        f.lit(0).cast("BIGINT").alias("sum"), f.lit(0).cast("BIGINT").alias("count"),
+        f.lit(0).cast("BIGINT").alias("sum"),
+        f.lit(0).cast("BIGINT").alias("count"),
     )
 
     def start(x: Column) -> Column:

@@ -15,7 +15,7 @@ field_to_index = {
 }
 
 
-def test_analyze(spark: SparkSession):
+def test_analyze():
     df = __get_test_df()
     actual = analyze(df)
     assert show_string(actual, truncate=False) == strip_margin(

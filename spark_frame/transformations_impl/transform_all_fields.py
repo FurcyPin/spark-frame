@@ -7,7 +7,8 @@ from spark_frame.nested_impl.package import build_transformation_from_schema
 
 
 def transform_all_fields(
-    df: DataFrame, transformation: Callable[[Column, DataType], Optional[Column]],
+    df: DataFrame,
+    transformation: Callable[[Column, DataType], Optional[Column]],
 ) -> DataFrame:
     """Apply a transformation to all nested fields of a DataFrame.
 
@@ -77,6 +78,7 @@ def transform_all_fields(
         <BLANKLINE>
     """  # noqa: E501
     root_transformation = build_transformation_from_schema(
-        df.schema, column_transformation=transformation,
+        df.schema,
+        column_transformation=transformation,
     )
     return df.select(*root_transformation(df))

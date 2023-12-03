@@ -25,7 +25,9 @@ def _split_field_name(field_name: str) -> List[str]:
         current_alias: Optional[str] = field_name
         while current_alias is not None and len(current_alias) > 0:
             node_col, child_col = _split_string_and_keep_separator(
-                current_alias, STRUCT_SEPARATOR, REPETITION_MARKER,
+                current_alias,
+                STRUCT_SEPARATOR,
+                REPETITION_MARKER,
             )
             if child_col is not None and node_col == "":
                 node_col = child_col[0]
@@ -161,7 +163,8 @@ def aggregate(
             child_transformation = agg_start
         if is_struct:
             assert_true(
-                has_children, "Error, this should not happen: struct without children",
+                has_children,
+                "Error, this should not happen: struct without children",
             )
             return child_transformation
         elif is_repeated:

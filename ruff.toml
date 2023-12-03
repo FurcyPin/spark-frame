@@ -59,7 +59,37 @@ select = [
 ]
 
 ignore = [
+    "ARG005", # Unused lambda argument
+    # If a method expect as argument a higher order function of type "A -> B", I find it more confusing to feed it
+    # with "lambda: B.default_value" than with "lambda a: B.default_value", even if a is not used.
 
+    "RET504", # Unnecessary assignment to `...` before `return` statement
+    # Naming the return argument before returning it is makes the code more readable and easier to debug.
+
+    "RET505", # Unnecessary `else` after `return` statement
+    # I find the functionnal-programming version less confusing than the imperative version:
+    #
+    # # Functionnal-programming version:
+    # if P:
+    #   return B
+    # else:
+    #   return C
+    #
+    # # Imperative version:
+    # if P:
+    #   return B
+    # return C
+    #
+
+
+    "PD901", # Avoid using the generic variable name `df` for DataFrames:
+    # This rule makes less sense when writing functions that handle generic DataFrames
+
+    "ANN101", # Missing type annotation for `self` in method
+    # This rule is not necessary when self is automatically infered by smart type checkers
+
+    "T201", # Do no use 'print': TODO refactor the code to use logging instead
+    "ANN201", # TODO
 ]
 
 fixable = [

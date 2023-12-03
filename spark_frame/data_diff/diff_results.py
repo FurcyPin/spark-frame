@@ -78,13 +78,18 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
     )
 
     unpivoted_df = df_transformations.unpivot(
-        diff_df, pivot_columns=[], key_alias="column_name", value_alias="diff",
+        diff_df,
+        pivot_columns=[],
+        key_alias="column_name",
+        value_alias="diff",
     )
     unpivoted_df = unpivoted_df.withColumn(
         "column_name",
         f.regexp_replace(
             f.regexp_replace(
-                f.col("column_name"), STRUCT_SEPARATOR_REPLACEMENT, STRUCT_SEPARATOR,
+                f.col("column_name"),
+                STRUCT_SEPARATOR_REPLACEMENT,
+                STRUCT_SEPARATOR,
             ),
             REPETITION_MARKER_REPLACEMENT,
             REPETITION_MARKER,
@@ -297,14 +302,16 @@ class DiffResult:
             f.count(f.lit(1)).alias("total"),
             f.sum(
                 f.when(
-                    PREDICATES.present_in_both & PREDICATES.row_is_equal, f.lit(1),
+                    PREDICATES.present_in_both & PREDICATES.row_is_equal,
+                    f.lit(1),
                 ).otherwise(f.lit(0)),
             ).alias(
                 "no_change",
             ),
             f.sum(
                 f.when(
-                    PREDICATES.present_in_both & PREDICATES.row_changed, f.lit(1),
+                    PREDICATES.present_in_both & PREDICATES.row_changed,
+                    f.lit(1),
                 ).otherwise(f.lit(0)),
             ).alias(
                 "changed",
@@ -348,8 +355,7 @@ class DiffResult:
         DiffStats(total=6, no_change=1, changed=3, in_left=5, in_right=5, only_in_left=1, only_in_right=1)
         """
         return {
-            key: self._compute_diff_stats_shard(diff_df_shard)
-            for key, diff_df_shard in self.diff_df_shards.items()
+            key: self._compute_diff_stats_shard(diff_df_shard) for key, diff_df_shard in self.diff_df_shards.items()
         }
 
     def _compute_top_per_col_state_df(self, diff_df: DataFrame) -> DataFrame:
@@ -412,9 +418,7 @@ class DiffResult:
 
         only_in_left = f.col("diff")["exists_left"] & ~f.col("diff")["exists_right"]
         only_in_right = ~f.col("diff")["exists_left"] & f.col("diff")["exists_right"]
-        exists_in_left_or_right = (
-            f.col("diff")["exists_left"] | f.col("diff")["exists_right"]
-        )
+        exists_in_left_or_right = f.col("diff")["exists_left"] | f.col("diff")["exists_right"]
 
         df_2 = unpivoted_diff_df.select(
             "column_name",
@@ -509,7 +513,9 @@ def _get_test_diff_result() -> "DiffResult":
         column_names_diff=column_names_diff,
     )
     return DiffResult(
-        schema_diff_result, diff_df_shards={"": _diff_df}, join_cols=["id"],
+        schema_diff_result,
+        diff_df_shards={"": _diff_df},
+        join_cols=["id"],
     )
 
 

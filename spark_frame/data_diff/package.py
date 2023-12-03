@@ -36,9 +36,7 @@ class Predicates:
 
     @property
     def only_in_left(self) -> Column:
-        return f.col(f"{EXISTS_COL_NAME}.left_value") & (
-            f.col(f"{EXISTS_COL_NAME}.right_value") == f.lit(False)
-        )
+        return f.col(f"{EXISTS_COL_NAME}.left_value") & (f.col(f"{EXISTS_COL_NAME}.right_value") == f.lit(False))
 
     @property
     def only_in_right(self) -> Column:
