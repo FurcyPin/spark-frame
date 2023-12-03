@@ -124,7 +124,7 @@ def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:
     jt1 = _to_java_type(t1)
     jt2 = _to_java_type(t2)
     j_type_coercion = getattr(
-        getattr(sc._jvm.org.apache.spark.sql.catalyst.analysis, "TypeCoercion$"),  # noqa: SLF001
+        getattr(sc._jvm.org.apache.spark.sql.catalyst.analysis, "TypeCoercion$"),  # type: ignore # noqa: SLF001
         "MODULE$",
     )
     wider_type = j_type_coercion.findWiderTypeForTwo(jt1, jt2)

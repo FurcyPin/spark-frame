@@ -104,6 +104,18 @@ ignore = [
     "T201", # `print` found
     "ANN201", # Missing return type annotation for public function
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+    "B028",
+    "B904",
+    "C901",
+    "FIX002",
+    "PGH003",
+    "PLR2004",
+    "PLR5501",
+    "RET503",
+    "SIM114",
+    "TD002",
+    "TD003",
+    "TRY200",
 ]
 
 fixable = [
