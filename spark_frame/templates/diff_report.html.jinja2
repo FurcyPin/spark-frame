@@ -5,166 +5,8 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/diff2html@3.4.31/bundles/css/diff2html.min.css" />
     <!-- Javascripts -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/diff2html@3.4.31/bundles/js/diff2html.min.js"></script>
-
-    <style>
-      .collapsible {
-        background-color: #eee;
-        color: #444;
-        cursor: pointer;
-        padding: 18px;
-        width: 100%;
-        border: none;
-        text-align: left;
-        outline: none;
-        font-size: 15px;
-      }
-
-      .active, .collapsible:hover {
-        background-color: #ccc;
-      }
-
-      .content {
-        padding: 0 18px;
-        display: block;
-        overflow: hidden;
-      }
-
-      .box {
-        text-align: center;
-        font-size: large;
-      }
-
-      .green {
-        background-color: green;
-        color: white;
-      }
-
-      .red {
-        background-color: red;
-        color: white;
-      }
-
-      .orange {
-        background-color: orange;
-        color: white;
-      }
-
-      /* Define the style for the whole document */
-      .main {
-        max-width: 1000px;
-        margin: 0 auto;
-        text-align: center;
-      }
-
-      /* Define the style for the bar charts */
-      .chart_bar_container {
-        width: 100%;
-      }
-
-      /* Define the style for the bar charts */
-      .chart_bar_table {
-        table-layout: fixed;
-        width: 100%; 
-        flex: auto;
-        /*max-width: 500px;*/
-        border-collapse: collapse;
-      }
-
-      .chart_bar_row {
-        width: 100%; 
-        height: 20px;
-      }
-
-      .chart_bar_table_tooltip {
-        cursor: pointer;
-      }
-
-      .chart_bar_table_tooltip_text {
-        visibility: hidden;
-        flex: auto;
-        background-color: #ddd;
-        color: #333;
-        text-align: left;
-        border-radius: 6px;
-        padding: 5px 5px;
-
-        /* Position the tooltip */
-        position: absolute;
-        left: 1000px;
-      }
-
-      .chart_bar_table_tooltip:hover .chart_bar_table_tooltip_text {
-        visibility: visible;
-        transition: .25s all ease;
-        transition-delay: .75s;
-
-      }
-
-
-      /* Define the style for the column name */
-      .column_name {
-        font-family: monospace;
-        font-size: 1.4em;
-        padding-right: 5px;
-        width: 20%;
-      }
-
-      .join_column_name {
-        font-weight: bold;
-      }
-
-      /* Define the style for columns with no change */
-      .no_change {
-        display: 'table-row';
-      }
-
-      /* Define the style for columns with no change */
-      .details {
-        display: none;
-      }
-
-
-      button.active {
-        background-color: darkgrey;
-        color: black;
-      }
-
-      .top_cols_container {
-        flex: auto;
-        display: inline-flex;
-      }
-
-      .top_cols_table_container {
-        flex: auto;
-      }
-
-      .top_cols_table {
-        margin: 0 auto;
-        border-collapse: collapse;
-        display: inline-block;
-        overflow-y: auto; 
-        overflow-x: hidden; 
-        max-height: 500px
-      }
-
-      .top_col_table_header {
-        padding-right: 10px;
-        white-space: nowrap;
-        text-align: left;
-        font-style: italic;
-        font-weight: normal;
-      }
-
-      .top_col_table_div {
-        padding-right: 10px;
-        white-space: nowrap;
-      }
-
-      /* Define the style for the bar charts */
-      .top_col_bar_table {
-        table-layout: fixed;
-        width: 100%; 
-      }
+    <style type=text/css>
+        {{ diff_report_css }}
     </style>
 </head>
 <body>
@@ -178,10 +20,10 @@
           <div class="d2h-wrapper">
             <div class="d2h-file-wrapper" data-lang="">
               <div class="d2h-file-header">
-                <span class="d2h-file-name-wrapper">
                 <svg aria-hidden="true" class="d2h-icon" height="16" version="1.1" viewBox="0 0 12 16" width="12">
                   <path d="M6 5H2v-1h4v1zM2 8h7v-1H2v1z m0 2h7v-1H2v1z m0 2h7v-1H2v1z m10-7.5v9.5c0 0.55-0.45 1-1 1H1c-0.55 0-1-0.45-1-1V2c0-0.55 0.45-1 1-1h7.5l3.5 3.5z m-1 0.5L8 2H1v12h10V5z"></path>
                 </svg>
+                <span class="d2h-file-name-wrapper">
                 <span class="d2h-file-name">Schema</span>
               </div>
               <div class="d2h-file-diff">
@@ -311,10 +153,10 @@
                   }
               %}
               {% set elements = [no_change_element, changed_element, only_in_left_element, only_in_right_element] %}
-              {% set title = 
-                no_change_element.name + ": " + (no_change_element.count | string) + " (" + (no_change_element.pct | string) + "%)\n" + 
-                changed_element.name + ": " + (changed_element.count | string) + " (" + (changed_element.pct | string) + "%)\n" + 
-                only_in_left_element.name + ": " + (only_in_left_element.count | string) + " (" + (only_in_left_element.pct | string) + "%)\n" + 
+              {% set title =
+                no_change_element.name + ": " + (no_change_element.count | string) + " (" + (no_change_element.pct | string) + "%)\n" +
+                changed_element.name + ": " + (changed_element.count | string) + " (" + (changed_element.pct | string) + "%)\n" +
+                only_in_left_element.name + ": " + (only_in_left_element.count | string) + " (" + (only_in_left_element.pct | string) + "%)\n" +
                 only_in_right_element.name + ": " + (only_in_right_element.count | string) + " (" + (only_in_right_element.pct | string) + "%)"
               %}
 
@@ -336,7 +178,7 @@
                     {% endfor %}
                   </tr>
                 </table>
-                <span class="chart_bar_table_tooltip_text"> 
+                <span class="chart_bar_table_tooltip_text">
                   <table>
                     {% for element in elements %}
                       <tr>
@@ -346,14 +188,14 @@
                       </tr>
                     {% endfor %}
                   </table>
-                </span> 
+                </span>
               </div>
 
             </td>
           </tr>
 
-          <tr 
-            class="details{% if col_diff.counts.changed == 0 %} no_change{% endif %}" 
+          <tr
+            class="details{% if col_diff.counts.changed == 0 %} no_change{% endif %}"
             column_name="{{ col_diff.column_name }}"
           >
             <td colspan="2">
@@ -463,110 +305,7 @@
     </table>
   <div>
   <script>
-    /**********************************************************/
-    /* Handle collapsible sections */
-    var coll = document.getElementsByClassName("collapsible");
-    var i;
-
-    for (i = 0; i < coll.length; i++) {
-      coll[i].addEventListener("click", function() {
-        this.classList.toggle("active");
-        var content = this.nextElementSibling;
-        if (content.style.display === "block") {
-          content.style.display = "none";
-        } else {
-          content.style.display = "block";
-        }
-      });
-    }
-    /**********************************************************/
-    /* Handle schema diff */
-
-    // The input data for the diff
-    var diffString = `
---- Schema
-+++ Schema
-{{diff_result_summary.schema_diff_result.diff_str | replace("`", "\`")}}
-`;
-      document.addEventListener('DOMContentLoaded', () => {
-        var diffHtml = Diff2Html.html(diffString, {
-          drawFileList: false,
-          matching: 'lines',
-          outputFormat: 'side-by-side',
-        });
-        document.getElementById('schema_diff').innerHTML = diffHtml;
-      });
-
-    /**********************************************************/
-    var bool_toggleHideColumnsWithNoChange = false;
-    var bool_toggleExpandAllDetails = false;
-
-    function updateVisibility(element) {
-      var should_display = true;
-      if (element.classList.contains("details") && !bool_toggleExpandAllDetails) {
-        should_display = false;
-      }
-      if (element.classList.contains("no_change") && bool_toggleHideColumnsWithNoChange) {
-        should_display = false;
-      }
-
-      if (should_display) {
-        element.style.display = 'table-row';
-      }
-      else {
-        element.style.display = 'none';
-      }
-
-    }
-
-    function toggleHideColumnsWithNoChange() {
-      // Get the button element
-      let button = document.querySelector('.button_toggleHideColumnsWithNoChange');
-
-      let noChangeElements = document.querySelectorAll('.no_change');
-
-      // Check if the button has the "active" class
-      if (bool_toggleHideColumnsWithNoChange) {
-        bool_toggleHideColumnsWithNoChange = false;
-        button.classList.remove('active');
-      } else {
-        bool_toggleHideColumnsWithNoChange = true;
-        button.classList.add('active');
-      }
-      noChangeElements.forEach(updateVisibility);
-    }
-
-    function toggleColumnDetails(columnName) {
-      // Get all the no_change elements
-      let detailsElements = document.querySelectorAll('.details');
-      // Toggle their visibility
-      for (let element of detailsElements) {
-        if (element.getAttribute('column_name') == columnName) {
-          if (element.style.display != 'table-row') {
-            element.style.display = 'table-row';
-          } else {
-            element.style.display = 'none';
-          }
-        }
-      }
-    }
-
-    function toggleExpandAllDetails(columnName) {
-      // Get the button element
-      let button = document.querySelector('.button_toggleExpandAllDetails');
-      let detailsElements = document.querySelectorAll('.details');
-
-
-      // Check if the button has the "active" class
-      if (bool_toggleExpandAllDetails) {
-        bool_toggleExpandAllDetails = false;
-        button.classList.remove('active');
-      } else {
-        bool_toggleExpandAllDetails = true;
-        button.classList.add('active');
-      }
-      detailsElements.forEach(updateVisibility);
-    }
+    {{ diff_report_js }}
   </script>
 </body>
 </html>
