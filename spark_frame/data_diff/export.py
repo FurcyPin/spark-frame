@@ -33,15 +33,24 @@ def export_html_diff_report(
         title_str = f"{diff_result_summary.left_df_alias} vs {diff_result_summary.right_df_alias}"
     else:
         title_str = title
+    jinja_context = {
+        "title": title_str,
+        "diff_result_summary": diff_result_summary,
+        "diff_per_col": diff_result_summary.diff_per_col_df.collect(),
+    }
     # Load the Jinja2 template
-    template_str = pkg_resources.resource_string("spark_frame", "templates/diff_report.html.jinja2")
-    template = jinja2.Template(template_str.decode("utf-8"))
+    template_str = _read_resource("templates/diff_report.html.jinja2")
+    template = jinja2.Template(template_str)
+
+    diff_report_css = _read_resource("templates/diff_report.css")
+    diff_report_js_template = _read_resource("templates/diff_report.js.jinja2")
+    diff_report_js = jinja2.Template(diff_report_js_template).render(**jinja_context)
 
     # Render the template with the DiffResultSummary object
     html = template.render(
-        title=title_str,
-        diff_result_summary=diff_result_summary,
-        diff_per_col=diff_result_summary.diff_per_col_df.collect(),
+        **jinja_context,
+        diff_report_css=diff_report_css,
+        diff_report_js=diff_report_js,
     )
 
     # Save the rendered HTML to a file
@@ -49,3 +58,7 @@ def export_html_diff_report(
         f.write(html)
 
     print(f"Report exported as {output_file_path}")
+
+
+def _read_resource(resource_path: str) -> str:
+    return pkg_resources.resource_string("spark_frame", resource_path).decode("utf-8")
