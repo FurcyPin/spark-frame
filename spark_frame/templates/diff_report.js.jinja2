@@ -29,7 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     matching: 'lines',
     outputFormat: 'side-by-side',
   });
-  document.getElementById('schema_diff').innerHTML = diffHtml;
+  schema_diff = document.getElementById('schema_diff')
+  if (schema_diff) {
+    schema_diff.innerHTML = diffHtml;
+  }
 });
 
 /**********************************************************/
