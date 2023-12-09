@@ -30,7 +30,7 @@
                 <div class="d2h-code-wrapper">
                   <table class="d2h-diff-table">
                     <tbody class="d2h-diff-tbody">
-                      {% for line in diff_result_summary.schema_diff_result.left_schema_str.split("\n") %}
+                      {% for line in diff_result_summary.schema_diff_result.diff_str.split("\n") %}
                         <tr>
                           <td class="d2h-code-side-linenumber d2h-cntx">
                             {{loop.index}}
