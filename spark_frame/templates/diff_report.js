@@ -15,25 +15,6 @@ for (i = 0; i < coll.length; i++) {
   });
 }
 
-/**********************************************************/
-/* Handle schema diff */
-var diffString = `
---- Schema
-+++ Schema
-{{diff_result_summary.schema_diff_result.diff_str | replace("`", "\`")}}
-`;
-
-document.addEventListener('DOMContentLoaded', () => {
-  var diffHtml = Diff2Html.html(diffString, {
-    drawFileList: false,
-    matching: 'lines',
-    outputFormat: 'side-by-side',
-  });
-  schema_diff = document.getElementById('schema_diff')
-  if (schema_diff) {
-    schema_diff.innerHTML = diffHtml;
-  }
-});
 
 /**********************************************************/
 var bool_toggleHideColumnsWithNoChange = false;
@@ -73,6 +54,8 @@ function toggleHideColumnsWithNoChange() {
   }
   noChangeElements.forEach(updateVisibility);
 }
+// Expose the function to the whole HTML page
+window.toggleHideColumnsWithNoChange = toggleHideColumnsWithNoChange
 
 function toggleColumnDetails(columnName) {
   // Get all the no_change elements
@@ -88,6 +71,8 @@ function toggleColumnDetails(columnName) {
     }
   }
 }
+// Expose the function to the whole HTML page
+window.toggleColumnDetails = toggleColumnDetails
 
 function toggleExpandAllDetails(columnName) {
   // Get the button element
@@ -105,3 +90,5 @@ function toggleExpandAllDetails(columnName) {
   }
   detailsElements.forEach(updateVisibility);
 }
+// Expose the function to the whole HTML page
+window.toggleExpandAllDetails = toggleExpandAllDetails

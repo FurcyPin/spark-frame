@@ -1,0 +1,18 @@
+/* Handle schema diff */
+var diffString = `
+--- Schema
++++ Schema
+{{diff_result_summary.schema_diff_result.diff_str | replace("`", "\`")}}
+`;
+
+document.addEventListener('DOMContentLoaded', () => {
+  var diffHtml = Diff2Html.html(diffString, {
+    drawFileList: false,
+    matching: 'lines',
+    outputFormat: 'side-by-side',
+  });
+  schema_diff = document.getElementById('schema_diff')
+  if (schema_diff) {
+    schema_diff.innerHTML = diffHtml;
+  }
+});
