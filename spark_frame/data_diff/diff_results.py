@@ -506,8 +506,6 @@ def _get_test_diff_result() -> "DiffResult":
         same_schema=True,
         diff_str="",
         nb_cols=0,
-        left_schema_str="",
-        right_schema_str="",
         column_names_diff=column_names_diff,
     )
     return DiffResult(

@@ -22,8 +22,6 @@ class SchemaDiffResult:
     same_schema: bool
     diff_str: str
     nb_cols: int
-    left_schema_str: str
-    right_schema_str: str
     column_names_diff: Dict[str, DiffPrefix]
     """The diff per column names.
     Used to determine which columns appeared or disappeared and the order in which the columns shall be displayed"""
@@ -175,8 +173,6 @@ def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame, join_cols: L
         same_schema=same_schema,
         diff_str="\n".join(diff_str),
         nb_cols=len(left_df.columns),
-        left_schema_str="\n".join(left_schema),
-        right_schema_str="\n".join(right_schema),
         column_names_diff=column_names_diff,
     )
 
