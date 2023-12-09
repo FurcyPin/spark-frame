@@ -43,14 +43,16 @@ def export_html_diff_report(
     template = jinja2.Template(template_str)
 
     diff_report_css = _read_resource("templates/diff_report.css")
-    diff_report_js_template = _read_resource("templates/diff_report.js.jinja2")
-    diff_report_js = jinja2.Template(diff_report_js_template).render(**jinja_context)
+    diff_report_js = _read_resource("templates/diff_report.js")
+    diff_schema_js_template = _read_resource("templates/diff_schema.js.jinja2")
+    diff_schema_js = jinja2.Template(diff_schema_js_template).render(**jinja_context)
 
     # Render the template with the DiffResultSummary object
     html = template.render(
         **jinja_context,
         diff_report_css=diff_report_css,
         diff_report_js=diff_report_js,
+        diff_schema_js=diff_schema_js,
     )
 
     # Save the rendered HTML to a file
