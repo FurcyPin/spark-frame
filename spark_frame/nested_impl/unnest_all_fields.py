@@ -3,8 +3,8 @@ from typing import Dict, List, Optional
 from pyspark.sql import DataFrame
 
 from spark_frame import nested
+from spark_frame.field_utils import is_sub_field_or_equal_to_any
 from spark_frame.nested_impl.package import unnest_fields
-from spark_frame.utils import is_sub_field_or_equal_to_any
 
 
 def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -> Dict[str, DataFrame]:

@@ -24,8 +24,9 @@ from spark_frame.data_diff.package import (
     canonize_col,
 )
 from spark_frame.data_diff.schema_diff import DiffPrefix, SchemaDiffResult
+from spark_frame.field_utils import substring_before_last_occurrence
 from spark_frame.transformations import union_dataframes
-from spark_frame.utils import quote, substring_before_last_occurrence
+from spark_frame.utils import quote
 
 
 def _unpivot(diff_df: DataFrame) -> DataFrame:
