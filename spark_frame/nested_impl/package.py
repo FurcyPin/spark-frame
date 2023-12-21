@@ -25,14 +25,13 @@ from spark_frame.conf import (
     REPETITION_MARKER,
     STRUCT_SEPARATOR,
 )
+from spark_frame.field_utils import is_direct_sub_field_of_any, substring_before_last_occurrence
 from spark_frame.fp import PrintableFunction, higher_order
 from spark_frame.utils import (
     AnalysisException,
     assert_true,
     group_by_key,
-    is_direct_sub_field_of_any,
     quote,
-    substring_before_last_occurrence,
 )
 
 ColumnTransformation = Callable[[Optional[Column]], Column]

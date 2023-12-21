@@ -5,10 +5,11 @@ from pyspark.sql import functions as f
 from pyspark.sql.types import StructField
 
 from spark_frame import nested
+from spark_frame.field_utils import is_sub_field_or_equal_to_any
 from spark_frame.nested_impl.unnest_all_fields import unnest_all_fields
 from spark_frame.transformations_impl import analyze_aggs
 from spark_frame.transformations_impl.union_dataframes import union_dataframes
-from spark_frame.utils import is_sub_field_or_equal_to_any, quote
+from spark_frame.utils import quote
 
 
 def _analyze_flat_df(

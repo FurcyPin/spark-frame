@@ -8,7 +8,7 @@ from pyspark.sql.types import StructType
 
 from spark_frame.conf import REPETITION_MARKER
 from spark_frame.data_type_utils import flatten_schema, is_nullable
-from spark_frame.utils import has_same_granularity_as_any, is_parent_field_of_any
+from spark_frame.field_utils import has_same_granularity_as_any, is_parent_field_of_any
 
 
 class DiffPrefix(str, Enum):
