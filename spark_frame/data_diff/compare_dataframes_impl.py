@@ -149,25 +149,29 @@ def _get_eligible_columns_for_join(df: DataFrame) -> Dict[str, float]:
     Eligible columns are all columns of type String, Int or Bigint that have an approximate distinct count of 90%
     of the number of rows in the DataFrame. Returns None if no such column is found.
 
-    >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-    >>> df = spark.sql('''SELECT INLINE(ARRAY(
-    ...     STRUCT(1 as id, "a" as name),
-    ...     STRUCT(2 as id, "b" as name),
-    ...     STRUCT(3 as id, "b" as name)
-    ... ))''')
-    >>> _get_eligible_columns_for_join(df)
-    {'id': 1.0}
-    >>> df = spark.sql('''SELECT INLINE(ARRAY(
-    ...     STRUCT(1 as id, "a" as name),
-    ...     STRUCT(1 as id, "a" as name)
-    ... ))''')
-    >>> _get_eligible_columns_for_join(df)
-    {}
+    Args:
+        df: a DataFrame
 
-    :param df: a DataFrame
-    :return: The name of the columns with less than 10% duplicates, and their
+    Returns:
+        The name of the columns with less than 10% duplicates, and their
         corresponding self-join-growth-estimate
+
+    Examples:
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> df = spark.sql('''SELECT INLINE(ARRAY(
+        ...     STRUCT(1 as id, "a" as name),
+        ...     STRUCT(2 as id, "b" as name),
+        ...     STRUCT(3 as id, "b" as name)
+        ... ))''')
+        >>> _get_eligible_columns_for_join(df)
+        {'id': 1.0}
+        >>> df = spark.sql('''SELECT INLINE(ARRAY(
+        ...     STRUCT(1 as id, "a" as name),
+        ...     STRUCT(1 as id, "a" as name)
+        ... ))''')
+        >>> _get_eligible_columns_for_join(df)
+        {}
     """
     eligible_cols = [
         col.name
@@ -200,10 +204,6 @@ def _merge_growth_estimate_dicts(
 
     >>> _merge_growth_estimate_dicts({"a": 10.0, "b": 1.0}, {"a": 1.0, "c": 1.0})
     {'a': 5.5, 'b': 1.0, 'c': 1.0}
-
-    :param left_dict:
-    :param right_dict:
-    :return:
     """
     res = left_dict.copy()
     for x in right_dict:
