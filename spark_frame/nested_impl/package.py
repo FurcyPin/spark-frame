@@ -25,7 +25,7 @@ from spark_frame.conf import (
     REPETITION_MARKER,
     STRUCT_SEPARATOR,
 )
-from spark_frame.field_utils import is_direct_sub_field_of_any, substring_before_last_occurrence
+from spark_frame.field_utils import is_sub_field_of_any, substring_before_last_occurrence
 from spark_frame.fp import PrintableFunction, higher_order
 from spark_frame.utils import (
     AnalysisException,
@@ -834,18 +834,19 @@ def unnest_fields(
         >>> df = spark.sql('''SELECT
         ...     1 as id,
         ...     ARRAY(STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d)) as b, ARRAY(5, 6) as e)) as s1,
-        ...     STRUCT(7 as f) as s2,
+        ...     STRUCT(STRUCT(7 as g) as f) as s2,
         ...     ARRAY(ARRAY(1, 2), ARRAY(3, 4)) as s3,
         ...     ARRAY(ARRAY(STRUCT(1 as e, 2 as f)), ARRAY(STRUCT(3 as e, 4 as f))) as s4
         ... ''')
+
         >>> nested.fields(df)
-        ['id', 's1!.a', 's1!.b!.c', 's1!.b!.d', 's1!.e!', 's2.f', 's3!!', 's4!!.e', 's4!!.f']
+        ['id', 's1!.a', 's1!.b!.c', 's1!.b!.d', 's1!.e!', 's2.f.g', 's3!!', 's4!!.e', 's4!!.f']
         >>> df.show(truncate=False)
-        +---+-----------------------+---+----------------+--------------------+
-        |id |s1                     |s2 |s3              |s4                  |
-        +---+-----------------------+---+----------------+--------------------+
-        |1  |[{2, [{3, 4}], [5, 6]}]|{7}|[[1, 2], [3, 4]]|[[{1, 2}], [{3, 4}]]|
-        +---+-----------------------+---+----------------+--------------------+
+        +---+-----------------------+-----+----------------+--------------------+
+        |id |s1                     |s2   |s3              |s4                  |
+        +---+-----------------------+-----+----------------+--------------------+
+        |1  |[{2, [{3, 4}], [5, 6]}]|{{7}}|[[1, 2], [3, 4]]|[[{1, 2}], [{3, 4}]]|
+        +---+-----------------------+-----+----------------+--------------------+
         <BLANKLINE>
         >>> for cols, res_df in unnest_fields(df, ['id', 's2.f']).items():
         ...     print(cols)
@@ -854,7 +855,7 @@ def unnest_fields(
         +---+----+
         | id|s2.f|
         +---+----+
-        |  1|   7|
+        |  1| {7}|
         +---+----+
         <BLANKLINE>
         >>> for cols, res_df in unnest_fields(df, 's1!').items():
@@ -933,16 +934,15 @@ def unnest_fields(
         +----+
         <BLANKLINE>
 
-        >>> from spark_frame import nested
         >>> for cols, res_df in unnest_fields(df, nested.fields(df), keep_fields=["id"]).items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
         <BLANKLINE>
-        +---+----+
-        |id |s2.f|
-        +---+----+
-        |1  |7   |
-        +---+----+
+        +---+------+
+        |id |s2.f.g|
+        +---+------+
+        |1  |7     |
+        +---+------+
         <BLANKLINE>
         s1
         +---+-----+
@@ -986,15 +986,107 @@ def unnest_fields(
         <BLANKLINE>
 
         Making sure keep_columns works with columns inside structs
-        >>> for cols, res_df in unnest_fields(df, 's1!', keep_fields=["s2.f"]).items():
+        >>> for cols, res_df in unnest_fields(df, nested.fields(df), keep_fields=["s2.f"]).items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
+        <BLANKLINE>
+        +---+------+
+        |id |s2.f.g|
+        +---+------+
+        |1  |7     |
+        +---+------+
+        <BLANKLINE>
         s1
-        +----+---------------------+
-        |s2.f|s1!                  |
-        +----+---------------------+
-        |7   |{2, [{3, 4}], [5, 6]}|
-        +----+---------------------+
+        +----+-----+
+        |s2.f|s1!.a|
+        +----+-----+
+        |{7} |2    |
+        +----+-----+
+        <BLANKLINE>
+        s1!.b
+        +----+--------+--------+
+        |s2.f|s1!.b!.c|s1!.b!.d|
+        +----+--------+--------+
+        |{7} |3       |4       |
+        +----+--------+--------+
+        <BLANKLINE>
+        s1!.e
+        +----+------+
+        |s2.f|s1!.e!|
+        +----+------+
+        |{7} |5     |
+        |{7} |6     |
+        +----+------+
+        <BLANKLINE>
+        s3!
+        +----+----+
+        |s2.f|s3!!|
+        +----+----+
+        |{7} |1   |
+        |{7} |2   |
+        |{7} |3   |
+        |{7} |4   |
+        +----+----+
+        <BLANKLINE>
+        s4!
+        +----+------+------+
+        |s2.f|s4!!.e|s4!!.f|
+        +----+------+------+
+        |{7} |1     |2     |
+        |{7} |3     |4     |
+        +----+------+------+
+        <BLANKLINE>
+
+        Making sure keep_columns works with columns inside structs of structs
+        >>> for cols, res_df in unnest_fields(df, nested.fields(df), keep_fields=["s2.f.g"]).items():
+        ...     print(cols)
+        ...     res_df.show(truncate=False)
+        <BLANKLINE>
+        +---+------+
+        |id |s2.f.g|
+        +---+------+
+        |1  |7     |
+        +---+------+
+        <BLANKLINE>
+        s1
+        +------+-----+
+        |s2.f.g|s1!.a|
+        +------+-----+
+        |7     |2    |
+        +------+-----+
+        <BLANKLINE>
+        s1!.b
+        +------+--------+--------+
+        |s2.f.g|s1!.b!.c|s1!.b!.d|
+        +------+--------+--------+
+        |7     |3       |4       |
+        +------+--------+--------+
+        <BLANKLINE>
+        s1!.e
+        +------+------+
+        |s2.f.g|s1!.e!|
+        +------+------+
+        |7     |5     |
+        |7     |6     |
+        +------+------+
+        <BLANKLINE>
+        s3!
+        +------+----+
+        |s2.f.g|s3!!|
+        +------+----+
+        |7     |1   |
+        |7     |2   |
+        |7     |3   |
+        |7     |4   |
+        +------+----+
+        <BLANKLINE>
+        s4!
+        +------+------+------+
+        |s2.f.g|s4!!.e|s4!!.f|
+        +------+------+------+
+        |7     |1     |2     |
+        |7     |3     |4     |
+        +------+------+------+
         <BLANKLINE>
 
         Making sure keep_columns works with columns inside arrays of structs
@@ -1087,10 +1179,14 @@ def unnest_fields(
             exploded_col = f.explode(f.col(quoted_prefix)).alias(prefix + key)
 
             keep_cols = [
-                f.col(keep_col).alias(keep_col)
+                # The expression used to select a keep_column is different the first time we select it.
+                # For instance, if we do a "SELECT s.a as `s.a`", then the next time we select it we will
+                # do a "SELECT `s.a`"
+                f.col(quote(keep_col)) if keep_col in current_df.columns else f.col(keep_col).alias(keep_col)
                 for keep_col in keep_columns_list
-                if is_direct_sub_field_of_any(keep_col, current_df.columns) or keep_col in current_df.columns
+                if is_sub_field_of_any(keep_col, current_df.columns)
             ]
+
             new_df = current_df.select(*keep_cols, exploded_col)
             yield from recurse_node_with_one_item(
                 children,
