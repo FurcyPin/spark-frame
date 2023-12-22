@@ -1,5 +1,7 @@
 from typing import List
 
+from spark_frame.conf import REPETITION_MARKER
+
 
 def is_sub_field_or_equal(sub_field: str, field: str) -> bool:
     """Return True if `sub_field` is a sub-field of `field`
@@ -106,53 +108,63 @@ def has_same_granularity_as_any(field: str, other_fields: List[str]) -> bool:
     return any(has_same_granularity(field, other_field) for other_field in other_fields)
 
 
-def is_direct_sub_field(direct_sub_field: str, field: str) -> bool:
-    """Return True if `direct_sub_field` is a direct sub-field of `field`
+def is_sub_field(sub_field: str, field: str) -> bool:
+    """Return True if `sub_field` is a sub-field of `field`, or is equal to `field`
 
-    >>> is_direct_sub_field("a", "a")
-    False
-    >>> is_direct_sub_field("a", "b")
-    False
-
-    >>> is_direct_sub_field("a.b", "a")
+    >>> is_sub_field("a", "a")
     True
-    >>> is_direct_sub_field("a.b", "b")
+    >>> is_sub_field("a", "b")
     False
 
-    >>> is_direct_sub_field("a", "a.b")
-    False
-
-    >>> is_direct_sub_field("a.b.c", "a.b")
+    >>> is_sub_field("a.b", "a")
     True
-    >>> is_direct_sub_field("a.b.c", "a")
+    >>> is_sub_field("a!.b", "a!")
+    True
+    >>> is_sub_field("a.b", "b")
+    False
+    >>> is_sub_field("a.b!", "a")
+    False
+
+    >>> is_sub_field("a", "a.b")
+    False
+
+    >>> is_sub_field("a.b.c", "a.b")
+    True
+    >>> is_sub_field("a.b.c", "a")
+    True
+
+    """
+    return sub_field == field or (
+        sub_field.startswith(field + ".") and REPETITION_MARKER not in sub_field[len(field) :]
+    )
+
+
+def is_sub_field_of_any(direct_sub_field: str, fields: List[str]) -> bool:
+    """Return True if `direct_sub_field` is a sub-field of any field in `fields`
+
+    >>> is_sub_field_of_any("a", ["a", "b"])
+    True
+
+    >>> is_sub_field_of_any("a.b", ["a", "b"])
+    True
+    >>> is_sub_field_of_any("a!.b", ["a!", "b"])
+    True
+    >>> is_sub_field_of_any("a!.b!", ["a!", "b!"])
+    False
+    >>> is_sub_field_of_any("a.b", ["b", "c"])
+    False
+
+    >>> is_sub_field_of_any("a.b.c", ["a.b"])
+    True
+
+    >>> is_sub_field_of_any("a.b.c", ["a"])
+    True
+
+    >>> is_sub_field_of_any("a", [])
     False
 
     """
-    return direct_sub_field.split(".")[:-1] == field.split(".")
-
-
-def is_direct_sub_field_of_any(direct_sub_field: str, fields: List[str]) -> bool:
-    """Return True if `direct_sub_field` is a direct sub-field of any field in `fields`
-
-    >>> is_direct_sub_field_of_any("a", ["a", "b"])
-    False
-
-    >>> is_direct_sub_field_of_any("a.b", ["a", "b"])
-    True
-    >>> is_direct_sub_field_of_any("a.b", ["b", "c"])
-    False
-
-    >>> is_direct_sub_field_of_any("a.b.c", ["a.b"])
-    True
-
-    >>> is_direct_sub_field_of_any("a.b.c", ["a"])
-    False
-
-    >>> is_direct_sub_field_of_any("a", [])
-    False
-
-    """
-    return any(is_direct_sub_field(direct_sub_field, field) for field in fields)
+    return any(is_sub_field(direct_sub_field, field) for field in fields)
 
 
 def is_parent_field(field: str, other_field: str) -> bool:
