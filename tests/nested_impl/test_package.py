@@ -765,8 +765,6 @@ class TestResolveNestedFields:
         THEN the transformation should work
         """
         df = spark.sql("SELECT 1 as id, ARRAY(2, 3) as e")
-        df.printSchema()
-        df.show()
         assert schema_string(df) == strip_margin(
             """
             |root
@@ -1421,22 +1419,6 @@ class TestResolveNestedFields:
             |+--------------+
             |""",
         )
-        df.select(
-            f.transform(
-                df["s1"],
-                lambda x1: f.struct(
-                    [
-                        f.transform(
-                            x1["s2"],
-                            lambda x2: f.struct(
-                                [(x1["a"] + x2["b"]).cast("DOUBLE").alias("b")],
-                            ),
-                        ).alias("s2"),
-                    ],
-                ),
-            ).alias("s1"),
-        ).show()
-
         actual_named = df.select(*resolve_nested_fields(named_transformations))
         actual_named.show()
         actual = df.select(*resolve_nested_fields(transformations))
