@@ -70,6 +70,10 @@ def _schema_to_string(schema: StructType, include_nullable: bool = False, includ
         id INT (nullable) {'description': 'An id'}
         c1 STRING (not nullable) {'description': 'A string column'}
         c2 INT (nullable) {'description': 'An int column'}
+        >>> df = spark.sql('''SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d, ARRAY(5) as e)) as b) as s''')
+        >>> print('\\n'.join(_schema_to_string(df.schema)))
+        id INT
+        s STRUCT<A:INT,B:ARRAY<STRUCT<C:INT,D:INT,E:ARRAY<INT>>>>
     """
     res = []
     for field in schema:
