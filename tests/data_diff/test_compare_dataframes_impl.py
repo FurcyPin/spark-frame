@@ -571,6 +571,7 @@ def test_compare_df_with_multiple_arrays_of_structs_not_ok(spark: SparkSession):
     assert diff_result.same_data is False
     assert diff_result.is_ok is False
     assert diff_result.diff_stats_shards == expected_diff_stats_shards
+    diff_result.display()
     export_diff_result_to_html(diff_result)
 
 
