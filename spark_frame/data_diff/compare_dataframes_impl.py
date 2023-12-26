@@ -592,12 +592,14 @@ def compare_dataframes(
 
     We first compare the DataFrame schemas. If the schemas are different, we adapt the DataFrames to make them
     as much comparable as possible:
-    - If the column ordering changed, we re-order them
+    - If the order of the columns changed, we re-order them automatically to perform the diff
+    - If the order of the fields inside a struct changed, we re-order them automatically to perform the diff
     - If a column type changed, we cast the column to the smallest common type
-    - If a column was added, removed or renamed, it will be ignored.
+    - We don't recognize when a column is renamed, we treat it as if the old column was removed and the new column added
 
     If `join_cols` is specified, we will use the specified columns to perform the comparison join between the
     two DataFrames. Ideally, the `join_cols` should respect an unicity constraint.
+
     If they contain duplicates, a safety check is performed to prevent a potential combinatorial explosion:
     if the number of rows in the joined DataFrame would be more than twice the size of the original DataFrames,
     then an Exception is raised and the user will be asked to provide another set of `join_cols`.
@@ -611,10 +613,12 @@ def compare_dataframes(
 
         - If you want to test a column renaming, you can temporarily add renaming step to the DataFrame
           you want to test.
-        - When comparing arrays, this algorithm ignores their ordering (e.g. `[1, 2, 3] == [3, 2, 1]`)
-        - The algorithm is able to handle nested non-repeated records, such as STRUCT<STRUCT<>>
-          or even ARRAY<STRUCT>>, but it doesn't support nested repeated structures,
-          such as ARRAY<STRUCT<ARRAY<>>>.
+        - When comparing arrays, this algorithm ignores their ordering (e.g. `[1, 2, 3] == [3, 2, 1]`).
+        - When dealing with nested structure, if the struct
+          contains a unique identifier, it can be specified in the join_cols and the structure will be automatically
+          unnested in the diff results. For instance, if we have a structure `my_array: ARRAY<STRUCT<a, b, ...>>`
+          and if `a` is a unique identifier, then you can add `"my_array!.a"` in the join_cols argument.
+          (C.F. Example 2)
 
     Args:
         left_df: A Spark DataFrame
@@ -625,9 +629,32 @@ def compare_dataframes(
         A DiffResult object
 
     Examples:
+        **Example 1: simple diff**
+
         >>> from spark_frame.data_diff.compare_dataframes_impl import __get_test_dfs
         >>> from spark_frame.data_diff import compare_dataframes
         >>> df1, df2 = __get_test_dfs()
+
+        >>> df1.show()
+        +---+-----------+
+        | id|   my_array|
+        +---+-----------+
+        |  1|[{1, 2, 3}]|
+        |  2|[{1, 2, 3}]|
+        |  3|[{1, 2, 3}]|
+        +---+-----------+
+        <BLANKLINE>
+
+        >>> df2.show()
+        +---+--------------+
+        | id|      my_array|
+        +---+--------------+
+        |  1|[{1, 2, 3, 4}]|
+        |  2|[{2, 2, 3, 4}]|
+        |  4|[{1, 2, 3, 4}]|
+        +---+--------------+
+        <BLANKLINE>
+
         >>> diff_result = compare_dataframes(df1, df2)
         <BLANKLINE>
         Analyzing differences...
@@ -679,12 +706,14 @@ def compare_dataframes(
         +-----------+---------------------------+---+
         <BLANKLINE>
 
-        >>> diff_result_exploded = compare_dataframes(df1, df2, join_cols=["id", "my_array!.a"])
+        **Example 2: by adding `"my_array!.a"` to the join_cols argument, the array gets unnested for the diff **
+
+        >>> diff_result_unnested = compare_dataframes(df1, df2, join_cols=["id", "my_array!.a"])
         <BLANKLINE>
         Analyzing differences...
         Generating the diff by joining the DataFrames together using the provided column: id
         Generating the diff by joining the DataFrames together using the provided columns: ['id', 'my_array!.a']
-        >>> diff_result_exploded.display()
+        >>> diff_result_unnested.display()
         Schema has changed:
         @@ -1,4 +1,5 @@
         <BLANKLINE>
