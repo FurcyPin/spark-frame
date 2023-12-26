@@ -6,7 +6,7 @@ from pyspark.sql import functions as f
 
 from spark_frame import nested
 from spark_frame.data_diff.special_characters import (
-    _restore_special_characters_from_col,
+    _restore_special_characters,
 )
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
 
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> df = _get_col_df(["id", "c1", "c2"], spark)
+        >>> df = _get_col_df(["id", "c1", "c2__ARRAY__a"], spark)
         >>> df.printSchema()
         root
          |-- column_number: integer (nullable = true)
@@ -32,16 +32,13 @@ def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
         +-------------+-----------+
         |            0|         id|
         |            1|         c1|
-        |            2|         c2|
+        |            2|       c2!a|
         +-------------+-----------+
         <BLANKLINE>
     """
     col_df = spark.createDataFrame(
-        list(enumerate(columns)),
+        list(enumerate([_restore_special_characters(col) for col in columns])),
         "column_number INT, column_name STRING",
-    ).withColumn(
-        "column_name",
-        _restore_special_characters_from_col(f.col("column_name")),
     )
     return col_df
 
@@ -230,8 +227,6 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
 
 @lru_cache()
 def _get_diff_per_col_df_with_cache(diff_result: "DiffResult", max_nb_rows_per_col_state: int) -> DataFrame:
-    from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
-
     return _get_diff_per_col_df(
         top_per_col_state_df=diff_result.top_per_col_state_df,
         columns=diff_result.schema_diff_result.column_names,
