@@ -9,7 +9,7 @@ def test_with_fields(spark: SparkSession):
     """
     GIVEN a DataFrame with nested fields
     WHEN we use with_fields to add a new field
-    THEN the the other fields should remain undisturbed
+    THEN the other fields should remain undisturbed
     """
     df = spark.sql(
         """SELECT
