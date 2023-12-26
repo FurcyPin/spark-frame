@@ -147,7 +147,7 @@ def flatten_schema(
     """Transform a schema into a new schema where all structs have been flattened.
     The field names are kept, with a '.' separator for struct fields.
 
-    If `explode` option is set, explode arrays and maps as well, in whih case:
+    If `explode` option is set, explode arrays and maps as well, in which case:
 
     - Array names are appended with a '!' repetition marker
     - Map names are appended with '%key' for their keys and '%value' for their values
@@ -181,8 +181,6 @@ def flatten_schema(
         >>> flatten_schema(df.schema, explode=True, keep_non_leaf_fields=True).fieldNames()
         ['id', 's', 's.a', 's.b', 's.b!', 's.b!.c', 's.b!.d', 's.b!.e', 's.b!.e!']
 
-        >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.sql('SELECT 1 as id, MAP(STRUCT(2 as a), STRUCT(3 as b)) as m')
         >>> df.schema.simpleString()
         'struct<id:int,m:map<struct<a:int>,struct<b:int>>>'
@@ -199,13 +197,11 @@ def flatten_schema(
         metadata: Dict[str, str],
         prefix: str,
     ) -> Generator[StructField, None, None]:
+        if keep_non_leaf_fields:
+            yield StructField(prefix, data_type, nullable, metadata)
         if isinstance(data_type, StructType):
-            if keep_non_leaf_fields:
-                yield StructField(prefix, data_type, nullable, metadata)
             yield from flatten_struct_type(data_type, nullable, prefix + struct_separator)
         elif isinstance(data_type, ArrayType) and explode:
-            if keep_non_leaf_fields:
-                yield StructField(prefix, data_type, nullable, metadata)
             yield from flatten_data_type(
                 data_type.elementType,
                 nullable or data_type.containsNull,
@@ -213,8 +209,6 @@ def flatten_schema(
                 prefix + repetition_marker,
             )
         elif isinstance(data_type, MapType) and explode:
-            if keep_non_leaf_fields:
-                yield StructField(prefix, data_type, nullable, metadata)
             yield from flatten_data_type(data_type.keyType, nullable, metadata, prefix + map_marker + map_key)
             yield from flatten_data_type(
                 data_type.valueType,
@@ -222,7 +216,7 @@ def flatten_schema(
                 metadata,
                 prefix + map_marker + map_value,
             )
-        else:
+        elif not keep_non_leaf_fields:
             yield StructField(prefix, data_type, nullable, metadata)
 
     def flatten_struct_type(
