@@ -24,7 +24,7 @@ def harmonize_dataframes(
 
     - Only common columns are kept
     - Columns of type MAP<key, value> are cast into ARRAY<STRUCT<key, value>>
-    - Columns are re-order to have the same ordering in both DataFrames
+    - Columns are re-ordered to have the same ordering in both DataFrames
     - When matching columns have different types, their type is widened to their most narrow common type.
     This transformation is applied recursively on nested columns, including those inside
     repeated records (a.k.a. ARRAY<STRUCT<>>).
@@ -34,7 +34,7 @@ def harmonize_dataframes(
         right_df: A Spark DataFrame
         common_columns: A dict of (column name, type).
             Column names must appear in both DataFrames, and each column will be cast into the corresponding type.
-        keep_missing_columns: If set to true, the root columns of each DataFrames that do not exists in the other
+        keep_missing_columns: If set to true, the root columns of each DataFrames that do not exist in the other
             one are kept.
 
     Returns:
