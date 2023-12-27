@@ -5,8 +5,8 @@ from pyspark.sql import DataFrame, Window
 from pyspark.sql import functions as f
 from pyspark.sql.types import StructType
 
-from spark_frame import transformations as df_transformations
-from spark_frame.conf import REPETITION_MARKER, STRUCT_SEPARATOR
+from spark_frame import transformations
+from spark_frame.conf import REPETITION_MARKER
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df_with_cache
 from spark_frame.data_diff.diff_stats import DiffStats
@@ -19,11 +19,10 @@ from spark_frame.data_diff.package import (
     EXISTS_COL_NAME,
     IS_EQUAL_COL_NAME,
     PREDICATES,
-    REPETITION_MARKER_REPLACEMENT,
-    STRUCT_SEPARATOR_REPLACEMENT,
     canonize_col,
 )
 from spark_frame.data_diff.schema_diff import DiffPrefix, SchemaDiffResult
+from spark_frame.data_diff.special_characters import _restore_special_characters_from_col
 from spark_frame.field_utils import substring_before_last_occurrence
 from spark_frame.transformations import union_dataframes
 from spark_frame.utils import quote
@@ -67,7 +66,7 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
                 .alias("left_value"),
                 canonize_col(
                     diff_df[field.name + ".right_value"],
-                    cast(StructType, field.dataType).fields[0],
+                    cast(StructType, field.dataType).fields[1],
                 )
                 .cast("STRING")
                 .alias("right_value"),
@@ -79,24 +78,14 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
         ],
     )
 
-    unpivoted_df = df_transformations.unpivot(
+    unpivoted_df = transformations.unpivot(
         diff_df,
         pivot_columns=[],
         key_alias="column_name",
         value_alias="diff",
     )
-    unpivoted_df = unpivoted_df.withColumn(
-        "column_name",
-        f.regexp_replace(
-            f.regexp_replace(
-                f.col("column_name"),
-                STRUCT_SEPARATOR_REPLACEMENT,
-                STRUCT_SEPARATOR,
-            ),
-            REPETITION_MARKER_REPLACEMENT,
-            REPETITION_MARKER,
-        ),
-    )
+
+    unpivoted_df = unpivoted_df.withColumn("column_name", _restore_special_characters_from_col(f.col("column_name")))
     return unpivoted_df
 
 
