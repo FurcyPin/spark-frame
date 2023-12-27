@@ -80,7 +80,7 @@ def transform(transformation: PrintableFunction) -> PrintableFunction:
 
 def transform_keys(transformation: PrintableFunction) -> PrintableFunction:
     """Return a PrintableFunction version of the `pyspark.sql.functions.transform_keys` method,
-    which applies the given transformation to any array column.
+    which applies the given transformation to any column of type Map.
     """
     return PrintableFunction(
         lambda x: f.transform_keys(x, lambda k, v: transformation.func(k)),
@@ -90,7 +90,7 @@ def transform_keys(transformation: PrintableFunction) -> PrintableFunction:
 
 def transform_values(transformation: PrintableFunction) -> PrintableFunction:
     """Return a PrintableFunction version of the `pyspark.sql.functions.transform_values` method,
-    which applies the given transformation to any array column.
+    which applies the given transformation to any column of type Map.
     """
     return PrintableFunction(
         lambda x: f.transform_values(x, lambda k, v: transformation.func(v)),
@@ -123,7 +123,7 @@ def boxed_transform_map(
     parents: List[str],
 ) -> PrintableFunction:
     """Return a PrintableFunction version of the `pyspark.sql.functions.transform_keys` method,
-    which applies the given transformation to any array column.
+    which applies the given transformation to any column of type Map.
     """
     return PrintableFunction(
         lambda x: f.transform_values(
