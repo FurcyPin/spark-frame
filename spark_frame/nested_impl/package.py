@@ -96,9 +96,7 @@ def build_transformation_from_schema(
         parent_structs: List[str],
     ) -> PrintableFunction:
         if isinstance(data_type, StructType):
-            children_transformations = list(
-                recurse_struct_type(data_type, parent_structs),
-            )
+            children_transformations = list(recurse_struct_type(data_type, parent_structs))
             res = _merge_functions(children_transformations)
             res = fp.compose(higher_order.struct, res)
         elif isinstance(data_type, ArrayType):
