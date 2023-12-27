@@ -12,10 +12,18 @@ _replacements = str.maketrans(_replacement_mapping)
 
 
 def _replace_special_characters(col_name: str) -> str:
+    """
+    >>> _replace_special_characters("a.b!.c")
+    'a__STRUCT__b__ARRAY____STRUCT__c'
+    """
     return col_name.translate(_replacements)
 
 
 def _restore_special_characters(col_name: str) -> str:
+    """
+    >>> _restore_special_characters("a__STRUCT__b__ARRAY____STRUCT__c")
+    'a.b!.c'
+    """
     result = col_name
     for value, replacement in _replacement_mapping.items():
         result = result.replace(replacement, value)
