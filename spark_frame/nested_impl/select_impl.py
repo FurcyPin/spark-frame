@@ -256,7 +256,7 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         <BLANKLINE>
 
         Extra arguments can be added to the left for each repetition level, up to the root level.
-        >>> new_df = df.transform(nested.with_fields, {
+        >>> new_df = df.transform(nested.select, {
         ...  "id": None,
         ...  "s1!.average": None,
         ...  "s1!.values!": lambda root, s1, value : value - s1["average"] + root["id"]
