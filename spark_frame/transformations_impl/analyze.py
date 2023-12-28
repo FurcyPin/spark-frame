@@ -26,10 +26,7 @@ def _analyze_flat_df(
 
     aggregation_per_field = [agg_struct(col) for col in flat_df.schema.fields if col.name not in group_by]
     aggregation_for_all_fields = f.array(aggregation_per_field).alias(agg_alias)
-    if len(group_by) > 0:
-        res = flat_df.groupby(group_by).agg(aggregation_for_all_fields)
-    else:
-        res = flat_df.select(aggregation_for_all_fields)
+    res = flat_df.groupBy(*group_by).agg(aggregation_for_all_fields)
     res = res.select(*group_by, f.explode(agg_alias).alias(agg_alias))
     res = res.select(*group_by, agg_alias + ".*")
     return res
