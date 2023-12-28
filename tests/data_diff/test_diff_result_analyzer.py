@@ -52,16 +52,16 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
 
     assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
-        |+-----------+---------+----------+-----------+---+---------------+-------+
-        ||column_name|state    |left_value|right_value|nb |col_state_total|row_num|
-        |+-----------+---------+----------+-----------+---+---------------+-------+
-        ||col1       |changed  |a         |a1         |1  |3              |1      |
-        ||col1       |changed  |b         |b1         |1  |3              |2      |
-        ||col1       |changed  |c         |c1         |1  |3              |3      |
-        ||id         |no_change|1         |1          |1  |3              |1      |
-        ||id         |no_change|2         |2          |1  |3              |2      |
-        ||id         |no_change|3         |3          |1  |3              |3      |
-        |+-----------+---------+----------+-----------+---+---------------+-------+
+        |+-----------+---------+----------+-----------+---+-------+
+        ||column_name|state    |left_value|right_value|nb |row_num|
+        |+-----------+---------+----------+-----------+---+-------+
+        ||col1       |changed  |a         |a1         |1  |1      |
+        ||col1       |changed  |b         |b1         |1  |2      |
+        ||col1       |changed  |c         |c1         |1  |3      |
+        ||id         |no_change|1         |1          |1  |1      |
+        ||id         |no_change|2         |2          |1  |2      |
+        ||id         |no_change|3         |3          |1  |3      |
+        |+-----------+---------+----------+-----------+---+-------+
         |""",
     )
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
@@ -126,16 +126,16 @@ def test_when_we_have_values_that_are_longer_than_max_string_length(spark: Spark
     diff_per_col_df = analyzer.get_diff_per_col_df(diff_result)
     assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
-        |+-----------+---------+----------+-----------+---+---------------+-------+
-        ||column_name|state    |left_value|right_value|nb |col_state_total|row_num|
-        |+-----------+---------+----------+-----------+---+---------------+-------+
-        ||col1       |changed  |aaxxxx    |AAXXXX     |1  |3              |1      |
-        ||col1       |changed  |aayyyy    |AAYYYY     |1  |3              |2      |
-        ||col1       |changed  |aazzzz    |AAZZZZ     |1  |3              |3      |
-        ||id         |no_change|1         |1          |1  |3              |1      |
-        ||id         |no_change|2         |2          |1  |3              |2      |
-        ||id         |no_change|3         |3          |1  |3              |3      |
-        |+-----------+---------+----------+-----------+---+---------------+-------+
+        |+-----------+---------+----------+-----------+---+-------+
+        ||column_name|state    |left_value|right_value|nb |row_num|
+        |+-----------+---------+----------+-----------+---+-------+
+        ||col1       |changed  |aaxxxx    |AAXXXX     |1  |1      |
+        ||col1       |changed  |aayyyy    |AAYYYY     |1  |2      |
+        ||col1       |changed  |aazzzz    |AAZZZZ     |1  |3      |
+        ||id         |no_change|1         |1          |1  |1      |
+        ||id         |no_change|2         |2          |1  |2      |
+        ||id         |no_change|3         |3          |1  |3      |
+        |+-----------+---------+----------+-----------+---+-------+
         |""",
     )
     assert show_string(diff_per_col_df.select("column_number", "diff"), truncate=False) == strip_margin(

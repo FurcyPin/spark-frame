@@ -200,31 +200,31 @@ class DiffResult:
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
             <BLANKLINE>
             >>> diff_result.top_per_col_state_df.show(100)
-            +-----------+-------------+----------+-----------+---+---------------+-------+
-            |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
-            +-----------+-------------+----------+-----------+---+---------------+-------+
-            |         c1|    no_change|         b|          b|  3|              4|      1|
-            |         c1|    no_change|         a|          a|  1|              4|      2|
-            |         c1| only_in_left|         c|       NULL|  1|              1|      1|
-            |         c1|only_in_right|      NULL|          f|  1|              1|      1|
-            |         c2|      changed|         2|          4|  2|              3|      1|
-            |         c2|      changed|         2|          3|  1|              3|      2|
-            |         c2|    no_change|         1|          1|  1|              1|      1|
-            |         c2| only_in_left|         3|       NULL|  1|              1|      1|
-            |         c2|only_in_right|      NULL|          3|  1|              1|      1|
-            |         c3| only_in_left|         1|       NULL|  2|              5|      1|
-            |         c3| only_in_left|         2|       NULL|  2|              5|      2|
-            |         c3| only_in_left|         3|       NULL|  1|              5|      3|
-            |         c4|only_in_right|      NULL|          1|  2|              5|      1|
-            |         c4|only_in_right|      NULL|          2|  2|              5|      2|
-            |         c4|only_in_right|      NULL|          3|  1|              5|      3|
-            |         id|    no_change|         1|          1|  1|              4|      1|
-            |         id|    no_change|         2|          2|  1|              4|      2|
-            |         id|    no_change|         3|          3|  1|              4|      3|
-            |         id|    no_change|         4|          4|  1|              4|      4|
-            |         id| only_in_left|         5|       NULL|  1|              1|      1|
-            |         id|only_in_right|      NULL|          6|  1|              1|      1|
-            +-----------+-------------+----------+-----------+---+---------------+-------+
+            +-----------+-------------+----------+-----------+---+-------+
+            |column_name|        state|left_value|right_value| nb|row_num|
+            +-----------+-------------+----------+-----------+---+-------+
+            |         c1|    no_change|         b|          b|  3|      1|
+            |         c1|    no_change|         a|          a|  1|      2|
+            |         c1| only_in_left|         c|       NULL|  1|      1|
+            |         c1|only_in_right|      NULL|          f|  1|      1|
+            |         c2|      changed|         2|          4|  2|      1|
+            |         c2|      changed|         2|          3|  1|      2|
+            |         c2|    no_change|         1|          1|  1|      1|
+            |         c2| only_in_left|         3|       NULL|  1|      1|
+            |         c2|only_in_right|      NULL|          3|  1|      1|
+            |         c3| only_in_left|         1|       NULL|  2|      1|
+            |         c3| only_in_left|         2|       NULL|  2|      2|
+            |         c3| only_in_left|         3|       NULL|  1|      3|
+            |         c4|only_in_right|      NULL|          1|  2|      1|
+            |         c4|only_in_right|      NULL|          2|  2|      2|
+            |         c4|only_in_right|      NULL|          3|  1|      3|
+            |         id|    no_change|         1|          1|  1|      1|
+            |         id|    no_change|         2|          2|  1|      2|
+            |         id|    no_change|         3|          3|  1|      3|
+            |         id|    no_change|         4|          4|  1|      4|
+            |         id| only_in_left|         5|       NULL|  1|      1|
+            |         id|only_in_right|      NULL|          6|  1|      1|
+            +-----------+-------------+----------+-----------+---+-------+
             <BLANKLINE>
 
             >>> diff_per_col_df = diff_result.get_diff_per_col_df(max_nb_rows_per_col_state=10)
@@ -349,8 +349,6 @@ class DiffResult:
           (where `state` can take the following values: "only_in_left", "only_in_right", "no_change", "changed")
         - A column `nb` that gives the number of occurrence of this specific tuple
         - At most `max_nb_rows_per_col_state` per tuple (column_name, state). Rows with the highest "nb" are kept first.
-        - A column `col_state_total` that gives the corresponding sum for the tuple (column_name, state)
-          before filtering the rows
 
         Examples:
             >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
@@ -371,31 +369,31 @@ class DiffResult:
             >>> (_diff_result._compute_top_per_col_state_df(diff_df)
             ...  .orderBy("column_name", "state", "left_value", "right_value")
             ... ).show(100)
-            +-----------+-------------+----------+-----------+---+---------------+-------+
-            |column_name|        state|left_value|right_value| nb|col_state_total|row_num|
-            +-----------+-------------+----------+-----------+---+---------------+-------+
-            |         c1|    no_change|         a|          a|  1|              4|      2|
-            |         c1|    no_change|         b|          b|  3|              4|      1|
-            |         c1| only_in_left|         c|       NULL|  1|              1|      1|
-            |         c1|only_in_right|      NULL|          f|  1|              1|      1|
-            |         c2|      changed|         2|          3|  1|              3|      2|
-            |         c2|      changed|         2|          4|  2|              3|      1|
-            |         c2|    no_change|         1|          1|  1|              1|      1|
-            |         c2| only_in_left|         3|       NULL|  1|              1|      1|
-            |         c2|only_in_right|      NULL|          3|  1|              1|      1|
-            |         c3| only_in_left|         1|       NULL|  2|              5|      1|
-            |         c3| only_in_left|         2|       NULL|  2|              5|      2|
-            |         c3| only_in_left|         3|       NULL|  1|              5|      3|
-            |         c4|only_in_right|      NULL|          1|  2|              5|      1|
-            |         c4|only_in_right|      NULL|          2|  2|              5|      2|
-            |         c4|only_in_right|      NULL|          3|  1|              5|      3|
-            |         id|    no_change|         1|          1|  1|              4|      1|
-            |         id|    no_change|         2|          2|  1|              4|      2|
-            |         id|    no_change|         3|          3|  1|              4|      3|
-            |         id|    no_change|         4|          4|  1|              4|      4|
-            |         id| only_in_left|         5|       NULL|  1|              1|      1|
-            |         id|only_in_right|      NULL|          6|  1|              1|      1|
-            +-----------+-------------+----------+-----------+---+---------------+-------+
+            +-----------+-------------+----------+-----------+---+-------+
+            |column_name|        state|left_value|right_value| nb|row_num|
+            +-----------+-------------+----------+-----------+---+-------+
+            |         c1|    no_change|         a|          a|  1|      2|
+            |         c1|    no_change|         b|          b|  3|      1|
+            |         c1| only_in_left|         c|       NULL|  1|      1|
+            |         c1|only_in_right|      NULL|          f|  1|      1|
+            |         c2|      changed|         2|          3|  1|      2|
+            |         c2|      changed|         2|          4|  2|      1|
+            |         c2|    no_change|         1|          1|  1|      1|
+            |         c2| only_in_left|         3|       NULL|  1|      1|
+            |         c2|only_in_right|      NULL|          3|  1|      1|
+            |         c3| only_in_left|         1|       NULL|  2|      1|
+            |         c3| only_in_left|         2|       NULL|  2|      2|
+            |         c3| only_in_left|         3|       NULL|  1|      3|
+            |         c4|only_in_right|      NULL|          1|  2|      1|
+            |         c4|only_in_right|      NULL|          2|  2|      2|
+            |         c4|only_in_right|      NULL|          3|  1|      3|
+            |         id|    no_change|         1|          1|  1|      1|
+            |         id|    no_change|         2|          2|  1|      2|
+            |         id|    no_change|         3|          3|  1|      3|
+            |         id|    no_change|         4|          4|  1|      4|
+            |         id| only_in_left|         5|       NULL|  1|      1|
+            |         id|only_in_right|      NULL|          6|  1|      1|
+            +-----------+-------------+----------+-----------+---+-------+
             <BLANKLINE>
         """  # noqa: E501
         unpivoted_diff_df = _unpivot(diff_df.drop(IS_EQUAL_COL_NAME, EXISTS_COL_NAME))
@@ -404,7 +402,7 @@ class DiffResult:
         only_in_right = ~f.col("diff")["exists_left"] & f.col("diff")["exists_right"]
         exists_in_left_or_right = f.col("diff")["exists_left"] | f.col("diff")["exists_right"]
 
-        df_2 = unpivoted_diff_df.select(
+        df_1 = unpivoted_diff_df.select(
             "column_name",
             f.when(only_in_left, f.lit("only_in_left"))
             .when(only_in_right, f.lit("only_in_right"))
@@ -419,16 +417,12 @@ class DiffResult:
             f.col("left_value"),
             f.col("right_value"),
         )
-        df = (
-            df_2.groupBy("column_name", "state", "left_value", "right_value")
+        df_2 = (
+            df_1.groupBy("column_name", "state", "left_value", "right_value")
             .agg(f.count(f.lit(1)).alias("nb"))
-            .withColumn(
-                "col_state_total",
-                f.sum("nb").over(Window.partitionBy("column_name", "state")),
-            )
             .withColumn("row_num", f.row_number().over(window))
         )
-        return df
+        return df_2
 
     def display(
         self,
