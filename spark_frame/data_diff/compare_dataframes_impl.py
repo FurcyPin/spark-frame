@@ -127,7 +127,7 @@ def _get_self_join_growth_estimate(df: DataFrame, cols: Union[str, List[str]]) -
     """
     if isinstance(cols, str):
         cols = [cols]
-    df1 = df.groupby(quote_columns(cols)).agg(f.count(f.lit(1)).alias("nb"))
+    df1 = df.groupBy(*quote_columns(cols)).agg(f.count(f.lit(1)).alias("nb"))
     df2 = df1.agg(
         f.sum(f.col("nb")).alias("nb_rows"),
         f.sum(f.col("nb") * f.col("nb")).alias("nb_rows_after_self_join"),
