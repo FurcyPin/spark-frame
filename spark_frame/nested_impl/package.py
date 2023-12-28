@@ -1100,12 +1100,16 @@ def unnest_fields(
         <BLANKLINE>
 
     """
+    from spark_frame import nested
+
     if keep_fields is None:
         keep_columns_list = []
     else:
         keep_columns_list = keep_fields
     if isinstance(fields, str):
         fields = [fields]
+
+    validate_nested_field_names(*fields, known_fields=nested.fields(df))
 
     def recurse_node_with_multiple_items(
         node: OrderedTree,
