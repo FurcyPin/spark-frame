@@ -628,9 +628,7 @@ def compare_dataframes(
     Returns:
         A DiffResult object
 
-    Examples:
-        **Example 1: simple diff**
-
+    Examples: Example 1: simple diff
         >>> from spark_frame.data_diff.compare_dataframes_impl import __get_test_dfs
         >>> from spark_frame.data_diff import compare_dataframes
         >>> df1, df2 = __get_test_dfs()
@@ -706,8 +704,8 @@ def compare_dataframes(
         +-----------+---------------------------+---+
         <BLANKLINE>
 
-        **Example 2: by adding `"my_array!.a"` to the join_cols argument, the array gets unnested for the diff **
-
+    Examples: Example 2: diff on complex structures
+        By adding `"my_array!.a"` to the join_cols argument, the array gets unnested for the diff
         >>> diff_result_unnested = compare_dataframes(df1, df2, join_cols=["id", "my_array!.a"])
         <BLANKLINE>
         Analyzing differences...

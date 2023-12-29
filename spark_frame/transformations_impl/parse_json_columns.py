@@ -32,8 +32,7 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
     Returns:
         A new DataFrame
 
-    Examples:
-        **Example 1 :**
+    Examples: Example 1
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame([
@@ -64,7 +63,7 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
          |    |    |-- a: long (nullable = true)
         <BLANKLINE>
 
-        **Example 2 : different output column name :**
+    Examples: Example 2 : different output column name
         >>> parse_json_columns(df, {'json1': 'parsed_json1'}).printSchema()
         root
          |-- id: integer (nullable = true)
@@ -74,7 +73,7 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
          |    |    |-- a: long (nullable = true)
         <BLANKLINE>
 
-        **Example 3 : json inside a struct :**
+    Examples: Example 3 : json inside a struct
         >>> df = spark.createDataFrame([
         ...         (1, {'json1': '[{"a": 1}, {"a": 2}]'}),
         ...         (1, {'json1': '[{"a": 2}, {"a": 4}]'}),
