@@ -46,10 +46,7 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         A new DataFrame where only the specified field have been selected and the corresponding
         transformations were applied to each of them.
 
-    Examples:
-
-        *Example 1: non-repeated fields*
-
+    Examples: Example 1: non-repeated fields
         >>> from pyspark.sql import SparkSession
         >>> from pyspark.sql import functions as f
         >>> from spark_frame import nested
@@ -93,8 +90,7 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         +---------+
         <BLANKLINE>
 
-        *Example 2: repeated fields*
-
+    Examples: Example 2: repeated fields
         >>> df = spark.sql('SELECT 1 as id, ARRAY(STRUCT(1 as a, 2 as b), STRUCT(3 as a, 4 as b)) as s')
         >>> nested.print_schema(df)
         root
@@ -139,7 +135,7 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         +---+----------------+
         <BLANKLINE>
 
-        *Example 3: field repeated twice*
+    Examples: Example 3: field repeated twice
         >>> df = spark.sql('''
         ...     SELECT
         ...         1 as id,
@@ -178,7 +174,7 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         +-------------+-------------------+
         <BLANKLINE>
 
-        *Example 4: Dataframe with maps*
+    Examples: Example 4: Dataframe with maps
         >>> df = spark.sql('''
         ...     SELECT
         ...         1 as id,
@@ -218,7 +214,7 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         +---+------------+
         <BLANKLINE>
 
-        *Example 5: Accessing multiple repetition levels*
+    Examples: Example 5: Accessing multiple repetition levels
         >>> df = spark.sql('''
         ...     SELECT
         ...         1 as id,

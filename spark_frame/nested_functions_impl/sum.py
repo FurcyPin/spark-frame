@@ -26,8 +26,7 @@ def sum(  # noqa: A001
     Returns:
         A Column expression
 
-    Examples:
-        *Example 1*
+    Examples: Example 1
         >>> from spark_frame.nested_functions_impl.aggregate import _get_sample_data
         >>> from spark_frame import nested
         >>> from spark_frame import nested_functions as nf
@@ -79,7 +78,7 @@ def sum(  # noqa: A001
         +-----------+----------+---+-------------------+------------+
         <BLANKLINE>
 
-        *Example 2 : with all kind of nested structures*
+    Examples: Example 2 : with all kind of nested structures*
         >>> from pyspark.sql import SparkSession
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT

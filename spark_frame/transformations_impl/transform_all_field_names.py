@@ -19,9 +19,7 @@ def transform_all_field_names(df: DataFrame, transformation: Callable[[str], str
     Returns:
         A new DataFrame
 
-    Examples:
-        _**Example 1: with a nested schema structure**_
-
+    Examples: Example 1: with a nested schema structure
         In this example we cast all the field names of the schema to uppercase:
         >>> from pyspark.sql import SparkSession
         >>> from spark_frame import nested
@@ -58,8 +56,7 @@ def transform_all_field_names(df: DataFrame, transformation: Callable[[str], str
          |-- S5!.A!.B.C: integer (nullable = false)
         <BLANKLINE>
 
-        _**Example 2: sanitizing field names**_
-
+    Examples: Example 2: sanitizing field names
         In this example we replace all dots and exclamation marks in field names with underscores.
         This is useful to make a DataFrame compatible with the [spark_frame.nested](/spark-frame/reference/nested)
         module.

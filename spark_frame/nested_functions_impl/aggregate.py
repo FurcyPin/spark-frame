@@ -70,7 +70,6 @@ def aggregate(
         A Column expression
 
     Examples:
-        *Example 1*
         >>> from spark_frame.nested_functions_impl.aggregate import _get_sample_data
         >>> from spark_frame import nested
         >>> from spark_frame import nested_functions as nf
