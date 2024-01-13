@@ -34,12 +34,13 @@ mkdocstrings = {extras = ["python"], version = "^0.23.0"}
 mkdocs-material = "^9.4.6"
 mkdocs-include-markdown-plugin = "^6.0.3"
 
-[tool.black]
-line-length = 120
 
 [build-system]
-requires = ["poetry-core==1.1.14"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
 
 [tool.coverage.run]
 branch = true
