@@ -1213,13 +1213,17 @@ def unnest_fields(
         quoted_prefix="",
     )
     grouped_res = group_by_key(dataframe_and_columns)
+
+    def get_keep_columns_for_final_select(cols: List[Column], _df: DataFrame) -> Generator[str, None, None]:
+        cols_in_df = _df.columns
+        cols_after_select = _df.select(*cols).columns
+        for keep_col in keep_columns_list:
+            if keep_col in cols_in_df and keep_col not in cols_after_select:
+                yield quote(keep_col)
+
     res = [
         df.select(
-            *[
-                quote(keep_col)
-                for keep_col in keep_columns_list
-                if keep_col in df.columns and keep_col not in df.select(*cols).columns
-            ],
+            *get_keep_columns_for_final_select(cols, df),
             *cols,
         )
         for df, cols in grouped_res.items()
