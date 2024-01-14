@@ -30,7 +30,7 @@ tox = "^4.11.3"
 pipdeptree = "2.2.1"
 
 mkdocs = "^1.5.3"
-mkdocstrings = {extras = ["python"], version = "^0.23.0"}
+mkdocstrings = {extras = ["python"], version = "^0.24.0"}
 mkdocs-material = "^9.4.6"
 mkdocs-include-markdown-plugin = "^6.0.3"
 
