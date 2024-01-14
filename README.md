@@ -15,17 +15,34 @@
 **[Spark-frame](https://furcypin.github.io/spark-frame/) is a library that super-charges your Spark DataFrames!**
 
 It brings several utility methods and transformation functions for PySpark DataFrames.
-These methods were initially part of the [karadoc](https://github.com/FurcyPin/karadoc) project 
-used at [Younited](https://medium.com/younited-tech-blog), but they were fully independent from karadoc, 
-so it made more sense to keep them as a standalone library.
 
-Several of these methods were my initial inspiration to make the cousin project 
-[bigquery-frame](https://github.com/FurcyPin/bigquery-frame), which was first made to illustrate
-this [blog article](https://medium.com/towards-data-science/sql-jinja-is-not-enough-why-we-need-dataframes-4d71a191936d).
-This is why you will find similar methods in both `spark_frame` and `bigquery_frame`, 
-except the former runs on PySpark while the latter runs on BigQuery (obviously).
-I try to keep both projects consistent together, and new eventually port new developments made on 
-one project to the other one.
+Here is a quick list of the most exciting features :sunglasses:
+
+- `spark_frame.data_diff.compare_dataframes`: compare two SQL tables or DataFrames and generate an HTML report 
+  to view the result. And yes, this is completely free, open source, and it works even with 
+  complex data structures ! It also detects column reordering and can handle type changes.
+  [Go check it out :exclamation:]()
+- `spark_frame.nested`: Did you ever thought manipulating complex data structures in SQL or Spark was a 
+  nightmare :jack_o_lantern: ? You just found the solution ! The `nested` library  makes those manipulations much 
+  cleaner and simpler. 
+  [Get started over there :rocket:](https://furcypin.github.io/spark-frame/use_cases/working_with_nested_data/)
+- `spark_frame.transformations`: A wide collection of generic dataframe transformations.
+    - Ever wanted to apply a transformation to every field of a DataFrame depending on it's name or type ? 
+      [Easy as pie :cake:](https://furcypin.github.io/spark-frame/reference/transformations/#spark_frame.transformations_impl.transform_all_fields.transform_all_fields)
+    - Ever wanted to rename every field of a DataFrame, including the deeply nested ones ? 
+      [Done: :ok_hand:](https://furcypin.github.io/spark-frame/reference/transformations/#spark_frame.transformations_impl.transform_all_field_names.transform_all_field_names)
+    - Ever wanted to analyze the content of a DataFrame, 
+      but [`DataFrame.describe()`](https://spark.apache.org/docs/3.1.1/api/python/reference/api/pyspark.sql.DataFrame.describe.html)
+      does not work with complex data types ? 
+      [You're welcome :pray:](https://furcypin.github.io/spark-frame/reference/transformations/#spark_frame.transformations_impl.analyze.analyze)
+- `spark_frame.schema_utils`: Need to dump the schema of a DataFrame somewhere to be able to load it later ?
+     [We got you covered :thumbsup:](https://furcypin.github.io/spark-frame/reference/schema_utils/)
+- `spark_frame.graph.ascending_forest_traversal`: Need an algorithm that takes the adjacency matrix of a 
+ tree :deciduous_tree: (or forest) graph and associates each node to their corresponding root node ?
+ But that other algorithm you tried went into an infinite loop ∞ because your graph isn't really a tree 
+ and occasionally contains cycles ? 
+ [Try this :evergreen_tree:](https://furcypin.github.io/spark-frame/reference/graph/#spark_frame.graph_impl.ascending_forest_traversal.ascending_forest_traversal)
+
 
 ## Getting Started
 
@@ -43,12 +60,13 @@ pip install spark-frame
 
 ## Compatibilities and requirements
 
+
 This library does not depend on any other library.
 **Pyspark must be installed separately to use it.**
 It is compatible with the following versions:
 
 - Python: requires 3.8.1 or higher (tested against Python 3.9, 3.10 and 3.11)
-- pyspark: requires 3.3.0 or higher
+- Pyspark: requires 3.3.0 or higher
 
 This library is tested against Windows, Mac and Linux.
 
@@ -57,16 +75,30 @@ This library is tested against Windows, Mac and Linux.
 **We chose to not include them as direct dependencies for security and flexibility reasons.**
 **This way, users who are not using these features don't need to worry about these dependencies.**
 
-| feature                               | spark-frame's version |  Method                      |         module required |
-|---------------------------------------|-----------------------|------------------------------|------------------------:|
-| Generating HTML reports for data diff | >= 0.4.0              |  `DiffResult.export_to_html` | data-diff-viewer==0.1.* |
-| Generating HTML reports for data diff | < 0.4                 |  `DiffResult.export_to_html` |                  jinja2 |
+| feature                                    |  Method                      | spark-frame's <br> version |     dependency required |
+|--------------------------------------------|------------------------------|----------------------------|------------------------:|
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | >= 0.4.0                   | data-diff-viewer==0.1.* |
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | < 0.4                      |                  jinja2 |
 
 _Since version 0.4, the code used to generate HTML diff reports has been moved to 
 [data-diff-viewer](https://github.com/FurcyPin/data-diff-viewer) from the same author. 
-data-diff-viewer comes with a dependency to [duckdb](https://github.com/duckdb/duckdb), 
+It comes with a dependency to [duckdb](https://github.com/duckdb/duckdb), 
 which is used to store the diff results and embed them in the HTML page._
 
+
+# Genesis of the project
+
+These methods were initially part of the [karadoc](https://github.com/FurcyPin/karadoc) project 
+used at [Younited](https://medium.com/younited-tech-blog), but they were fully independent from karadoc, 
+so it made more sense to keep them as a standalone library.
+
+Several of these methods were my initial inspiration to make the cousin project
+[bigquery-frame](https://github.com/FurcyPin/bigquery-frame), which was first made to illustrate
+this [blog article](https://medium.com/towards-data-science/sql-jinja-is-not-enough-why-we-need-dataframes-4d71a191936d).
+This is why you will find similar methods in both `spark_frame` and `bigquery_frame`, 
+except the former runs on PySpark while the latter runs on BigQuery (obviously).
+I try to keep both projects consistent together, and will eventually port new developments made on 
+one project to the other one.
 
 
 # Changelog
