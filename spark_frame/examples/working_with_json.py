@@ -11,7 +11,6 @@ def extracting_json_values() -> None:
       microservice exchanged with another external API.
 
     Examples: Let's take a sample DataFrame with two raw json columns.
-
         >>> from spark_frame.examples.working_with_json import _get_sample_data
         >>> df = _get_sample_data()
         >>> df.printSchema()

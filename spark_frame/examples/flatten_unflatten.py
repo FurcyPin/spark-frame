@@ -9,8 +9,7 @@ def transform_nested_fields() -> None:
     [spark_frame.transformations_impl.unflatten.unflatten] methods can be used to
     make data cleaning pipeline easier with PySpark.
 
-    Examples: Let's take a sample DataFrame with our favorite example: Pokemons!
-
+    Examples: Let's take a sample DataFrame with our favorite example: Pokemons
         >>> from spark_frame.examples.flatten_unflatten import _get_sample_pokemon_data
         >>> df = _get_sample_pokemon_data()
         >>> df.printSchema()
@@ -108,7 +107,7 @@ def transform_nested_fields() -> None:
         <BLANKLINE>
 
         **_Update: Since version 0.0.4, the same result
-        can be achieved with a simpler and more powerful transformation_**
+        can be achieved with an even simpler and more powerful transformation_**
         >>> from spark_frame import nested
         >>> nested.print_schema(df)
         root
