@@ -52,7 +52,7 @@ directory = "htmlcov"
 [tool.coverage.xml]
 output = "coverage.xml"
 
-[report]
+[tool.coverage.report]
 exclude_also = [
     "if TYPE_CHECKING:"
 ]
