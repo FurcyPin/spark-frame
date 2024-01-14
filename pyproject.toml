@@ -81,7 +81,6 @@ exclude = ['tests']
 [tool.pytest.ini_options]
 addopts = [
     "-ra",
-    #"--cov=spark_frame",
     "--doctest-modules"
 ]
 usefixtures = "fix_pyspark_show_change"
