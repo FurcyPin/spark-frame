@@ -419,6 +419,10 @@ def _does_version_match_constraint(version_str: str, constraint_str: str) -> boo
     True
     >>> _does_version_match_constraint(version_str="1.1.1", constraint_str="0.*")
     False
+    >>> _does_version_match_constraint(version_str="0.1.1", constraint_str="0.1.1")
+    True
+    >>> _does_version_match_constraint(version_str="1.1.1", constraint_str="0.1.1")
+    False
 
     """
     version_obj = packaging.version.parse(version_str)
