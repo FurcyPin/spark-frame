@@ -8,13 +8,13 @@ keywords = ["Spark", "PySpark", "DataFrame"]
 readme = "README.md"
 homepage = "https://github.com/FurcyPin/spark-frame"
 repository = "https://github.com/FurcyPin/spark-frame"
-include = ["spark_frame/templates/*"]
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<3.11"
 
 [tool.poetry.group.dev.dependencies]
 pyspark = "~3.5.0"
+data-diff-viewer = "0.1.2"
 
 black = "^23.11.0"
 ruff = "^0.1.6"

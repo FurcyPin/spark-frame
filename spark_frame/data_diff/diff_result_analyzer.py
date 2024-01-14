@@ -5,8 +5,8 @@ from pyspark.sql import functions as f
 
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
-from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.data_diff.diff_result import DiffResult
+from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.data_diff.diff_stats import print_diff_stats_shard
 from spark_frame.data_diff.package import PREDICATES
 from spark_frame.utils import MAX_JAVA_INT, quote

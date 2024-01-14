@@ -1,7 +1,7 @@
 import difflib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, cast
+from typing import Dict, List
 
 from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
@@ -15,6 +15,9 @@ class DiffPrefix(str, Enum):
     ADDED = "+"
     REMOVED = "-"
     UNCHANGED = " "
+
+    def __repr__(self) -> str:
+        return f"'{self.value}'"
 
 
 @dataclass
@@ -239,4 +242,4 @@ def _diff_dataframe_column_names(left_col_names: List[str], right_col_names: Lis
         list_result = [DiffPrefix.UNCHANGED + s for s in left_col_names]
     else:
         list_result = _remove_potential_duplicates_from_diff(diff[1:])
-    return {s[1:]: cast(DiffPrefix, s[0]) for s in list_result}
+    return {s[1:]: DiffPrefix(s[0]) for s in list_result}

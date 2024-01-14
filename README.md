@@ -57,22 +57,40 @@ This library is tested against Windows, Mac and Linux.
 **We chose to not include them as direct dependencies for security and flexibility reasons.**
 **This way, users who are not using these features don't need to worry about these dependencies.**
 
-| feature                               | Method                      | module required |
-|---------------------------------------|-----------------------------|----------------:|
-| Generating HTML reports for data diff | `DiffResult.export_to_html` |          jinja2 |
+| feature                               | spark-frame's version |  Method                      |         module required |
+|---------------------------------------|-----------------------|------------------------------|------------------------:|
+| Generating HTML reports for data diff | >= 0.4.0              |  `DiffResult.export_to_html` | data-diff-viewer==0.1.* |
+| Generating HTML reports for data diff | < 0.4                 |  `DiffResult.export_to_html` |                  jinja2 |
+
+_Since version 0.4, the code used to generate HTML diff reports has been moved to 
+[data-diff-viewer](https://github.com/FurcyPin/data-diff-viewer) from the same author. 
+data-diff-viewer comes with a dependency to [duckdb](https://github.com/duckdb/duckdb), 
+which is used to store the diff results and embed them in the HTML page._
+
 
 
 # Changelog
 
-# v0.4.0
+# v0.4.0 (work in progress, not released yet)
 
+Fixes and improvements on data_diff.
+
+**Breaking Changes:**
+- package `spark_frame.data_diff.diff_results` has been renamed to `diff_results`.
+- Generating HTML reports for data diff does not require jinja anymore, but it does now require the installation 
+  of the library [data-diff-viewer](https://pypi.org/project/data-diff-viewer/), 
+  please check the [Compatibilities and requirements](#compatibilities-and-requirements) 
+  section to know which version to use.
+- [data-diff] The DiffResult object returned by the `compare_dataframes` method has evolved. In particular, the
+  type of `diff_df_shards` changed from a single `DataFrame` to a `Dict[str, DataFrame]`.
 
 Improvements:
+- Data diff now supports complex data types.
 - Data diff: When columns are removed or renamed, they are now still displayed in the per-column diff report
 
 QA:
 - Spark: Added tests to ensure compatibility with Pyspark versions 3.3, 3.4 and 3.5
-
+- Replaced flake and isort with ruff
 
 # v0.3.2
 
