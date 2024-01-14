@@ -10,7 +10,7 @@ from spark_frame.data_diff.special_characters import (
 )
 
 if TYPE_CHECKING:
-    from spark_frame.data_diff.diff_results import DiffResult
+    from spark_frame.data_diff.diff_result import DiffResult
 
 
 def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
@@ -51,7 +51,7 @@ def _get_pivoted_df(
 
     Examples:
 
-        >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+        >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
         >>> diff_result.top_per_col_state_df.show(100)
         +-----------+-------------+----------+-----------+---+-------+
@@ -117,7 +117,7 @@ def _format_diff_per_col_df(pivoted_df: DataFrame, col_df: DataFrame) -> DataFra
 
     Examples
 
-        >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+        >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
         >>> spark = diff_result.top_per_col_state_df.sparkSession
         >>> columns = diff_result.schema_diff_result.column_names
@@ -281,7 +281,7 @@ def _get_diff_per_col_df(
             <BLANKLINE>
 
     Examples:
-        >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+        >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
         >>> diff_df = diff_result.diff_df_shards[""]
         >>> diff_df.show(truncate=False)

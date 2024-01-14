@@ -33,7 +33,7 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
     All the values must be cast to STRING to make sure everything fits in the same column.
 
     Examples:
-        >>> from spark_frame.data_diff.diff_results import _get_test_intersection_diff_df
+        >>> from spark_frame.data_diff.diff_result import _get_test_intersection_diff_df
         >>> diff_df = _get_test_intersection_diff_df()
         >>> diff_df.show(truncate=False)
         +-------------------------+-------------------------+
@@ -185,7 +185,7 @@ class DiffResult:
                 <BLANKLINE>
 
         Examples:
-            >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+            >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
             >>> diff_result = _get_test_diff_result()
             >>> diff_result.diff_df_shards[''].show(truncate=False)
             +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
@@ -265,7 +265,7 @@ class DiffResult:
     def _compute_diff_stats_shard(self, diff_df_shard: DataFrame) -> DiffStats:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
 
-        >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+        >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
         >>> diff_result.diff_df_shards[''].select('__EXISTS__', '__IS_EQUAL__').show()
         +-------------+------------+
@@ -321,7 +321,7 @@ class DiffResult:
     def _compute_diff_stats(self) -> Dict[str, DiffStats]:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
 
-        >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+        >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
         >>> diff_result = _get_test_diff_result()
         >>> diff_result.diff_df_shards[''].select('__EXISTS__', '__IS_EQUAL__').show()
         +-------------+------------+
@@ -351,7 +351,7 @@ class DiffResult:
         - At most `max_nb_rows_per_col_state` per tuple (column_name, state). Rows with the highest "nb" are kept first.
 
         Examples:
-            >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+            >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
             >>> _diff_result = _get_test_diff_result()
             >>> diff_df = _diff_result.diff_df_shards['']
             >>> diff_df.show(truncate=False)

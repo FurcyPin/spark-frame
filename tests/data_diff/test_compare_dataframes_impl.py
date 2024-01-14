@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 
 from spark_frame.data_diff.compare_dataframes_impl import _automatically_infer_join_col, compare_dataframes
 from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
-from spark_frame.data_diff.diff_results import DiffResult
+from spark_frame.data_diff.diff_result import DiffResult
 from spark_frame.data_diff.diff_stats import DiffStats
 from spark_frame.utils import show_string, strip_margin
 
