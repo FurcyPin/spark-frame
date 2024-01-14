@@ -4,7 +4,7 @@ from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 from pyspark.sql.types import IntegerType, LongType, StringType
 
-from spark_frame.data_diff.diff_results import DiffResult
+from spark_frame.data_diff.diff_result import DiffResult
 from spark_frame.data_diff.package import (
     EXISTS_COL_NAME,
     IS_EQUAL_COL_NAME,

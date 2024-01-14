@@ -4,7 +4,7 @@ from typing import List, Optional
 from pyspark.sql import DataFrame
 
 from spark_frame.data_diff import compare_dataframes
-from spark_frame.data_diff.diff_results import DiffResult
+from spark_frame.data_diff.diff_result import DiffResult
 
 
 class DataframeComparator:

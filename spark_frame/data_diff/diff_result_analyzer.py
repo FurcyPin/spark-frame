@@ -6,7 +6,7 @@ from pyspark.sql import functions as f
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
-from spark_frame.data_diff.diff_results import DiffResult
+from spark_frame.data_diff.diff_result import DiffResult
 from spark_frame.data_diff.diff_stats import print_diff_stats_shard
 from spark_frame.data_diff.package import PREDICATES
 from spark_frame.utils import MAX_JAVA_INT, quote
@@ -56,7 +56,7 @@ class DiffResultAnalyzer:
         """For each column that has differences, print examples of rows where such a difference occurs.
 
         Examples:
-            >>> from spark_frame.data_diff.diff_results import _get_test_diff_result
+            >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
             >>> diff_result = _get_test_diff_result()
             >>> analyzer = DiffResultAnalyzer(DiffFormatOptions(left_df_alias="before", right_df_alias="after"))
             >>> diff_df = diff_result.diff_df_shards[""]
@@ -350,7 +350,7 @@ def _get_test_diff_per_col_df() -> DataFrame:
     We intentionally sort top_per_col_state_df by increasing "nb" to simulate the fact that we don't have
     any way to guarantee that the diff arrays will be sorted by decreasing order of "nb" in the `diff` column.
     """
-    from spark_frame.data_diff.diff_results import _get_test_diff_result
+    from spark_frame.data_diff.diff_result import _get_test_diff_result
 
     diff_result = _get_test_diff_result()
     df = _get_diff_per_col_df(

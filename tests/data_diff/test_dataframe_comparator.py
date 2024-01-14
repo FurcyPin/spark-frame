@@ -7,7 +7,7 @@ from spark_frame.data_diff.dataframe_comparator import DataframeComparator
 from spark_frame.data_diff.diff_stats import DiffStats
 
 if TYPE_CHECKING:
-    from spark_frame.data_diff.diff_results import DiffResult
+    from spark_frame.data_diff.diff_result import DiffResult
 
 
 def test_dataframe_comparator_is_deprecated(spark: SparkSession):
