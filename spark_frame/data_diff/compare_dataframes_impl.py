@@ -588,7 +588,7 @@ def compare_dataframes(
     right_df: DataFrame,
     join_cols: Optional[List[str]] = None,
 ) -> DiffResult:
-    """Compares two DataFrames and print out the differences.
+    """Compares two DataFrames and return a [`DiffResult`][spark_frame.data_diff.diff_result.DiffResult] object.
 
     We first compare the DataFrame schemas. If the schemas are different, we adapt the DataFrames to make them
     as much comparable as possible:
@@ -609,8 +609,7 @@ def compare_dataframes(
     If the DataFrame's unique keys are composite (multiple columns) they must be given explicitly via `join_cols`
     to perform the diff analysis.
 
-    !!! Tips:
-
+    !!! tip
         - If you want to test a column renaming, you can temporarily add renaming step to the DataFrame
           you want to test.
         - When comparing arrays, this algorithm ignores their ordering (e.g. `[1, 2, 3] == [3, 2, 1]`).
@@ -659,6 +658,7 @@ def compare_dataframes(
         No join_cols provided: trying to automatically infer a column that can be used for joining the two DataFrames
         Found the following column: id
         Generating the diff by joining the DataFrames together using the inferred column: id
+
         >>> diff_result.display()
         Schema has changed:
         @@ -1,2 +1,2 @@
@@ -711,6 +711,7 @@ def compare_dataframes(
         Analyzing differences...
         Generating the diff by joining the DataFrames together using the provided column: id
         Generating the diff by joining the DataFrames together using the provided columns: ['id', 'my_array!.a']
+
         >>> diff_result_unnested.display()
         Schema has changed:
         @@ -1,4 +1,5 @@
