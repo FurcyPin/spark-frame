@@ -139,6 +139,42 @@ def analyze(
         +-------------+----------------------+-----------+-----+--------------+----------+---------+---------+
         <BLANKLINE>
 
+    Examples: Analyze a DataFrame with custom aggregation methods
+        Custom aggregation methods can be defined as method functions that take three arguments:
+            - `col`: the name of the Column that will be analyzed
+            - `struct_field`: a Column name
+            - `col_num`: the number of the column
+        >>> from spark_frame.transformations_impl import analyze_aggs
+        >>> from pyspark.sql.types import IntegerType
+        >>> def total(col: str, struct_field: StructField, _: int) -> Column:
+        ...     if struct_field.dataType == IntegerType():
+        ...         return f.sum(col).alias("total")
+        ...     else:
+        ...         return f.lit(None).alias("total")
+        >>> aggs = [
+        ...     analyze_aggs.column_number,
+        ...     analyze_aggs.column_name,
+        ...     analyze_aggs.count,
+        ...     analyze_aggs.count_distinct,
+        ...     analyze_aggs.count_null,
+        ...     total
+        ... ]
+        >>> analyzed_df = analyze(df, _aggs=aggs)
+        Analyzing 5 columns ...
+        >>> analyzed_df.show(truncate=False)  # noqa: E501
+        +-------------+----------------------+-----+--------------+----------+-----+
+        |column_number|column_name           |count|count_distinct|count_null|total|
+        +-------------+----------------------+-----+--------------+----------+-----+
+        |0            |id                    |9    |9             |0         |45   |
+        |1            |name                  |9    |9             |0         |NULL |
+        |2            |types!                |13   |5             |0         |NULL |
+        |3            |evolution.can_evolve  |9    |2             |0         |NULL |
+        |4            |evolution.evolves_from|9    |6             |3         |27   |
+        +-------------+----------------------+-----+--------------+----------+-----+
+        <BLANKLINE>
+
+    Examples: Analyze a DataFrame grouped by a specific column
+        Use the `group_by` to group the result by one or multiple columns
         >>> df = __get_test_df().withColumn("main_type", f.expr("types[0]"))
         >>> df.show()
         +---+----------+---------------+------------+---------+
@@ -155,37 +191,28 @@ def analyze(
         |  9| Blastoise|        [Water]|  {false, 8}|    Water|
         +---+----------+---------------+------------+---------+
         <BLANKLINE>
-
-        >>> from spark_frame.transformations_impl import analyze_aggs
-        >>> aggs = [
-        ...     analyze_aggs.column_number,
-        ...     analyze_aggs.column_name,
-        ...     analyze_aggs.count,
-        ...     analyze_aggs.count_distinct,
-        ...     analyze_aggs.count_null,
-        ... ]
         >>> analyzed_df = analyze(df, group_by="main_type", _aggs=aggs)
         Analyzing 5 columns ...
         >>> analyzed_df.orderBy("`group`.main_type", "column_number").show(truncate=False)
-        +-------+-------------+----------------------+-----+--------------+----------+
-        |group  |column_number|column_name           |count|count_distinct|count_null|
-        +-------+-------------+----------------------+-----+--------------+----------+
-        |{Fire} |0            |id                    |3    |3             |0         |
-        |{Fire} |1            |name                  |3    |3             |0         |
-        |{Fire} |2            |types!                |4    |2             |0         |
-        |{Fire} |3            |evolution.can_evolve  |3    |2             |0         |
-        |{Fire} |4            |evolution.evolves_from|3    |2             |1         |
-        |{Grass}|0            |id                    |3    |3             |0         |
-        |{Grass}|1            |name                  |3    |3             |0         |
-        |{Grass}|2            |types!                |6    |2             |0         |
-        |{Grass}|3            |evolution.can_evolve  |3    |2             |0         |
-        |{Grass}|4            |evolution.evolves_from|3    |2             |1         |
-        |{Water}|0            |id                    |3    |3             |0         |
-        |{Water}|1            |name                  |3    |3             |0         |
-        |{Water}|2            |types!                |3    |1             |0         |
-        |{Water}|3            |evolution.can_evolve  |3    |2             |0         |
-        |{Water}|4            |evolution.evolves_from|3    |2             |1         |
-        +-------+-------------+----------------------+-----+--------------+----------+
+        +-------+-------------+----------------------+-----+--------------+----------+-----+
+        |group  |column_number|column_name           |count|count_distinct|count_null|total|
+        +-------+-------------+----------------------+-----+--------------+----------+-----+
+        |{Fire} |0            |id                    |3    |3             |0         |15   |
+        |{Fire} |1            |name                  |3    |3             |0         |NULL |
+        |{Fire} |2            |types!                |4    |2             |0         |NULL |
+        |{Fire} |3            |evolution.can_evolve  |3    |2             |0         |NULL |
+        |{Fire} |4            |evolution.evolves_from|3    |2             |1         |9    |
+        |{Grass}|0            |id                    |3    |3             |0         |6    |
+        |{Grass}|1            |name                  |3    |3             |0         |NULL |
+        |{Grass}|2            |types!                |6    |2             |0         |NULL |
+        |{Grass}|3            |evolution.can_evolve  |3    |2             |0         |NULL |
+        |{Grass}|4            |evolution.evolves_from|3    |2             |1         |3    |
+        |{Water}|0            |id                    |3    |3             |0         |24   |
+        |{Water}|1            |name                  |3    |3             |0         |NULL |
+        |{Water}|2            |types!                |3    |1             |0         |NULL |
+        |{Water}|3            |evolution.can_evolve  |3    |2             |0         |NULL |
+        |{Water}|4            |evolution.evolves_from|3    |2             |1         |15   |
+        +-------+-------------+----------------------+-----+--------------+----------+-----+
         <BLANKLINE>
     """
     if _aggs is None:
