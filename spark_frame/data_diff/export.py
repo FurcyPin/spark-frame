@@ -1,8 +1,8 @@
+import tempfile
 from pathlib import Path
 from typing import Optional
 
-import pkg_resources
-
+import spark_frame
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.utils import load_external_module
 
@@ -16,51 +16,35 @@ def export_html_diff_report(
     output_file_path: str = DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
     encoding: str = DEFAULT_HTML_REPORT_ENCODING,
 ) -> None:
-    """Generate an HTML report of the diff.
+    load_external_module("data_diff_viewer", version_constraint="0.1.*")
+    from data_diff_viewer import DiffSummary, generate_report
 
-    This generates a file named diff_report.html in the current working directory.
-    It can be open directly with a web browser.
-
-    Args:
-        diff_result_summary: A summary of the diff.
-        title: The title of the report
-        encoding: Encoding used when writing the html report
-        output_file_path: Path of the file to write to
-    """
-    jinja2 = load_external_module("jinja2")
-
-    if title is None:
-        title_str = f"{diff_result_summary.left_df_alias} vs {diff_result_summary.right_df_alias}"
-    else:
-        title_str = title
-    jinja_context = {
-        "title": title_str,
-        "diff_result_summary": diff_result_summary,
-        "diff_per_col": diff_result_summary.diff_per_col_df.collect(),
-    }
-    # Load the Jinja2 template
-    template_str = _read_resource("templates/diff_report.html.jinja2")
-    template = jinja2.Template(template_str)
-
-    diff_report_css = _read_resource("templates/diff_report.css")
-    diff_report_js = _read_resource("templates/diff_report.js")
-    diff_schema_js_template = _read_resource("templates/diff_schema.js.jinja2")
-    diff_schema_js = jinja2.Template(diff_schema_js_template).render(**jinja_context)
-
-    # Render the template with the DiffResultSummary object
-    html = template.render(
-        **jinja_context,
-        diff_report_css=diff_report_css,
-        diff_report_js=diff_report_js,
-        diff_schema_js=diff_schema_js,
-    )
-
-    # Save the rendered HTML to a file
-    with Path(output_file_path).open(mode="w", encoding=encoding) as f:
-        f.write(html)
-
-    print(f"Report exported as {output_file_path}")
-
-
-def _read_resource(resource_path: str) -> str:
-    return pkg_resources.resource_string("spark_frame", resource_path).decode("utf-8")
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir_path = Path(temp_dir)
+        diff_per_col_parquet_path = temp_dir_path / "diff_per_col"
+        diff_result_summary.diff_per_col_df.write.parquet(str(temp_dir_path / "diff_per_col"))
+        if title is None:
+            report_title = f"{diff_result_summary.left_df_alias} vs {diff_result_summary.right_df_alias}"
+        else:
+            report_title = title
+        column_names_diff = {k: v.value for k, v in diff_result_summary.schema_diff_result.column_names_diff.items()}
+        diff_summary = DiffSummary(
+            generated_with=f"{spark_frame.__name__}:{spark_frame.__version__}",
+            left_df_alias=diff_result_summary.left_df_alias,
+            right_df_alias=diff_result_summary.right_df_alias,
+            join_cols=diff_result_summary.join_cols,
+            same_schema=diff_result_summary.same_schema,
+            schema_diff_str=diff_result_summary.schema_diff_result.diff_str,
+            column_names_diff=column_names_diff,
+            same_data=diff_result_summary.same_data,
+            total_nb_rows=diff_result_summary.total_nb_rows,
+        )
+        generate_report(
+            report_title,
+            diff_summary,
+            temp_dir_path,
+            diff_per_col_parquet_path / "*.parquet",
+            Path(output_file_path),
+            encoding,
+        )
+        print(f"Report exported as {output_file_path}")

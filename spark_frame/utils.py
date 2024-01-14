@@ -3,6 +3,8 @@ import re
 from types import ModuleType
 from typing import Dict, Iterable, List, Optional, Tuple, TypeVar, Union, cast
 
+import packaging
+from packaging import version
 from pyspark.sql import Column, DataFrame, SparkSession
 from pyspark.sql import functions as f
 
@@ -406,12 +408,37 @@ def assert_true(assertion: bool, error: Optional[Union[str, BaseException]] = No
             raise AssertionError
 
 
-def load_external_module(module_name: str) -> ModuleType:
+def _does_version_match_constraint(version_str: str, constraint_str: str) -> bool:
+    """
+
+    >>> _does_version_match_constraint(version_str="0.1.1", constraint_str="0.1.*")
+    True
+    >>> _does_version_match_constraint(version_str="0.2.1", constraint_str="0.1.*")
+    False
+    >>> _does_version_match_constraint(version_str="0.1.1", constraint_str="0.*")
+    True
+    >>> _does_version_match_constraint(version_str="1.1.1", constraint_str="0.*")
+    False
+
+    """
+    version_obj = packaging.version.parse(version_str)
+
+    if constraint_str.endswith(".*"):
+        constraint_str = constraint_str[:-2]
+        return version_str.startswith(constraint_str)
+
+    constraint_obj = version.parse(constraint_str)
+    return version_obj.public == constraint_obj.public
+
+
+def load_external_module(module_name: str, version_constraint: Optional[str] = None) -> ModuleType:
     """Load and return a Python module, raising an exception if it is not installed or does not meet the
     expected version requirements.
 
     Args:
         module_name: The name of the module to load.
+        version_constraint: A string representing the version constraint
+            Currently only support versions numbers and wildcards (examples: "0.1.0", "0.1", "0.1.*")
 
     Returns:
         module: The loaded Python module.
@@ -441,8 +468,23 @@ def load_external_module(module_name: str) -> ModuleType:
             "Please add it to your project dependencies to use this method."
         )
         raise ImportError(error_message)
-
-    return module
+    else:
+        if version_constraint is not None:
+            assert_true(
+                hasattr(module, "__version__"),
+                ImportError(
+                    f"Module '{module_name}' was found, but has no __version__ attribute "
+                    f"and version {version_constraint} is required.",
+                ),
+            )
+            assert_true(
+                _does_version_match_constraint(module.__version__, version_constraint),
+                ImportError(
+                    f"Module '{module_name}' was found, but it has version {module.__version__} "
+                    f"and version {version_constraint} is required.",
+                ),
+            )
+        return module
 
 
 def _ref(_: object) -> None:
