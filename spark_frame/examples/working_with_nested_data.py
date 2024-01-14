@@ -5,7 +5,6 @@ def transform_nested_fields() -> None:
     """
 
     Examples: Let's take a sample DataFrame with a deeply nested schema
-
         >>> from spark_frame.examples.working_with_nested_data import _get_sample_employee_data
         >>> from pyspark.sql import functions as f
         >>> df = _get_sample_employee_data()
@@ -204,7 +203,6 @@ def transform_nested_fields() -> None:
 def select_nested_fields() -> None:
     """
     Examples: In this example, we will see how to select and rename specific elements in a nested data structure
-
         >>> from spark_frame.examples.working_with_nested_data import _get_sample_employee_data
         >>> from pyspark.sql import functions as f
         >>> from spark_frame import nested

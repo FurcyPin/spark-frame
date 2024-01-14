@@ -9,7 +9,6 @@ def fields() -> None:
     - A `Field` is any column or sub-column inside a struct of the DataFrame.
 
     Examples: Example: let's consider the following DataFrame
-
         >>> from spark_frame.examples.reference_nested import _get_sample_data
         >>> df = _get_sample_data()
         >>> df.show(truncate=False)  # noqa: E501 # doctest: +NORMALIZE_WHITESPACE
