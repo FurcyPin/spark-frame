@@ -66,7 +66,7 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
     )
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
 
-    analyzer = DiffResultAnalyzer(DiffFormatOptions(nb_diffed_rows=1))
+    analyzer = DiffResultAnalyzer(DiffFormatOptions(nb_top_values_kept_per_column=1))
     diff_per_col_df = analyzer.get_diff_per_col_df(diff_result)
     assert show_string(diff_per_col_df, truncate=False) == strip_margin(
         """
