@@ -115,6 +115,8 @@ Fixes and improvements on data_diff.
   section to know which version to use.
 - [data-diff] The DiffResult object returned by the `compare_dataframes` method has evolved. In particular, the
   type of `diff_df_shards` changed from a single `DataFrame` to a `Dict[str, DataFrame]`.
+- `DiffFormatOptions.max_string_length` option has been removed
+- `DiffFormatOptions.nb_diffed_rows` has been renamed to `nb_top_values_kept_per_column`
 
 Improvements:
 - Data diff now supports complex data types.

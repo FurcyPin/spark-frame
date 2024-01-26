@@ -113,7 +113,7 @@ class DiffResultAnalyzer:
                 .select(*join_cols, *[quote(r[0]) for r in rows])
             )
             self._format_diff_df(join_cols, rows_that_changed_for_that_column).show(
-                self.diff_format_options.nb_diffed_rows,
+                self.diff_format_options.nb_top_values_kept_per_column,
             )
 
     @staticmethod
@@ -273,7 +273,7 @@ class DiffResultAnalyzer:
     ) -> None:
         join_cols = diff_result.join_cols
         diff_per_col_df = diff_result.get_diff_per_col_df(
-            max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows,
+            max_nb_rows_per_col_state=self.diff_format_options.nb_top_values_kept_per_column,
         )
         diff_stats_shards = diff_result.diff_stats_shards
         if diff_result.is_ok:
@@ -323,7 +323,7 @@ class DiffResultAnalyzer:
 
     def get_diff_result_summary(self, diff_result: DiffResult) -> DiffResultSummary:
         diff_per_col_df = diff_result.get_diff_per_col_df(
-            max_nb_rows_per_col_state=self.diff_format_options.nb_diffed_rows,
+            max_nb_rows_per_col_state=self.diff_format_options.nb_top_values_kept_per_column,
         )
         summary = DiffResultSummary(
             left_df_alias=self.diff_format_options.left_df_alias,
@@ -342,7 +342,7 @@ class DiffResultAnalyzer:
         self,
         diff_result: DiffResult,
     ) -> DataFrame:
-        return diff_result.get_diff_per_col_df(self.diff_format_options.nb_diffed_rows)
+        return diff_result.get_diff_per_col_df(self.diff_format_options.nb_top_values_kept_per_column)
 
 
 def _get_test_diff_per_col_df() -> DataFrame:
