@@ -162,3 +162,4 @@ cython_debug/
 /test_working_dir
 /diff_report.html
 /data
+/sandbox
