@@ -119,8 +119,15 @@ Fixes and improvements on data_diff.
 - `DiffFormatOptions.nb_diffed_rows` has been renamed to `nb_top_values_kept_per_column`
 
 Improvements:
-- Data diff now supports complex data types.
-- Data diff: When columns are removed or renamed, they are now still displayed in the per-column diff report
+- Data diff: 
+  - Now supports complex data types. Declaring a repeated field (e.g. `"s!.id"` in join_cols will now unnest the
+    corresponding array and perform the diff inside it.
+  - When columns are removed or renamed, they are now still displayed in the per-column diff report.
+  - Refactored and improved the HTML report: it is now fully standalone and can be opened without any 
+    internet connection .
+  - Can now generate the HTML report directly on any remote file system accessible by Spark (e.g. "hdfs", "s3", etc.)
+- added package `spark_frame.filesystem` that can be used to read and write files directly from the driver using
+  the java FileSystem from Spark's JVM.
 
 QA:
 - Spark: Added tests to ensure compatibility with Pyspark versions 3.3, 3.4 and 3.5

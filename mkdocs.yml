@@ -66,6 +66,8 @@ nav:
     - Working with json: "use_cases/working_with_json.md"
     - Using flatten/unflatten: "use_cases/flatten_unflatten.md"
   - Reference:
+    - spark_frame.data_diff: "reference/data_diff.md"
+    - spark_frame.filesystem: "reference/filesystem.md"
     - spark_frame.functions: "reference/functions.md"
     - spark_frame.graph: "reference/graph.md"
     - spark_frame.nested: "reference/nested.md"

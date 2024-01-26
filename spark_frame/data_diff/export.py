@@ -4,6 +4,7 @@ from typing import Optional
 
 import spark_frame
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
+from spark_frame.filesystem import write_file
 from spark_frame.utils import load_external_module
 
 DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH = "diff_report.html"
@@ -16,8 +17,8 @@ def export_html_diff_report(
     output_file_path: str = DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
     encoding: str = DEFAULT_HTML_REPORT_ENCODING,
 ) -> None:
-    load_external_module("data_diff_viewer", version_constraint="0.1.*")
-    from data_diff_viewer import DiffSummary, generate_report
+    load_external_module("data_diff_viewer", version_constraint="0.2.*")
+    from data_diff_viewer import DiffSummary, generate_report_string
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir_path = Path(temp_dir)
@@ -39,12 +40,11 @@ def export_html_diff_report(
             same_data=diff_result_summary.same_data,
             total_nb_rows=diff_result_summary.total_nb_rows,
         )
-        generate_report(
+        report = generate_report_string(
             report_title,
             diff_summary,
             temp_dir_path,
             diff_per_col_parquet_path / "*.parquet",
-            Path(output_file_path),
-            encoding,
         )
+        write_file(report, output_file_path, mode="overwrite", encoding=encoding)
         print(f"Report exported as {output_file_path}")

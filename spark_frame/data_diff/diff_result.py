@@ -522,13 +522,16 @@ class DiffResult:
     ) -> None:
         """Generate an HTML report of this diff result.
 
-        This generates a file named diff_report.html in the current working directory.
-        It can be open directly with a web browser.
+        This generates an HTML report file at the specified `output_file_path` URI location.
+
+        The report file can be opened directly with a web browser, even without any internet connection.
 
         Args:
             title: The title of the report
             encoding: Encoding used when writing the html report
-            output_file_path: Path of the file to write to
+            output_file_path: URI of the file to write to. It can be a location on a remote filesystem
+                (e.g. "hdfs://...", "s3://...", etc.), provided that Spark is configured and allowed to access it.
+                If no URI scheme is specified, it will write on Spark's default's output location.
             diff_format_options: Formatting options
 
         Examples:
