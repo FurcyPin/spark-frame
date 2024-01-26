@@ -63,10 +63,7 @@ jobs:
       - name: Run Unit Tests
         env:
           HADOOP_HOME: .github/workflows/resources/hadoop
-        run: poetry run coverage run -m pytest
-
-      - name: Create coverage.xml
-        run: poetry run coverage xml
+        run: poetry run pytest --cov --cov-report=xml
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
