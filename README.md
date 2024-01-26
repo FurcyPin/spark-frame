@@ -77,7 +77,7 @@ This library is tested against Windows, Mac and Linux.
 
 | feature                                    |  Method                      | spark-frame's <br> version |     dependency required |
 |--------------------------------------------|------------------------------|----------------------------|------------------------:|
-| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | >= 0.4.0                   | data-diff-viewer==0.1.* |
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | >= 0.4.0                   | data-diff-viewer==0.2.* |
 | Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | < 0.4                      |                  jinja2 |
 
 _Since version 0.4, the code used to generate HTML diff reports has been moved to 
