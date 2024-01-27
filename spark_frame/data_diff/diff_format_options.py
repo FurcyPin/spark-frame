@@ -1,15 +1,13 @@
 from dataclasses import dataclass
 
-DEFAULT_NB_DIFFED_ROWS = 10
-DEFAULT_LEFT_DF_ALIAS = "left"
-DEFAULT_RIGHT_DF_ALIAS = "right"
-
 
 @dataclass
 class DiffFormatOptions:
-    nb_top_values_kept_per_column: int = DEFAULT_NB_DIFFED_ROWS
+    """Class used to pass formatting option when displaying a [`DiffResult`][spark_frame.data_diff.DiffResult]"""
+
+    nb_top_values_kept_per_column: int = 10
     """Number of most frequent values/changes kept for each column"""
-    left_df_alias: str = DEFAULT_LEFT_DF_ALIAS
+    left_df_alias: str = "left"
     """Name given to the left DataFrame in the diff"""
-    right_df_alias: str = DEFAULT_RIGHT_DF_ALIAS
+    right_df_alias: str = "right"
     """Name given to the right DataFrame in the diff"""
