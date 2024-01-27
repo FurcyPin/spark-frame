@@ -9,13 +9,13 @@
 **Methods used in this example**
 
 ??? abstract "nested.print_schema"
-    ::: spark_frame.nested_impl.print_schema.print_schema
+    ::: spark_frame.nested.print_schema
         options:
             show_root_heading: false
             show_root_toc_entry: false
 
-??? abstract "nested.with_field"
-    ::: spark_frame.nested_impl.with_fields.with_fields
+??? abstract "nested.with_fields"
+    ::: spark_frame.nested.with_fields
         options:
             show_root_heading: false
             show_root_toc_entry: false

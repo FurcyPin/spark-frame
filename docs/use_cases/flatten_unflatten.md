@@ -16,13 +16,13 @@
 **Methods used in this example**
 
 ??? abstract "transformations.flatten"
-    ::: spark_frame.transformations_impl.flatten.flatten
+    ::: spark_frame.transformations.flatten
         options:
             show_root_heading: false
             show_root_toc_entry: false
 
 ??? abstract "transformations.unflatten"
-    ::: spark_frame.transformations_impl.unflatten.unflatten
+    ::: spark_frame.transformations.unflatten
         options:
             show_root_heading: false
             show_root_toc_entry: false

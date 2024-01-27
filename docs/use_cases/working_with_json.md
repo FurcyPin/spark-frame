@@ -14,8 +14,8 @@
             show_root_heading: false
             show_root_toc_entry: false
 
-??? abstract "schema_utils.parse_json_columns"
-    ::: spark_frame.transformations_impl.parse_json_columns.parse_json_columns
+??? abstract "spark_frame.transformations.parse_json_columns"
+    ::: spark_frame.transformations.parse_json_columns
         options:
             show_root_heading: false
             show_root_toc_entry: false
