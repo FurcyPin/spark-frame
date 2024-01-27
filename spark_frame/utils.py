@@ -3,8 +3,6 @@ import re
 from types import ModuleType
 from typing import Dict, Iterable, List, Optional, Tuple, TypeVar, Union, cast
 
-import packaging
-from packaging import version
 from pyspark.sql import Column, DataFrame, SparkSession
 from pyspark.sql import functions as f
 
@@ -425,14 +423,11 @@ def _does_version_match_constraint(version_str: str, constraint_str: str) -> boo
     False
 
     """
-    version_obj = packaging.version.parse(version_str)
-
     if constraint_str.endswith(".*"):
         constraint_str = constraint_str[:-2]
         return version_str.startswith(constraint_str)
 
-    constraint_obj = version.parse(constraint_str)
-    return version_obj.public == constraint_obj.public
+    return version_str == constraint_str
 
 
 def load_external_module(module_name: str, version_constraint: Optional[str] = None) -> ModuleType:
