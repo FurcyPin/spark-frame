@@ -820,7 +820,7 @@ def compare_dataframes(
     if join_cols is None:
         left_flat = flatten(left_df, struct_separator=STRUCT_SEPARATOR_REPLACEMENT)
         right_flat = flatten(right_df, struct_separator=STRUCT_SEPARATOR_REPLACEMENT)
-        join_cols, self_join_growth_estimate = _get_join_cols(
+        join_cols, _ = _get_join_cols(
             left_flat,
             right_flat,
             join_cols,
