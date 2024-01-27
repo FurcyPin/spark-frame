@@ -10,11 +10,7 @@ from spark_frame.conf import REPETITION_MARKER
 from spark_frame.data_diff.diff_format_options import DiffFormatOptions
 from spark_frame.data_diff.diff_per_col import _get_diff_per_col_df_with_cache
 from spark_frame.data_diff.diff_stats import DiffStats
-from spark_frame.data_diff.export import (
-    DEFAULT_HTML_REPORT_ENCODING,
-    DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
-    export_html_diff_report,
-)
+from spark_frame.data_diff.export import export_html_diff_report
 from spark_frame.data_diff.package import (
     EXISTS_COL_NAME,
     IS_EQUAL_COL_NAME,
@@ -516,8 +512,8 @@ class DiffResult:
     def export_to_html(
         self,
         title: Optional[str] = None,
-        output_file_path: str = DEFAULT_HTML_REPORT_OUTPUT_FILE_PATH,
-        encoding: str = DEFAULT_HTML_REPORT_ENCODING,
+        output_file_path: str = "diff_report.html",
+        encoding: str = "utf8",
         diff_format_options: Optional[DiffFormatOptions] = None,
     ) -> None:
         """Generate an HTML report of this diff result.
@@ -526,12 +522,23 @@ class DiffResult:
 
         The report file can be opened directly with a web browser, even without any internet connection.
 
+        !!! info
+            This method uses Spark's FileSystem API to write the report.
+            This means that `output_file_path` behaves the same way as the path argument in `df.write.save(path)`:
+
+            - It can be a fully qualified URI pointing to a location on a remote filesystem
+              (e.g. "hdfs://...", "s3://...", etc.), provided that Spark is configured to access it
+            - If a relative path with no scheme is specified (e.g. `output_file_path="diff_report.html"`), it will
+              write on Spark's default's output location. For example:
+                - when running locally, it will be the process current working directory.
+                - when running on Hadoop, it will be the user's home directory on HDFS.
+                - when running on the cloud (EMR, Dataproc, Azure Synapse, Databricks), it should write on the
+                  default remote storage linked to the cluster.
+
         Args:
             title: The title of the report
             encoding: Encoding used when writing the html report
-            output_file_path: URI of the file to write to. It can be a location on a remote filesystem
-                (e.g. "hdfs://...", "s3://...", etc.), provided that Spark is configured and allowed to access it.
-                If no URI scheme is specified, it will write on Spark's default's output location.
+            output_file_path: URI of the file to write to.
             diff_format_options: Formatting options
 
         Examples:
