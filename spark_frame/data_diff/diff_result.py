@@ -544,10 +544,10 @@ class DiffResult:
         Examples:
             >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
             >>> diff_result = _get_test_diff_result()
-            >>> diff_result.export_to_html(output_file_path="test_working_dir/example_diff.html")
-            Report exported as test_working_dir/example_diff.html
+            >>> diff_result.export_to_html(output_file_path="test_working_dir/diff_result_export_to_html_example.html")
+            Report exported as test_working_dir/diff_result_export_to_html_example.html
 
-            [Check out the exported report here](../diff_reports/example_diff.html)
+            [Check out the exported report here](../diff_reports/diff_result_export_to_html_example.html)
         """
         if diff_format_options is None:
             diff_format_options = DiffFormatOptions()

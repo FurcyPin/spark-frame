@@ -609,15 +609,17 @@ def compare_dataframes(
     If the DataFrame's unique keys are composite (multiple columns) they must be given explicitly via `join_cols`
     to perform the diff analysis.
 
-    !!! tip
-        - If you want to test a column renaming, you can temporarily add renaming step to the DataFrame
+    !!! tip "Tips"
+        - If you want to test a column renaming, you can temporarily add renaming steps to the DataFrame
           you want to test.
+        - If you want to exclude columns from the diff, you can simply drop them from the DataFrames you want to
+          compare.
         - When comparing arrays, this algorithm ignores their ordering (e.g. `[1, 2, 3] == [3, 2, 1]`).
-        - When dealing with nested structure, if the struct
-          contains a unique identifier, it can be specified in the join_cols and the structure will be automatically
-          unnested in the diff results. For instance, if we have a structure `my_array: ARRAY<STRUCT<a, b, ...>>`
+        - When dealing with a nested structure, if the struct contains a unique identifier, it can be specified
+          in the join_cols and the structure will be automatically unnested in the diff results.
+          For instance, if we have a structure `my_array: ARRAY<STRUCT<a, b, ...>>`
           and if `a` is a unique identifier, then you can add `"my_array!.a"` in the join_cols argument.
-          (C.F. Example 2)
+          (cf. Example 2)
 
     Args:
         left_df: A Spark DataFrame
@@ -703,6 +705,11 @@ def compare_dataframes(
         |my_array   |[{"a":1,"b":2,"c":3,"d":4}]|1  |
         +-----------+---------------------------+---+
         <BLANKLINE>
+
+        >>> diff_result.export_to_html(output_file_path="test_working_dir/compare_dataframes_example_1.html")
+        Report exported as test_working_dir/compare_dataframes_example_1.html
+
+        [Check out the exported report here](../diff_reports/compare_dataframes_example_1.html)
 
     Examples: Example 2: diff on complex structures
         By adding `"my_array!.a"` to the join_cols argument, the array gets unnested for the diff
@@ -796,6 +803,11 @@ def compare_dataframes(
         |my_array!.d|4    |3  |
         +-----------+-----+---+
         <BLANKLINE>
+
+        >>> diff_result_unnested.export_to_html(output_file_path="test_working_dir/compare_dataframes_example_2.html")
+        Report exported as test_working_dir/compare_dataframes_example_2.html
+
+        [Check out the exported report here](../diff_reports/compare_dataframes_example_2.html)
     """
     print("\nAnalyzing differences...")
 
