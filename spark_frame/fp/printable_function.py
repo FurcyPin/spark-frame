@@ -41,7 +41,7 @@ class PrintableFunction:
         else:
             return cast(str, self.alias)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
         return self.func(*args, **kwargs)
 
     def boxed(self) -> "PrintableFunction":

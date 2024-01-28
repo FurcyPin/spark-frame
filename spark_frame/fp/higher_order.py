@@ -36,11 +36,10 @@ def struct_get(key: str) -> PrintableFunction:
     def _safe_struct_get(s: Optional[Column], field: str) -> Column:
         if s is None:
             return f.col(field)
+        elif ("." in field or "!" in field) and isinstance(s, DataFrame):
+            return s[quote(field)]
         else:
-            if ("." in field or "!" in field) and isinstance(s, DataFrame):
-                return s[quote(field)]
-            else:
-                return s[field]
+            return s[field]
 
     def _safe_struct_get_alias(s: Optional[str], field: str) -> str:
         if s is None:
@@ -98,7 +97,7 @@ def transform_values(transformation: PrintableFunction) -> PrintableFunction:
     )
 
 
-def _partial_box_right(func: Callable, args: Any) -> Callable:
+def _partial_box_right(func: Callable, args: Any) -> Callable:  # noqa: ANN401
     """Given a function and an array of arguments, return a new function that takes an argument, add it to the
     array, and pass it to the original function."""
     if isinstance(args, str):

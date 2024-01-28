@@ -32,7 +32,7 @@ def __compose(f1: PrintableFunction, f2: PrintableFunction) -> PrintableFunction
         h(h)
     """
 
-    def f1f2(s: Any) -> Any:
+    def f1f2(s: Any) -> Any:  # noqa: ANN401
         return f1.func(f2.func(s))
 
     if callable(f1.alias) and callable(f2.alias):

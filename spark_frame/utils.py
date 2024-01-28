@@ -462,7 +462,7 @@ def load_external_module(module_name: str, version_constraint: Optional[str] = N
             "it was not included in its dependencies.\n"
             "Please add it to your project dependencies to use this method."
         )
-        raise ImportError(error_message)
+        raise ImportError(error_message) from None
     else:
         if version_constraint is not None:
             assert_true(
