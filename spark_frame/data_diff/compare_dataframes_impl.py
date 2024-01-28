@@ -4,6 +4,7 @@ from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as f
 from pyspark.sql.types import IntegerType, LongType, StringType
 
+from spark_frame import nested
 from spark_frame.data_diff.diff_result import DiffResult
 from spark_frame.data_diff.package import (
     EXISTS_COL_NAME,
@@ -23,7 +24,7 @@ from spark_frame.data_diff.special_characters import (
 )
 from spark_frame.data_type_utils import is_repeated
 from spark_frame.exceptions import CombinatorialExplosionError, DataframeComparisonException
-from spark_frame.nested_impl.package import unnest_fields
+from spark_frame.nested_impl.package import unnest_fields, validate_fields_exist
 from spark_frame.transformations import flatten
 from spark_frame.transformations_impl.convert_all_maps_to_arrays import (
     convert_all_maps_to_arrays,
@@ -817,6 +818,9 @@ def compare_dataframes(
             right_flat,
             join_cols,
         )
+    else:
+        validate_fields_exist(join_cols, nested.fields(left_df))
+        validate_fields_exist(join_cols, nested.fields(right_df))
 
     global_schema_diff_result = diff_dataframe_schemas(left_df, right_df, join_cols)
     left_df, right_df = _harmonize_and_normalize_dataframes(

@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from difflib import SequenceMatcher
 from typing import (
     Callable,
     Dict,
@@ -658,6 +659,11 @@ def validate_is_map_field_known(
             return
 
 
+def _fail_if_errors(errors: List[str]) -> None:
+    if len(errors) > 0:
+        raise AnalysisException(errors[0])
+
+
 def validate_nested_field_names(
     *field_names: str,
     allow_maps: bool = True,
@@ -666,11 +672,12 @@ def validate_nested_field_names(
     """Perform various checks on the given nested field names and raise an `spark_frame.utils.AnalysisException`
     if any is found.
 
+
     Possible errors:
     - Repeated field marker `!` followed by something else than a struct `.` separator
     - Map marker `%` followed by something else than `%key` or `%value`
     - Map field marker `%` used when maps are not allowed
-    - Repeated field name not matching any known field
+    - Repeated field names not matching any known field
 
     Args:
         field_names: A list of nested field names
@@ -680,10 +687,6 @@ def validate_nested_field_names(
     Raises:
         spark_frame.utils.AnalysisException: if any error is found
     """
-
-    def fail_if_errors(errors: List[str]) -> None:
-        if len(errors) > 0:
-            raise AnalysisException(errors[0])
 
     def iterate() -> Generator[str, None, None]:
         for field_name in field_names:
@@ -703,7 +706,56 @@ def validate_nested_field_names(
                 known_map_fields = _get_map_fields(known_fields)
                 yield from validate_is_map_field_known(field_name, known_map_fields)
 
-    fail_if_errors(list(iterate()))
+    _fail_if_errors(list(iterate()))
+
+
+def _validate_field_exists(field_name: str, known_fields: List[str]) -> Generator[str, None, None]:
+    """
+    >>> list(_validate_field_exists(field_name="a", known_fields=["a"]))
+    []
+    >>> list(_validate_field_exists(field_name="a", known_fields=["b"]))
+    ["Field 'a' does not exist: Did you mean one of the following? [`b`]"]
+    >>> list(_validate_field_exists(field_name="a", known_fields=["b1","b2","b3","b4","b5","b6"]))
+    ["Field 'a' does not exist: Did you mean one of the following? [`b1`, `b2`, `b3`, `b4`, `b5`]"]
+    >>> list(_validate_field_exists(field_name="a", known_fields=["b1","b2","b3","b4","b5","a6"]))
+    ["Field 'a' does not exist: Did you mean one of the following? [`a6`, `b1`, `b2`, `b3`, `b4`]"]
+
+    """
+
+    def ordering_by_decreasing_similarity(s: str) -> float:
+        """Ordering that put first the strings that looks closest to `field_name`"""
+        return -SequenceMatcher(None, s, field_name).ratio()
+
+    if field_name not in known_fields:
+        # If the field does not exist, we look for the 5 closest-looking existing fields.
+        candidates = sorted(known_fields, key=ordering_by_decreasing_similarity)
+        candidates = [quote(col) for col in candidates[:5]]
+        yield f"Field '{field_name}' does not exist: Did you mean one of the following? [{', '.join(candidates)}]"
+
+
+def validate_fields_exist(field_names: List[str], known_fields: List[str]) -> None:
+    """Check that the given field names exist in the list of known fields. Raise an AnalysisException if not.
+
+    Args:
+        field_names: name of the fields to check
+        known_fields: name of all fields known
+
+    Raises:
+        spark_frame.utils.AnalysisException: if a field does not exist
+
+    Examples:
+        >>> validate_fields_exist(["a"], ["a"])
+        >>> validate_fields_exist(["a", "b"], ["c"])
+        Traceback (most recent call last):
+            ...
+        spark_frame.utils.AnalysisException: Field 'a' does not exist: Did you mean one of the following? [`c`]
+    """
+
+    def iterate() -> Generator[str, None, None]:
+        for field_name in field_names:
+            yield from _validate_field_exists(field_name, known_fields)
+
+    _fail_if_errors(list(iterate()))
 
 
 def resolve_nested_fields(
