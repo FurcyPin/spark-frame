@@ -131,6 +131,10 @@ Improvements:
     type of `diff_df_shards` changed from a single `DataFrame` to a `Dict[str, DataFrame]`.
   - `DiffFormatOptions.max_string_length` option has been removed
   - `DiffFormatOptions.nb_diffed_rows` has been renamed to `nb_top_values_kept_per_column`
+  - `spark_frame.data_diff.compare_dataframes_impl.DataframeComparatorException` was replaced with
+    `spark_frame.exceptions.DataFrameComparisonException`
+  - `spark_frame.data_diff.compare_dataframes_impl.CombinatorialExplosionError` was replaced with
+    `spark_frame.exceptions.CombinatorialExplosionError`
 
 QA:
 - Spark: Added tests to ensure compatibility with Pyspark versions 3.3, 3.4 and 3.5

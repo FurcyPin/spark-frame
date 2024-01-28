@@ -18,3 +18,16 @@ class FileAlreadyExistsError(Exception):
     """
     When writing a file that already exists.
     """
+
+
+class DataframeComparisonException(Exception):
+    """
+    Exception happening during data diff.
+    """
+
+
+class CombinatorialExplosionError(DataframeComparisonException):
+    """
+    Exception happening before a join when we detect that the join key is incorrect,
+    which would lead to a combinatorial explosion.
+    """
