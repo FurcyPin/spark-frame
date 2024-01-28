@@ -659,8 +659,8 @@ def compare_dataframes(
         @@ -1,2 +1,2 @@
         <BLANKLINE>
          id INT
-        -my_array ARRAY<STRUCT<A:INT,B:INT,C:INT>>
-        +my_array ARRAY<STRUCT<A:INT,B:INT,C:INT,D:INT>>
+        -my_array ARRAY<STRUCT<a:INT,b:INT,c:INT>>
+        +my_array ARRAY<STRUCT<a:INT,b:INT,c:INT,d:INT>>
         WARNING: columns that do not match both sides will be ignored
         <BLANKLINE>
         diff NOT ok
