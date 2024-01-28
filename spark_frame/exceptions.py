@@ -4,6 +4,12 @@ class IllegalArgumentException(Exception):
     """
 
 
+class AnalysisException(Exception):
+    """
+    Exception raised when an anomaly is detected during the preparation of a transformation.
+    """
+
+
 class SparkSessionNotStarted(Exception):
     """
     When a method using the SparkSession is used but the SparkSession has not been started yet.

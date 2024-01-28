@@ -15,10 +15,6 @@ V = TypeVar("V")
 MAX_JAVA_INT = 2147483647
 
 
-class AnalysisException(Exception):
-    pass
-
-
 def group_by_key(items: Iterable[Tuple[K, V]]) -> Dict[K, List[V]]:
     """Group the values of a list of tuples by their key.
 
