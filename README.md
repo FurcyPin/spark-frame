@@ -21,7 +21,7 @@ Here is a quick list of the most exciting features :sunglasses:
 - `spark_frame.data_diff.compare_dataframes`: compare two SQL tables or DataFrames and generate an HTML report 
   to view the result. And yes, this is completely free, open source, and it works even with 
   complex data structures ! It also detects column reordering and can handle type changes.
-  [Go check it out :exclamation:]()
+  [Go check it out :exclamation:](https://furcypin.github.io/spark-frame/use_cases/comparing_dataframes/)
 - `spark_frame.nested`: Did you ever thought manipulating complex data structures in SQL or Spark was a 
   nightmare :jack_o_lantern: ? You just found the solution ! The `nested` library  makes those manipulations much 
   cleaner and simpler. 
@@ -103,7 +103,7 @@ one project to the other one.
 
 # Changelog
 
-# v0.4.0 (work in progress, not released yet)
+# v0.4.0
 
 Fixes and improvements on data_diff.
 
