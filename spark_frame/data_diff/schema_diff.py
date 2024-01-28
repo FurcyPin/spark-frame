@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Dict, List
 
 from pyspark.sql import DataFrame
-from pyspark.sql.types import StructType
+from pyspark.sql.types import ArrayType, DataType, MapType, StructField, StructType
 
 from spark_frame.conf import REPETITION_MARKER
 from spark_frame.data_type_utils import flatten_schema, is_nullable
@@ -76,11 +76,25 @@ def _schema_to_string(schema: StructType, include_nullable: bool = False, includ
         >>> df = spark.sql('''SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d, ARRAY(5) as e)) as b) as s''')
         >>> print('\\n'.join(_schema_to_string(df.schema)))
         id INT
-        s STRUCT<A:INT,B:ARRAY<STRUCT<C:INT,D:INT,E:ARRAY<INT>>>>
+        s STRUCT<a:INT,b:ARRAY<STRUCT<c:INT,d:INT,e:ARRAY<INT>>>>
+        >>> df = spark.sql('''SELECT 1 as id, MAP(1, "a") as m''')
+        >>> print('\\n'.join(_schema_to_string(df.schema)))
+        id INT
+        m MAP<INT,STRING>
     """
-    res = []
-    for field in schema:
-        s = f"{field.name} {field.dataType.simpleString().upper()}"
+
+    def type_to_string(data_type: DataType) -> str:
+        if isinstance(data_type, StructType):
+            return f"""STRUCT<{",".join(field_to_string(f) for f in data_type.fields)}>"""
+        if isinstance(data_type, ArrayType):
+            return f"""ARRAY<{type_to_string(data_type.elementType)}>"""
+        if isinstance(data_type, MapType):
+            return f"""MAP<{type_to_string(data_type.keyType)},{type_to_string(data_type.valueType)}>"""
+        else:
+            return f"{data_type.simpleString().upper()}"
+
+    def meta_str(field: StructField) -> str:
+        s = ""
         if include_nullable:
             if is_nullable(field):
                 s += " (nullable)"
@@ -88,8 +102,12 @@ def _schema_to_string(schema: StructType, include_nullable: bool = False, includ
                 s += " (not nullable)"
         if include_metadata:
             s += f" {field.metadata}"
-        res.append(s)
-    return res
+        return s
+
+    def field_to_string(struct_field: StructField, sep: str = ":") -> str:
+        return f"{struct_field.name}{sep}{type_to_string(struct_field.dataType)}"
+
+    return [field_to_string(field, sep=" ") + meta_str(field) for field in schema]
 
 
 def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame, join_cols: List[str]) -> SchemaDiffResult:
@@ -118,10 +136,10 @@ def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame, join_cols: L
          id INT
         -c1 STRING
         -c2 STRING
-        -c4 ARRAY<STRUCT<A:INT,B:STRING>>
+        -c4 ARRAY<STRUCT<a:INT,b:STRING>>
         +c1 INT
         +c3 STRING
-        +c4 ARRAY<STRUCT<A:INT,D:STRING>>
+        +c4 ARRAY<STRUCT<a:INT,d:STRING>>
         WARNING: columns that do not match both sides will be ignored
         >>> schema_diff_result.same_schema
         False
