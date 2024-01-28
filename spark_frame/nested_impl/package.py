@@ -43,7 +43,7 @@ AnyKindOfTransformation = Union[
     "PrintableFunction",
     None,
 ]
-OrderedTree = Union["OrderedTree", Dict[str, Union["OrderedTree", Optional[AnyKindOfTransformation]]]]  # type: ignore
+OrderedTree = Union["OrderedTree", Dict[str, Union["OrderedTree", Optional[AnyKindOfTransformation]]]]  # type: ignore[misc]
 
 
 def _identity_column_transformation(col: Column, _: DataType) -> Column:

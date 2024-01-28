@@ -8,7 +8,7 @@ from spark_frame.data_type_utils import is_struct
 from spark_frame.transformations_impl.flatten import flatten
 from spark_frame.utils import quote
 
-OrderedTree = Union["OrderedTree", Dict[str, "OrderedTree"]]  # type: ignore
+OrderedTree = Union["OrderedTree", Dict[str, "OrderedTree"]]  # type: ignore[misc]
 
 
 def _build_nested_struct_tree(columns: List[str], struct_separator: str) -> OrderedTree:

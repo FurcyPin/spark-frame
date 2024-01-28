@@ -52,7 +52,7 @@ def test_transform_all_fields_with_weird_column_names(spark: SparkSession):
     )
 
     def cast_int_as_double(col: Column, data_type: DataType) -> Optional[Column]:
-        if isinstance(data_type, IntegerType):
+        if isinstance(data_type, IntegerType):  # noqa: RET503
             return col.cast("DOUBLE")
 
     actual = transform_all_fields(df, cast_int_as_double)
@@ -121,7 +121,7 @@ def test_transform_all_fields_with_maps_and_weird_column_names(spark: SparkSessi
     )
 
     def cast_int_as_double(col: Column, data_type: DataType) -> Optional[Column]:
-        if isinstance(data_type, IntegerType):
+        if isinstance(data_type, IntegerType):  # noqa: RET503
             return col.cast("DOUBLE")
 
     actual = transform_all_fields(df, cast_int_as_double)
