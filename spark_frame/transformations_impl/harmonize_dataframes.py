@@ -58,6 +58,15 @@ def harmonize_dataframes(
         |  1|{2, [{3.0, 4}]}|
         +---+---------------+
         <BLANKLINE>
+        >>> df1, df2 = harmonize_dataframes(df1, df2, common_columns={"id": None, "s1.s2!.b": "int"})
+        >>> df1.union(df2).show()
+        +---+-------+
+        | id|     s1|
+        +---+-------+
+        |  1|{[{3}]}|
+        |  1|{[{3}]}|
+        +---+-------+
+        <BLANKLINE>
     """
     left_schema_flat = flatten_schema(left_df.schema, explode=True)
     right_schema_flat = flatten_schema(right_df.schema, explode=True)
