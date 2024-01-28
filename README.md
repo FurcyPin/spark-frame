@@ -107,27 +107,30 @@ one project to the other one.
 
 Fixes and improvements on data_diff.
 
-**Breaking Changes:**
-- package `spark_frame.data_diff.diff_results` has been renamed to `diff_results`.
-- Generating HTML reports for data diff does not require jinja anymore, but it does now require the installation 
-  of the library [data-diff-viewer](https://pypi.org/project/data-diff-viewer/), 
-  please check the [Compatibilities and requirements](#compatibilities-and-requirements) 
-  section to know which version to use.
-- [data-diff] The DiffResult object returned by the `compare_dataframes` method has evolved. In particular, the
-  type of `diff_df_shards` changed from a single `DataFrame` to a `Dict[str, DataFrame]`.
-- `DiffFormatOptions.max_string_length` option has been removed
-- `DiffFormatOptions.nb_diffed_rows` has been renamed to `nb_top_values_kept_per_column`
-
 Improvements:
-- Data diff: 
-  - Now supports complex data types. Declaring a repeated field (e.g. `"s!.id"` in join_cols will now unnest the
-    corresponding array and perform the diff inside it.
+- data-diff: 
+  - Now supports complex data types. Declaring a repeated field (e.g. `"s!.id"` in join_cols will now explode the
+    corresponding array and perform the diff on it).
   - When columns are removed or renamed, they are now still displayed in the per-column diff report.
   - Refactored and improved the HTML report: it is now fully standalone and can be opened without any 
     internet connection .
   - Can now generate the HTML report directly on any remote file system accessible by Spark (e.g. "hdfs", "s3", etc.)
 - added package `spark_frame.filesystem` that can be used to read and write files directly from the driver using
   the java FileSystem from Spark's JVM.
+
+**Breaking Changes:**
+- data-diff:
+  - `spark_frame.data_diff.DataframeComparator` object has been removed. 
+    Please use directly the method `spark_frame.data_diff.compare_dataframes`.
+  - package `spark_frame.data_diff.diff_results` has been renamed to `diff_results`.
+  - Generating HTML reports for data diff does not require jinja anymore, but it does now require the installation 
+    of the library [data-diff-viewer](https://pypi.org/project/data-diff-viewer/), 
+    please check the [Compatibilities and requirements](#compatibilities-and-requirements) 
+    section to know which version to use.
+  - The DiffResult object returned by the `compare_dataframes` method has evolved. In particular, the
+    type of `diff_df_shards` changed from a single `DataFrame` to a `Dict[str, DataFrame]`.
+  - `DiffFormatOptions.max_string_length` option has been removed
+  - `DiffFormatOptions.nb_diffed_rows` has been renamed to `nb_top_values_kept_per_column`
 
 QA:
 - Spark: Added tests to ensure compatibility with Pyspark versions 3.3, 3.4 and 3.5
