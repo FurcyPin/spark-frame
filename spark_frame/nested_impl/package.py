@@ -26,10 +26,10 @@ from spark_frame.conf import (
     REPETITION_MARKER,
     STRUCT_SEPARATOR,
 )
+from spark_frame.exceptions import AnalysisException
 from spark_frame.field_utils import is_sub_field_of_any, substring_before_last_occurrence
 from spark_frame.fp import PrintableFunction, higher_order
 from spark_frame.utils import (
-    AnalysisException,
     assert_true,
     group_by_key,
     quote,
@@ -748,7 +748,7 @@ def validate_fields_exist(field_names: List[str], known_fields: List[str]) -> No
         >>> validate_fields_exist(["a", "b"], ["c"])
         Traceback (most recent call last):
             ...
-        spark_frame.utils.AnalysisException: Field 'a' does not exist: Did you mean one of the following? [`c`]
+        spark_frame.exceptions.AnalysisException: Field 'a' does not exist: Did you mean one of the following? [`c`]
     """
 
     def iterate() -> Generator[str, None, None]:

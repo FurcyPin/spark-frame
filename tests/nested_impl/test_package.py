@@ -4,6 +4,7 @@ import pytest
 from pyspark.sql import Column, SparkSession
 from pyspark.sql import functions as f
 
+import spark_frame.exceptions
 import spark_frame.utils
 from spark_frame import nested
 from spark_frame.fp.higher_order import identity
@@ -446,7 +447,7 @@ class TestResolveNestedFields:
         THEN an AnalysisException should be raised
         """
         transformation = {"a!b": None}
-        with pytest.raises(spark_frame.utils.AnalysisException) as e:
+        with pytest.raises(spark_frame.exceptions.AnalysisException) as e:
             resolve_nested_fields(transformation)
         assert "Invalid field name 'a!b'" in str(e.value)
 

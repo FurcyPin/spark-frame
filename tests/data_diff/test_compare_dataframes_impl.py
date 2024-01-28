@@ -4,6 +4,7 @@ import pytest
 from pyspark.sql import SparkSession
 
 import spark_frame
+import spark_frame.exceptions
 from spark_frame.data_diff.compare_dataframes_impl import _automatically_infer_join_col, compare_dataframes
 from spark_frame.data_diff.diff_result import DiffResult
 from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
@@ -945,7 +946,7 @@ def test_unknown_join_cols_left(spark: SparkSession):
         ))
         """,
     )
-    with pytest.raises(spark_frame.utils.AnalysisException) as e:
+    with pytest.raises(spark_frame.exceptions.AnalysisException) as e:
         compare_dataframes(df_1, df_2, join_cols=["id"])
     assert "Field 'id' does not exist" in str(e.value)
 
@@ -974,6 +975,6 @@ def test_unknown_join_cols_right(spark: SparkSession):
         ))
         """,
     )
-    with pytest.raises(spark_frame.utils.AnalysisException) as e:
+    with pytest.raises(spark_frame.exceptions.AnalysisException) as e:
         compare_dataframes(df_1, df_2, join_cols=["id"])
     assert "Field 'id' does not exist" in str(e.value)
