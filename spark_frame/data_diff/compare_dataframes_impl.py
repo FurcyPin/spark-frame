@@ -22,6 +22,7 @@ from spark_frame.data_diff.special_characters import (
     _restore_special_characters,
 )
 from spark_frame.data_type_utils import is_repeated
+from spark_frame.exceptions import CombinatorialExplosionError, DataframeComparisonException
 from spark_frame.nested_impl.package import unnest_fields
 from spark_frame.transformations import flatten
 from spark_frame.transformations_impl.convert_all_maps_to_arrays import (
@@ -30,15 +31,6 @@ from spark_frame.transformations_impl.convert_all_maps_to_arrays import (
 from spark_frame.transformations_impl.harmonize_dataframes import harmonize_dataframes
 from spark_frame.transformations_impl.sort_all_arrays import sort_all_arrays
 from spark_frame.utils import quote, quote_columns
-
-
-class DataframeComparatorException(Exception):
-    pass
-
-
-class CombinatorialExplosionError(DataframeComparatorException):
-    pass
-
 
 A = TypeVar("A")
 
@@ -302,7 +294,7 @@ def _get_join_cols(
                 "unique to join the two DataFrames and perform a comparison. "
                 "Please specify manually the columns to use with the join_cols parameter"
             )
-            raise DataframeComparatorException(error_message)
+            raise DataframeComparisonException(error_message)
         else:
             print(f"Found the following column: {inferred_join_col}")
             join_cols = [inferred_join_col]
