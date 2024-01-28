@@ -115,6 +115,7 @@ Improvements:
   - Refactored and improved the HTML report: it is now fully standalone and can be opened without any 
     internet connection .
   - Can now generate the HTML report directly on any remote file system accessible by Spark (e.g. "hdfs", "s3", etc.)
+  - A user-friendly error is now raised when one of the `join_cols` does not exist. 
 - added package `spark_frame.filesystem` that can be used to read and write files directly from the driver using
   the java FileSystem from Spark's JVM.
 

@@ -1,7 +1,9 @@
 import inspect
 
+import pytest
 from pyspark.sql import SparkSession
 
+import spark_frame
 from spark_frame.data_diff.compare_dataframes_impl import _automatically_infer_join_col, compare_dataframes
 from spark_frame.data_diff.diff_result import DiffResult
 from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
@@ -917,3 +919,61 @@ def test_join_cols_should_not_be_displayed_first(spark: SparkSession):
     )
     diff_result.display()
     export_diff_result_to_html(diff_result)
+
+
+def test_unknown_join_cols_left(spark: SparkSession):
+    """
+    GIVEN two DataFrames
+    WHEN we compare them using a join cols that does not exist in the left DataFrame
+    THEN an AnalysisException should be raised
+    """
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT("a" as name, 1 as id),
+            STRUCT("b" as name, 2 as id),
+            STRUCT("c" as name, 3 as id)
+        ))
+        """,
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT("a" as name, 1 as c),
+            STRUCT("b" as name, 2 as c),
+            STRUCT("d" as name, 3 as c)
+        ))
+        """,
+    )
+    with pytest.raises(spark_frame.utils.AnalysisException) as e:
+        compare_dataframes(df_1, df_2, join_cols=["id"])
+    assert "Field 'id' does not exist" in str(e.value)
+
+
+def test_unknown_join_cols_right(spark: SparkSession):
+    """
+    GIVEN two DataFrames
+    WHEN we compare them using a join cols that does not exist in the right DataFrame
+    THEN an AnalysisException should be raised
+    """
+    df_1 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT("a" as name, 1 as c),
+            STRUCT("b" as name, 2 as c),
+            STRUCT("c" as name, 3 as c)
+        ))
+        """,
+    )
+    df_2 = spark.sql(
+        """
+        SELECT INLINE(ARRAY(
+            STRUCT("a" as name, 1 as id),
+            STRUCT("b" as name, 2 as id),
+            STRUCT("d" as name, 3 as id)
+        ))
+        """,
+    )
+    with pytest.raises(spark_frame.utils.AnalysisException) as e:
+        compare_dataframes(df_1, df_2, join_cols=["id"])
+    assert "Field 'id' does not exist" in str(e.value)
