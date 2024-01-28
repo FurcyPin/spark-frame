@@ -14,7 +14,7 @@ VALID_MODES = [MODE_OVERWRITE, MODE_APPEND, MODE_ERROR_IF_EXISTS]
 
 
 def read_file(path: str, encoding: str = "utf8") -> str:
-    """Read the content of a file using the `org.apache.hadoop.fs.FileSystem` from Spark's JVM.
+    r"""Read the content of a file using the `org.apache.hadoop.fs.FileSystem` from Spark's JVM.
     Depending on how Spark is configured, it can write on any file system supported by Spark.
     (like "file://", "hdfs://", "s3://", "gs://", "abfs://", etc.)
 
@@ -39,8 +39,16 @@ def read_file(path: str, encoding: str = "utf8") -> str:
         the content of the file.
 
     Examples:
-        See method [write_file][spark_frame.filesystem.write_file] for examples.
-
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> write_file(text="Hello\n", path="test_working_dir/read_file.txt", mode="overwrite")
+        >>> text = read_file("test_working_dir/read_file.txt")
+        >>> print(text)
+        Hello
+        <BLANKLINE>
+        >>> read_file("test_working_dir/this_file_does_not_exist.txt")
+        Traceback (most recent call last):
+          ...
+        FileNotFoundError: The file test_working_dir/this_file_does_not_exist.txt was not found.
     """
     spark = SparkSession.getActiveSession()
     assert_true(spark is not None, SparkSessionNotStarted())
@@ -87,27 +95,27 @@ def write_file(
 
     Examples:
         >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
-        >>> write_file(text="Hello\n", path="test_working_dir/hello.txt", mode="overwrite")
-        >>> text = read_file("test_working_dir/hello.txt")
+        >>> write_file(text="Hello\n", path="test_working_dir/write_file.txt", mode="overwrite")
+        >>> text = read_file("test_working_dir/write_file.txt")
         >>> print(text)
         Hello
         <BLANKLINE>
-        >>> write_file(text="World\n", path="test_working_dir/hello.txt", mode="append")
-        >>> text = read_file("test_working_dir/hello.txt")
+        >>> write_file(text="World\n", path="test_working_dir/write_file.txt", mode="append")
+        >>> text = read_file("test_working_dir/write_file.txt")
         >>> print(text)
         Hello
         World
         <BLANKLINE>
-        >>> write_file(text="Never mind\n", path="test_working_dir/hello.txt", mode="overwrite")
-        >>> text = read_file("test_working_dir/hello.txt")
+        >>> write_file(text="Never mind\n", path="test_working_dir/write_file.txt", mode="overwrite")
+        >>> text = read_file("test_working_dir/write_file.txt")
         >>> print(text)
         Never mind
         <BLANKLINE>
-        >>> write_file(text="Never mind\n", path="test_working_dir/hello.txt", mode="error_if_exists")
+        >>> write_file(text="Never mind\n", path="test_working_dir/write_file.txt", mode="error_if_exists")
         Traceback (most recent call last):
             ...
-        spark_frame.exceptions.FileAlreadyExistsError: The file test_working_dir/hello.txt already exists.
-        >>> write_file(text="Never mind\n", path="test_working_dir/hello.txt", mode="incorrect_mode")
+        spark_frame.exceptions.FileAlreadyExistsError: The file test_working_dir/write_file.txt already exists.
+        >>> write_file(text="Never mind\n", path="test_working_dir/write_file.txt", mode="incorrect_mode")
         Traceback (most recent call last):
             ...
         spark_frame.exceptions.IllegalArgumentException: Invalid write mode: incorrect_mode. Accepted modes are: ['overwrite', 'append', 'error_if_exists']
