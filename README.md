@@ -123,7 +123,7 @@ Improvements:
 - data-diff:
   - `spark_frame.data_diff.DataframeComparator` object has been removed. 
     Please use directly the method `spark_frame.data_diff.compare_dataframes`.
-  - package `spark_frame.data_diff.diff_results` has been renamed to `diff_results`.
+  - package `spark_frame.data_diff.diff_results` has been renamed to `diff_result`.
   - Generating HTML reports for data diff does not require jinja anymore, but it does now require the installation 
     of the library [data-diff-viewer](https://pypi.org/project/data-diff-viewer/), 
     please check the [Compatibilities and requirements](#compatibilities-and-requirements) 
