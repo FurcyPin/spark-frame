@@ -29,7 +29,7 @@ def test_unnest_all_fields_with_fields_having_same_name_inside_structs(spark: Sp
     )
     assert nested.fields(df) == ["id", "s1.id", "s2!.id", "s2!.s3!.id"]
     result_df_list = nested.unnest_all_fields(df, keep_columns=["id"])
-    assert list(result_df_list.keys()) == ["", "s2", "s2!.s3"]
+    assert list(result_df_list.keys()) == ["", "s2!", "s2!.s3!"]
     assert show_string(result_df_list[""]) == strip_margin(
         """
         |+---+-----+
@@ -39,7 +39,7 @@ def test_unnest_all_fields_with_fields_having_same_name_inside_structs(spark: Sp
         |+---+-----+
         |""",
     )
-    assert show_string(result_df_list["s2"]) == strip_margin(
+    assert show_string(result_df_list["s2!"]) == strip_margin(
         """
         |+---+------+
         || id|s2!.id|
@@ -48,7 +48,7 @@ def test_unnest_all_fields_with_fields_having_same_name_inside_structs(spark: Sp
         |+---+------+
         |""",
     )
-    assert show_string(result_df_list["s2!.s3"]) == strip_margin(
+    assert show_string(result_df_list["s2!.s3!"]) == strip_margin(
         """
         |+---+----------+
         || id|s2!.s3!.id|
@@ -95,7 +95,7 @@ def test_unnest_fields_with_fields_having_same_name_inside_array_structs(spark: 
         |+---+-----+
         |""",
     )
-    assert show_string(result_df_list["s2"]) == strip_margin(
+    assert show_string(result_df_list["s2!"]) == strip_margin(
         """
         |+---+------+
         || id|s2!.id|
@@ -104,7 +104,7 @@ def test_unnest_fields_with_fields_having_same_name_inside_array_structs(spark: 
         |+---+------+
         |""",
     )
-    assert show_string(result_df_list["s2!.s3"]) == strip_margin(
+    assert show_string(result_df_list["s2!.s3!"]) == strip_margin(
         """
         |+---+----------+
         || id|s2!.s3!.id|

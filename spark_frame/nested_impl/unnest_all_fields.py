@@ -71,14 +71,14 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
         |  1|   2|
         +---+----+
         <BLANKLINE>
-        s2
+        s2!
         +---+-----+-----+
         | id|s2!.b|s2!.c|
         +---+-----+-----+
         |  1|    3|    4|
         +---+-----+-----+
         <BLANKLINE>
-        s2!.s3
+        s2!.s3!
         +---+---------+
         | id|s2!.s3!.d|
         +---+---------+
@@ -86,7 +86,7 @@ def unnest_all_fields(df: DataFrame, keep_columns: Optional[List[str]] = None) -
         |  1|        6|
         +---+---------+
         <BLANKLINE>
-        s4
+        s4!
         +---+-----+-----+
         | id|s4!.e|s4!.f|
         +---+-----+-----+
