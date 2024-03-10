@@ -53,13 +53,17 @@ def get_granularity(field: str) -> str:
     ''
     >>> get_granularity("s.z")
     ''
+    >>> get_granularity("a!")
+    'a!'
+    >>> get_granularity("a!!")
+    'a!!'
     >>> get_granularity("a!.b")
     'a!'
     >>> get_granularity("a!.b!.c")
     'a!.b!'
 
     """
-    granularity = substring_before_last_occurrence(field, "!.")
+    granularity = substring_before_last_occurrence(field, "!")
     if granularity == "":
         return granularity
     else:
