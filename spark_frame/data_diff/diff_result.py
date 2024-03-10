@@ -19,7 +19,7 @@ from spark_frame.data_diff.package import (
 )
 from spark_frame.data_diff.schema_diff import DiffPrefix, SchemaDiffResult
 from spark_frame.data_diff.special_characters import _restore_special_characters_from_col
-from spark_frame.field_utils import substring_before_last_occurrence
+from spark_frame.field_utils import get_granularity
 from spark_frame.transformations import union_dataframes
 from spark_frame.utils import quote, strip_margin
 
@@ -146,9 +146,7 @@ class DiffResult:
         def generate() -> Generator[DataFrame, None, None]:
             for key, diff_df in self.diff_df_shards.items():
                 keep_cols = [
-                    col_name
-                    for col_name in self.schema_diff_result.column_names
-                    if substring_before_last_occurrence(col_name, "!.") == key
+                    col_name for col_name in self.schema_diff_result.column_names if get_granularity(col_name) == key
                 ]
                 df = self._compute_top_per_col_state_df(diff_df)
                 yield df.where(f.col("column_name").isin(keep_cols))

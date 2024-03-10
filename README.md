@@ -103,6 +103,18 @@ one project to the other one.
 
 # Changelog
 
+
+# v0.5.0 [In Progress]
+
+**Breaking Changes:**
+
+- data-diff:
+  - The names of the keys of the `DiffResult.diff_df_shards` dict have changed: 
+    All keys except the root key (`""`) have been appended a REPETITION_MARKER (`"!"`).
+    This will make future manipulations easier. This should not impact users as it is a very advanced mechanic. 
+
+
+
 # v0.4.0
 
 Fixes and improvements on data_diff.

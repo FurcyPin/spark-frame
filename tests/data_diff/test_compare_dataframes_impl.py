@@ -559,8 +559,8 @@ def test_compare_df_with_multiple_arrays_of_structs_not_ok(spark: SparkSession):
     diff_result: DiffResult = compare_dataframes(df_1, df_2, join_cols=["id1", "id2", "s1!.id", "s1!.ss!.id"])
     expected_diff_stats_shards = {
         "": DiffStats(total=2, no_change=2, changed=0, in_left=2, in_right=2, only_in_left=0, only_in_right=0),
-        "s1": DiffStats(total=6, no_change=6, changed=0, in_left=6, in_right=6, only_in_left=0, only_in_right=0),
-        "s1!.ss": DiffStats(
+        "s1!": DiffStats(total=6, no_change=6, changed=0, in_left=6, in_right=6, only_in_left=0, only_in_right=0),
+        "s1!.ss!": DiffStats(
             total=13,
             no_change=10,
             changed=1,

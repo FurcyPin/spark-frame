@@ -763,7 +763,7 @@ def compare_dataframes(
         +-----------+-----+---+
         <BLANKLINE>
         ##############################################################
-        Granularity : my_array (5 rows)
+        Granularity : my_array! (5 rows)
         <BLANKLINE>
         Row count ok: 3 rows
         <BLANKLINE>

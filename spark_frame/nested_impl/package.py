@@ -842,16 +842,16 @@ def _get_deepest_unnested_field(col_names: List[str]) -> str:
     >>> _get_deepest_unnested_field(['id1', 'id2'])
     ''
     >>> _get_deepest_unnested_field(['id1', 'id2', 's1!.id'])
-    's1'
+    's1!'
     >>> _get_deepest_unnested_field(['id1', 'id2', 's1!.id', 's1!.ss!'])
-    's1!.ss'
+    's1!.ss!'
 
     """
     deepest = sorted(col_names, key=lambda s: s.count(REPETITION_MARKER))[-1]
     if deepest.count(REPETITION_MARKER) == 0:
         return ""
     else:
-        return substring_before_last_occurrence(deepest, REPETITION_MARKER)
+        return substring_before_last_occurrence(deepest, REPETITION_MARKER) + REPETITION_MARKER
 
 
 def _get_keep_columns_for_final_select(
@@ -1036,7 +1036,7 @@ def unnest_fields(
         >>> for cols, res_df in unnest_fields(df, 's1!').items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
-        s1
+        s1!
         +---------------------+
         |s1!                  |
         +---------------------+
@@ -1046,7 +1046,7 @@ def unnest_fields(
         >>> for cols, res_df in unnest_fields(df, 's1!.b!').items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
-        s1!.b
+        s1!.b!
         +------+
         |s1!.b!|
         +------+
@@ -1056,7 +1056,7 @@ def unnest_fields(
         >>> for cols, res_df in unnest_fields(df, 's1!.e!').items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
-        s1!.e
+        s1!.e!
         +------+
         |s1!.e!|
         +------+
@@ -1067,7 +1067,7 @@ def unnest_fields(
         >>> for cols, res_df in unnest_fields(df, 's1!.e').items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
-        s1
+        s1!
         +------+
         |s1!.e |
         +------+
@@ -1077,7 +1077,7 @@ def unnest_fields(
         >>> for cols, res_df in unnest_fields(df, ['s1!.b','s1!.e']).items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
-        s1
+        s1!
         +--------+------+
         |s1!.b   |s1!.e |
         +--------+------+
@@ -1087,7 +1087,7 @@ def unnest_fields(
         >>> for cols, res_df in unnest_fields(df, 's3!').items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
-        s3
+        s3!
         +------+
         |s3!   |
         +------+
@@ -1098,7 +1098,7 @@ def unnest_fields(
         >>> for cols, res_df in unnest_fields(df, 's3!!').items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
-        s3!
+        s3!!
         +----+
         |s3!!|
         +----+
@@ -1119,21 +1119,21 @@ def unnest_fields(
         |1  |7     |
         +---+------+
         <BLANKLINE>
-        s1
+        s1!
         +---+-----+
         |id |s1!.a|
         +---+-----+
         |1  |2    |
         +---+-----+
         <BLANKLINE>
-        s1!.b
+        s1!.b!
         +---+--------+--------+
         |id |s1!.b!.c|s1!.b!.d|
         +---+--------+--------+
         |1  |3       |4       |
         +---+--------+--------+
         <BLANKLINE>
-        s1!.e
+        s1!.e!
         +---+------+
         |id |s1!.e!|
         +---+------+
@@ -1141,7 +1141,7 @@ def unnest_fields(
         |1  |6     |
         +---+------+
         <BLANKLINE>
-        s3!
+        s3!!
         +---+----+
         |id |s3!!|
         +---+----+
@@ -1151,7 +1151,7 @@ def unnest_fields(
         |1  |4   |
         +---+----+
         <BLANKLINE>
-        s4!
+        s4!!
         +---+------+------+
         |id |s4!!.e|s4!!.f|
         +---+------+------+
@@ -1171,21 +1171,21 @@ def unnest_fields(
         |1  |7     |
         +---+------+
         <BLANKLINE>
-        s1
+        s1!
         +----+-----+
         |s2.f|s1!.a|
         +----+-----+
         |{7} |2    |
         +----+-----+
         <BLANKLINE>
-        s1!.b
+        s1!.b!
         +----+--------+--------+
         |s2.f|s1!.b!.c|s1!.b!.d|
         +----+--------+--------+
         |{7} |3       |4       |
         +----+--------+--------+
         <BLANKLINE>
-        s1!.e
+        s1!.e!
         +----+------+
         |s2.f|s1!.e!|
         +----+------+
@@ -1193,7 +1193,7 @@ def unnest_fields(
         |{7} |6     |
         +----+------+
         <BLANKLINE>
-        s3!
+        s3!!
         +----+----+
         |s2.f|s3!!|
         +----+----+
@@ -1203,7 +1203,7 @@ def unnest_fields(
         |{7} |4   |
         +----+----+
         <BLANKLINE>
-        s4!
+        s4!!
         +----+------+------+
         |s2.f|s4!!.e|s4!!.f|
         +----+------+------+
@@ -1223,21 +1223,21 @@ def unnest_fields(
         |1  |7     |
         +---+------+
         <BLANKLINE>
-        s1
+        s1!
         +------+-----+
         |s2.f.g|s1!.a|
         +------+-----+
         |7     |2    |
         +------+-----+
         <BLANKLINE>
-        s1!.b
+        s1!.b!
         +------+--------+--------+
         |s2.f.g|s1!.b!.c|s1!.b!.d|
         +------+--------+--------+
         |7     |3       |4       |
         +------+--------+--------+
         <BLANKLINE>
-        s1!.e
+        s1!.e!
         +------+------+
         |s2.f.g|s1!.e!|
         +------+------+
@@ -1245,7 +1245,7 @@ def unnest_fields(
         |7     |6     |
         +------+------+
         <BLANKLINE>
-        s3!
+        s3!!
         +------+----+
         |s2.f.g|s3!!|
         +------+----+
@@ -1255,7 +1255,7 @@ def unnest_fields(
         |7     |4   |
         +------+----+
         <BLANKLINE>
-        s4!
+        s4!!
         +------+------+------+
         |s2.f.g|s4!!.e|s4!!.f|
         +------+------+------+
@@ -1268,7 +1268,7 @@ def unnest_fields(
         >>> for cols, res_df in unnest_fields(df, ['s1!.b!.c', 's1!.b!.d'], keep_fields=["s1!.a"]).items():
         ...     print(cols)
         ...     res_df.show(truncate=False)
-        s1!.b
+        s1!.b!
         +-----+--------+--------+
         |s1!.a|s1!.b!.c|s1!.b!.d|
         +-----+--------+--------+
