@@ -76,9 +76,10 @@ This library is tested against Windows, Mac and Linux.
 **This way, users who are not using these features don't need to worry about these dependencies.**
 
 | feature                                    |  Method                      | spark-frame's <br> version |     dependency required |
-|--------------------------------------------|------------------------------|----------------------------|------------------------:|
-| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | >= 0.4.0                   | data-diff-viewer==0.2.* |
-| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | < 0.4                      |                  jinja2 |
+|--------------------------------------------|------------------------------|---------------------------|------------------------:|
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | >= 0.5.0                  | data-diff-viewer==0.3.* |
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | 0.4.*                     | data-diff-viewer==0.2.* |
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | < 0.4                     |                  jinja2 |
 
 _Since version 0.4, the code used to generate HTML diff reports has been moved to 
 [data-diff-viewer](https://github.com/FurcyPin/data-diff-viewer) from the same author. 
@@ -105,6 +106,13 @@ one project to the other one.
 
 
 # v0.5.0 [In Progress]
+
+**New features:**
+
+- data-diff:
+  - Full sample rows in data-diff: in the data-diff HTML report, you can now click on a most frequent 
+    value or change for a column and it will display the full content of a row where this change happens.
+    
 
 **Breaking Changes:**
 

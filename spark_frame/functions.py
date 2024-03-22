@@ -4,7 +4,44 @@ from pyspark.sql import Column
 from pyspark.sql import functions as f
 from pyspark.sql.types import DataType, StringType
 
-from spark_frame.utils import quote
+from spark_frame.exceptions import IllegalArgumentException
+from spark_frame.utils import StringOrColumn, assert_true, quote, str_to_col
+
+
+def array_union(*cols: StringOrColumn) -> Column:
+    """Collection function: returns an array of the elements in the union of all columns, without duplicates.
+
+    Args:
+        *cols: Columns or names of column of type ARRAY
+
+    Returns:
+        A Column expression containing the union of all arrays
+
+    Examples:
+        >>> from pyspark.sql import SparkSession
+        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> df = spark.sql('SELECT ARRAY(1, 2) as c1, ARRAY(3, 4) as c2, ARRAY(5, 6) as c3')
+        >>> df.show()
+        +------+------+------+
+        |    c1|    c2|    c3|
+        +------+------+------+
+        |[1, 2]|[3, 4]|[5, 6]|
+        +------+------+------+
+        <BLANKLINE>
+        >>> df.select(array_union(df.c1, df.c2, df.c3).alias("c")).show()
+        +------------------+
+        |                 c|
+        +------------------+
+        |[1, 2, 3, 4, 5, 6]|
+        +------------------+
+        <BLANKLINE>
+    """
+    assert_true(len(cols) > 0, IllegalArgumentException("At least one column must be passed"))
+    columns = [str_to_col(col) for col in cols]
+    res = columns[0]
+    for col in columns[1:]:
+        res = f.array_union(res, col)
+    return res
 
 
 def empty_array(element_type: Union[DataType, str]) -> Column:

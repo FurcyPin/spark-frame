@@ -49,19 +49,18 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
     assert diff_result.same_schema is True
     assert diff_result.is_ok is False
     assert diff_result.diff_stats_shards[""] == expected_diff_stats
-
     assert show_string(diff_result.top_per_col_state_df, truncate=False) == strip_margin(
         """
-        |+-----------+---------+----------+-----------+---+-------+
-        ||column_name|state    |left_value|right_value|nb |row_num|
-        |+-----------+---------+----------+-----------+---+-------+
-        ||col1       |changed  |a         |a1         |1  |1      |
-        ||col1       |changed  |b         |b1         |1  |2      |
-        ||col1       |changed  |c         |c1         |1  |3      |
-        ||id         |no_change|1         |1          |1  |1      |
-        ||id         |no_change|2         |2          |1  |2      |
-        ||id         |no_change|3         |3          |1  |3      |
-        |+-----------+---------+----------+-----------+---+-------+
+        |+-----------+---------+----------+-----------+---+----------+-------+
+        ||column_name|state    |left_value|right_value|nb |sample_ids|row_num|
+        |+-----------+---------+----------+-----------+---+----------+-------+
+        ||col1       |changed  |a         |a1         |1  |[{"id":1}]|1      |
+        ||col1       |changed  |b         |b1         |1  |[{"id":2}]|2      |
+        ||col1       |changed  |c         |c1         |1  |[{"id":3}]|3      |
+        ||id         |no_change|1         |1          |1  |[{"id":1}]|1      |
+        ||id         |no_change|2         |2          |1  |[{"id":2}]|2      |
+        ||id         |no_change|3         |3          |1  |[{"id":3}]|3      |
+        |+-----------+---------+----------+-----------+---+----------+-------+
         |""",
     )
     from spark_frame.data_diff.diff_result_analyzer import DiffResultAnalyzer
@@ -70,11 +69,11 @@ def test_when_we_have_more_lines_than_nb_diffed_rows(spark: SparkSession):
     diff_per_col_df = analyzer.get_diff_per_col_df(diff_result)
     assert show_string(diff_per_col_df, truncate=False) == strip_margin(
         """
-        |+-------------+-----------+---------------+--------------------------+
-        ||column_number|column_name|counts         |diff                      |
-        |+-------------+-----------+---------------+--------------------------+
-        ||0            |id         |{3, 0, 3, 0, 0}|{[], [{1, 1}], [], []}    |
-        ||1            |col1       |{3, 3, 0, 0, 0}|{[{a, a1, 1}], [], [], []}|
-        |+-------------+-----------+---------------+--------------------------+
+        |+-------------+-----------+---------------+--------------------------------------+
+        ||column_number|column_name|counts         |diff                                  |
+        |+-------------+-----------+---------------+--------------------------------------+
+        ||0            |id         |{3, 0, 3, 0, 0}|{[], [{1, 1, [{"id":1}]}], [], []}    |
+        ||1            |col1       |{3, 3, 0, 0, 0}|{[{a, a1, 1, [{"id":1}]}], [], [], []}|
+        |+-------------+-----------+---------------+--------------------------------------+
         |""",
     )

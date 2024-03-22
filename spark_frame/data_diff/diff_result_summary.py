@@ -27,6 +27,7 @@ class DiffResultSummary:
     left_df_alias: str
     right_df_alias: str
     diff_per_col_df: DataFrame
+    sample_df_shards: List[DataFrame]
 
     schema_diff_result: SchemaDiffResult
     join_cols: List[str]

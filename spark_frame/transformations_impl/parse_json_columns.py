@@ -22,8 +22,13 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
     for quick prototyping and data exploration, it is recommended to use a fixed schema and make sure the schema
     of the input json data is properly enforce, or at the very least use schema have a drift detection mechanism.
 
-    WARNING : when you use this method on a column that is inside a struct (e.g. column "a.b.c"),
-    instead of replacing that column it will create a new column outside the struct (e.g. "`a.b.c`") (See Example 2).
+    !!! warning
+        This method's performances are not optimal, has it has to perform a Python operation on the executor's side.
+
+    !!! warning
+        When you use this method on a column that is inside a struct (e.g. column "a.b.c"),
+        instead of replacing that column it will create a new column outside the struct (e.g. "`a.b.c`")
+        (See Example 2).
 
     Args:
         df: A Spark DataFrame

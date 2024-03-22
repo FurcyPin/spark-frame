@@ -9,6 +9,7 @@ from spark_frame.data_diff.diff_result import DiffResult
 from spark_frame.data_diff.package import (
     EXISTS_COL_NAME,
     IS_EQUAL_COL_NAME,
+    SAMPLE_ID_COL_NAME,
     STRUCT_SEPARATOR_REPLACEMENT,
     canonize_col,
 )
@@ -24,6 +25,7 @@ from spark_frame.data_diff.special_characters import (
 )
 from spark_frame.data_type_utils import is_repeated
 from spark_frame.exceptions import CombinatorialExplosionError, DataframeComparisonException
+from spark_frame.field_utils import has_same_or_higher_granularity
 from spark_frame.nested_impl.package import unnest_fields, validate_fields_exist
 from spark_frame.transformations import flatten
 from spark_frame.transformations_impl.convert_all_maps_to_arrays import (
@@ -370,6 +372,7 @@ def _build_diff_dataframe(
     right_df: DataFrame,
     column_names_diff: Dict[str, DiffPrefix],
     join_cols: List[str],
+    granularities: List[str],
 ) -> DataFrame:
     """Perform a column-by-column comparison between two DataFrames.
     The two DataFrames must have the same columns with the same ordering.
@@ -424,18 +427,18 @@ def _build_diff_dataframe(
         >>> column_names_diff = _diff_dataframe_column_names(left_df.columns, right_df.columns)
         >>> column_names_diff
         {'id': ' ', 'c1': ' ', 'c2': ' ', 'c3': '-', 'c4': '+'}
-        >>> (_build_diff_dataframe(left_df, right_df, column_names_diff, ['id'])
+        >>> (_build_diff_dataframe(left_df, right_df, column_names_diff, join_cols=['id'], granularities=[""])
         ...     .withColumn('coalesced_id', f.expr('coalesce(id.left_value, id.right_value)'))
         ...     .orderBy('coalesced_id').drop('coalesced_id').show(truncate=False)
         ... ) # noqa: E501
-        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
-        |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
-        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
-        |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{2, NULL, false, true, false}    |{NULL, 3, false, false, true}    |{true, true} |true        |
-        |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{3, NULL, false, true, false}    |{NULL, 4, false, false, true}    |{true, true} |false       |
-        |{3, NULL, false, true, false}|{c, NULL, false, true, false}|{3, NULL, false, true, false}|{4, NULL, false, true, false}    |{NULL, NULL, false, false, false}|{true, false}|false       |
-        |{NULL, 4, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 5, false, false, true}    |{false, true}|false       |
-        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
+        |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|__SAMPLE_ID__|
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
+        |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{2, NULL, false, true, false}    |{NULL, 3, false, false, true}    |{true, true} |true        |[{"id":1}]   |
+        |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{3, NULL, false, true, false}    |{NULL, 4, false, false, true}    |{true, true} |false       |[{"id":2}]   |
+        |{3, NULL, false, true, false}|{c, NULL, false, true, false}|{3, NULL, false, true, false}|{4, NULL, false, true, false}    |{NULL, NULL, false, false, false}|{true, false}|false       |[{"id":3}]   |
+        |{NULL, 4, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 5, false, false, true}    |{false, true}|false       |[{"id":4}]   |
+        +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
         <BLANKLINE>
     """  # noqa: E501
     column_names_diff = {_replace_special_characters(col_name): diff for col_name, diff in column_names_diff.items()}
@@ -451,7 +454,9 @@ def _build_diff_dataframe(
 
     def comparison_struct(col_name: str, diff_prefix: str) -> Column:
         if diff_prefix == DiffPrefix.ADDED:
-            left_col = f.lit(None)
+            # We use IF(true, None, right_df.col_name) to force
+            # the type of the NULL to be the same as right_df.col_name.
+            left_col = f.when(f.lit(col=True), f.lit(col=None)).otherwise(right_df[col_name])
             left_col_str = left_col
             exists_left = f.lit(col=False)
         else:
@@ -460,7 +465,9 @@ def _build_diff_dataframe(
             exists_left = f.coalesce(left_df[EXISTS_COL_NAME], f.lit(col=False))
 
         if diff_prefix == DiffPrefix.REMOVED:
-            right_col = f.lit(None)
+            # We use IF(true, None, left_df.col_name) to force
+            # the type of the NULL to be the same as left_df.col_name.
+            right_col = f.when(f.lit(col=True), f.lit(col=None)).otherwise(left_df[col_name])
             right_col_str = right_col
             exists_right = f.lit(col=False)
         else:
@@ -495,11 +502,145 @@ def _build_diff_dataframe(
         ).alias(EXISTS_COL_NAME),
     )
 
+    diff_df = _add_is_equal_column(diff_df, column_names_diff)
+    diff_df = _add_join_cols_column(diff_df, join_cols, granularities)
+
+    return diff_df
+
+
+def _add_is_equal_column(diff_df: DataFrame, column_names_diff: Dict[str, DiffPrefix]) -> DataFrame:
+    """Add the __IS_EQUAL__ column to the diff_df"""
     row_is_equal = f.lit(col=True)
     for col_name, diff_prefix in column_names_diff.items():
         if diff_prefix == DiffPrefix.UNCHANGED and col_name in diff_df.columns:
             row_is_equal = row_is_equal & f.col(f"{col_name}.is_equal")
-    return diff_df.withColumn(IS_EQUAL_COL_NAME, row_is_equal)
+    diff_df = diff_df.withColumn(IS_EQUAL_COL_NAME, row_is_equal)
+    return diff_df
+
+
+def _get_join_cols_matching_key(join_cols: List[str], key: str) -> List[str]:
+    """
+    >>> join_cols = ["id", "s__ARRAY____STRUCT__id", "s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id"]
+    >>> _get_join_cols_matching_key(join_cols, "")
+    ['id']
+    >>> _get_join_cols_matching_key(join_cols, "other!")
+    []
+    >>> _get_join_cols_matching_key(join_cols, "s!")
+    ['id', 's__ARRAY____STRUCT__id']
+    >>> _get_join_cols_matching_key(join_cols, "s!.ss!")
+    ['id', 's__ARRAY____STRUCT__id', 's__ARRAY____STRUCT__ss__ARRAY____STRUCT__id']
+    """
+    join_cols = [_restore_special_characters(col) for col in join_cols]
+    join_cols = [
+        col
+        for col in join_cols
+        if has_same_or_higher_granularity(col, key) and any(has_same_or_higher_granularity(key, c) for c in join_cols)
+    ]
+    join_cols = [_replace_special_characters(col) for col in join_cols]
+    return join_cols
+
+
+def _build_key_col(join_cols: List[str]) -> Column:
+    key_col = f.to_json(
+        f.struct([f.coalesce(f.col(col)["left_value"], f.col(col)["right_value"]).alias(col) for col in join_cols]),
+    )
+    return key_col
+
+
+def _add_join_cols_column(diff_df: DataFrame, join_cols: List[str], common_keys: List[str]) -> DataFrame:
+    """Add the __SAMPLE_ID__ column to the diff_df
+
+    >>> from pyspark.sql import SparkSession
+    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+
+    >>> diff_df = spark.sql(
+    ...     '''
+    ...     SELECT INLINE(ARRAY(
+    ...         STRUCT(
+    ...             STRUCT(1 as left_value, 1 as right_value) as id
+    ...         ),
+    ...         STRUCT(
+    ...             STRUCT(2 as left_value, NULL as right_value) as id
+    ...         ),
+    ...         STRUCT(
+    ...             STRUCT(NULL as left_value, 3 as right_value) as id
+    ...         )
+    ...     ))
+    ... ''',
+    ... )
+    >>> diff_df.show(truncate=False)
+    +---------+
+    |id       |
+    +---------+
+    |{1, 1}   |
+    |{2, NULL}|
+    |{NULL, 3}|
+    +---------+
+    <BLANKLINE>
+    >>> join_cols = ["id"]
+    >>> common_keys = [""]
+    >>> _add_join_cols_column(diff_df, join_cols, common_keys).show(truncate=False)
+    +---------+-------------+
+    |id       |__SAMPLE_ID__|
+    +---------+-------------+
+    |{1, 1}   |[{"id":1}]   |
+    |{2, NULL}|[{"id":2}]   |
+    |{NULL, 3}|[{"id":3}]   |
+    +---------+-------------+
+    <BLANKLINE>
+
+    >>> diff_df = spark.sql(
+    ...     '''
+    ...     SELECT INLINE(ARRAY(
+    ...         STRUCT(
+    ...             STRUCT(1 as left_value, 1 as right_value) as id,
+    ...             STRUCT(1 as left_value, 1 as right_value) as s__ARRAY____STRUCT__id,
+    ...             STRUCT(1 as left_value, 1 as right_value) as s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id
+    ...         ),
+    ...         STRUCT(
+    ...             STRUCT(1 as left_value, 1 as right_value) as id,
+    ...             STRUCT(2 as left_value, 2 as right_value) as s__ARRAY____STRUCT__id,
+    ...             STRUCT(1 as left_value, 1 as right_value) as s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id
+    ...         ),
+    ...         STRUCT(
+    ...             STRUCT(2 as left_value, 2 as right_value) as id,
+    ...             STRUCT(1 as left_value, 1 as right_value) as s__ARRAY____STRUCT__id,
+    ...             STRUCT(1 as left_value, 1 as right_value) as s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id
+    ...         ),
+    ...         STRUCT(
+    ...             STRUCT(2 as left_value, 2 as right_value) as id,
+    ...             STRUCT(1 as left_value, 1 as right_value) as s__ARRAY____STRUCT__id,
+    ...             STRUCT(2 as left_value, 2 as right_value) as s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id
+    ...         )
+    ...     ))
+    ... ''',
+    ... )
+    >>> diff_df.show(truncate=False)
+    +------+----------------------+-------------------------------------------+
+    |id    |s__ARRAY____STRUCT__id|s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id|
+    +------+----------------------+-------------------------------------------+
+    |{1, 1}|{1, 1}                |{1, 1}                                     |
+    |{1, 1}|{2, 2}                |{1, 1}                                     |
+    |{2, 2}|{1, 1}                |{1, 1}                                     |
+    |{2, 2}|{1, 1}                |{2, 2}                                     |
+    +------+----------------------+-------------------------------------------+
+    <BLANKLINE>
+    >>> join_cols = ["id", "s__ARRAY____STRUCT__id", "s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id"]
+    >>> common_keys = ["", "other!", "s!", "s!.ss!"]
+    >>> _add_join_cols_column(diff_df, join_cols, common_keys).show(truncate=False)
+    +------+----------------------+-------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+    |id    |s__ARRAY____STRUCT__id|s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id|__SAMPLE_ID__                                                                                                                           |
+    +------+----------------------+-------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+    |{1, 1}|{1, 1}                |{1, 1}                                     |[{"id":1}, {}, {"id":1,"s__ARRAY____STRUCT__id":1}, {"id":1,"s__ARRAY____STRUCT__id":1,"s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id":1}]|
+    |{1, 1}|{2, 2}                |{1, 1}                                     |[{"id":1}, {}, {"id":1,"s__ARRAY____STRUCT__id":2}, {"id":1,"s__ARRAY____STRUCT__id":2,"s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id":1}]|
+    |{2, 2}|{1, 1}                |{1, 1}                                     |[{"id":2}, {}, {"id":2,"s__ARRAY____STRUCT__id":1}, {"id":2,"s__ARRAY____STRUCT__id":1,"s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id":1}]|
+    |{2, 2}|{1, 1}                |{2, 2}                                     |[{"id":2}, {}, {"id":2,"s__ARRAY____STRUCT__id":1}, {"id":2,"s__ARRAY____STRUCT__id":1,"s__ARRAY____STRUCT__ss__ARRAY____STRUCT__id":2}]|
+    +------+----------------------+-------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+    <BLANKLINE>
+    """  # noqa: E501
+    key_cols = [_build_key_col(_get_join_cols_matching_key(join_cols, key)) for key in common_keys]
+    diff_df = diff_df.withColumn(SAMPLE_ID_COL_NAME, f.array(key_cols))
+    return diff_df
 
 
 def _harmonize_and_normalize_dataframes(
@@ -547,13 +688,13 @@ def _build_diff_dataframe_shards(
         keep_fields=join_cols,
     )
 
-    common_keys = sorted(
+    granularities = sorted(
         set(unnested_left_dfs.keys()).intersection(set(unnested_right_dfs.keys())),
     )
 
-    def build_shard(key: str) -> DataFrame:
-        l_df = unnested_left_dfs[key]
-        r_df = unnested_right_dfs[key]
+    def build_shard(granularity: str) -> DataFrame:
+        l_df = unnested_left_dfs[granularity]
+        r_df = unnested_right_dfs[granularity]
         l_df = _replace_special_characters_from_col_names(l_df)
         r_df = _replace_special_characters_from_col_names(r_df)
         schema_diff_result = diff_dataframe_schemas(l_df, r_df, join_cols)
@@ -565,15 +706,10 @@ def _build_diff_dataframe_shards(
             new_join_cols,
         )
         _check_join_cols(specified_join_cols, new_join_cols, self_join_growth_estimate)
-        diff_df = _build_diff_dataframe(
-            l_df,
-            r_df,
-            schema_diff_result.column_names_diff,
-            new_join_cols,
-        )
+        diff_df = _build_diff_dataframe(l_df, r_df, schema_diff_result.column_names_diff, new_join_cols, granularities)
         return diff_df
 
-    return {key: build_shard(key) for key in common_keys}
+    return {granularity: build_shard(granularity) for granularity in granularities}
 
 
 def compare_dataframes(
