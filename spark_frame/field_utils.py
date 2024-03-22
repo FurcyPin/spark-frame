@@ -132,6 +132,50 @@ def has_same_granularity_as_any(field: str, other_fields: List[str]) -> bool:
     return any(has_same_granularity(field, other_field) for other_field in other_fields)
 
 
+def has_same_or_higher_granularity(field: str, other_field: str) -> bool:
+    """Return True if `field` is at the same granularity level as `other_field`
+
+    >>> has_same_or_higher_granularity("a", "")
+    True
+    >>> has_same_or_higher_granularity("s.z", "")
+    True
+    >>> has_same_or_higher_granularity("a!.b", "")
+    False
+    >>> has_same_or_higher_granularity("a!.b!.c", "")
+    False
+
+    >>> has_same_or_higher_granularity("a", "x!")
+    True
+    >>> has_same_or_higher_granularity("s.z", "x!")
+    True
+    >>> has_same_or_higher_granularity("a!.b", "x!")
+    False
+    >>> has_same_or_higher_granularity("a!.b!.c", "x!")
+    False
+
+    >>> has_same_or_higher_granularity("a", "a!")
+    True
+    >>> has_same_or_higher_granularity("s.z", "a!")
+    True
+    >>> has_same_or_higher_granularity("a!.b", "a!")
+    True
+    >>> has_same_or_higher_granularity("a!.b!.c", "a!")
+    False
+
+    >>> has_same_or_higher_granularity("a", "a!.b!")
+    True
+    >>> has_same_or_higher_granularity("s.z", "a!.b!")
+    True
+    >>> has_same_or_higher_granularity("a!.b", "a!.b!")
+    True
+    >>> has_same_or_higher_granularity("a!.s.z", "a!.b!")
+    True
+    >>> has_same_or_higher_granularity("a!.b!.c", "a!.b!")
+    True
+    """
+    return get_granularity(other_field).startswith(get_granularity(field))
+
+
 def is_sub_field(sub_field: str, field: str) -> bool:
     """Return True if `sub_field` is a sub-field of `field`, or is equal to `field`
 
