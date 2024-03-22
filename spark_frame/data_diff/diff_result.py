@@ -15,8 +15,10 @@ from spark_frame.data_diff.package import (
     EXISTS_COL_NAME,
     IS_EQUAL_COL_NAME,
     PREDICATES,
+    SAMPLE_ID_COL_NAME,
     canonize_col,
 )
+from spark_frame.data_diff.sample import _get_sample_df_shards_with_cache
 from spark_frame.data_diff.schema_diff import DiffPrefix, SchemaDiffResult
 from spark_frame.data_diff.special_characters import _restore_special_characters_from_col
 from spark_frame.field_utils import get_granularity
@@ -32,22 +34,24 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
         >>> from spark_frame.data_diff.diff_result import _get_test_intersection_diff_df
         >>> diff_df = _get_test_intersection_diff_df()
         >>> diff_df.show(truncate=False)
-        +-------------------------+-------------------------+
-        |c1                       |c2                       |
-        +-------------------------+-------------------------+
-        |{a, d, false, true, true}|{1, 1, true, true, true} |
-        |{b, a, false, true, true}|{2, 4, false, true, true}|
-        +-------------------------+-------------------------+
+        +------------------------+-------------------------+-------------------------+-------------+
+        |id                      |c1                       |c2                       |__SAMPLE_ID__|
+        +------------------------+-------------------------+-------------------------+-------------+
+        |{1, 1, true, true, true}|{a, d, false, true, true}|{1, 1, true, true, true} |[{"id": 1}]  |
+        |{2, 2, true, true, true}|{a, d, false, true, true}|{2, 4, false, true, true}|[{"id": 2}]  |
+        +------------------------+-------------------------+-------------------------+-------------+
         <BLANKLINE>
         >>> _unpivot(diff_df).orderBy('column_name').show(truncate=False)
-        +-----------+-------------------------+
-        |column_name|diff                     |
-        +-----------+-------------------------+
-        |c1         |{a, d, false, true, true}|
-        |c1         |{b, a, false, true, true}|
-        |c2         |{1, 1, true, true, true} |
-        |c2         |{2, 4, false, true, true}|
-        +-----------+-------------------------+
+        +-----------+--------------------------------------+
+        |column_name|diff                                  |
+        +-----------+--------------------------------------+
+        |c1         |{a, d, false, true, true, [{"id": 1}]}|
+        |c1         |{a, d, false, true, true, [{"id": 2}]}|
+        |c2         |{1, 1, true, true, true, [{"id": 1}]} |
+        |c2         |{2, 4, false, true, true, [{"id": 2}]}|
+        |id         |{1, 1, true, true, true, [{"id": 1}]} |
+        |id         |{2, 2, true, true, true, [{"id": 2}]} |
+        +-----------+--------------------------------------+
         <BLANKLINE>
     """
 
@@ -55,13 +59,13 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
         *[
             f.struct(
                 canonize_col(
-                    diff_df[field.name + ".left_value"],
+                    diff_df[quote(field.name) + ".left_value"],
                     cast(StructType, field.dataType).fields[0],
                 )
                 .cast("STRING")
                 .alias("left_value"),
                 canonize_col(
-                    diff_df[field.name + ".right_value"],
+                    diff_df[quote(field.name) + ".right_value"],
                     cast(StructType, field.dataType).fields[1],
                 )
                 .cast("STRING")
@@ -69,8 +73,10 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
                 diff_df[quote(field.name) + ".is_equal"].alias("is_equal"),
                 diff_df[quote(field.name) + ".exists_left"].alias("exists_left"),
                 diff_df[quote(field.name) + ".exists_right"].alias("exists_right"),
+                diff_df[SAMPLE_ID_COL_NAME].alias("sample_ids"),
             ).alias(field.name)
             for field in diff_df.schema.fields
+            if field.name != SAMPLE_ID_COL_NAME
         ],
     )
 
@@ -192,43 +198,43 @@ class DiffResult:
             >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
             >>> diff_result = _get_test_diff_result()
             >>> diff_result.diff_df_shards[''].show(truncate=False)
-            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
-            |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
-            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
-            |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |true        |
-            |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |false       |
-            |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |
-            |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |
-            |{5, NULL, false, true, false}|{c, NULL, false, true, false}|{3, NULL, false, true, false}|{3, NULL, false, true, false}    |{NULL, NULL, false, false, false}|{true, false}|false       |
-            |{NULL, 6, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 3, false, false, true}    |{false, true}|false       |
-            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
+            |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|__SAMPLE_ID__|
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
+            |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |true        |[{"id": 1}]  |
+            |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |false       |[{"id": 2}]  |
+            |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |[{"id": 3}]  |
+            |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |[{"id": 4}]  |
+            |{5, NULL, false, true, false}|{c, NULL, false, true, false}|{3, NULL, false, true, false}|{3, NULL, false, true, false}    |{NULL, NULL, false, false, false}|{true, false}|false       |[{"id": 5}]  |
+            |{NULL, 6, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 3, false, false, true}    |{false, true}|false       |[{"id": 6}]  |
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
             <BLANKLINE>
             >>> diff_result.top_per_col_state_df.show(100)
-            +-----------+-------------+----------+-----------+---+-------+
-            |column_name|        state|left_value|right_value| nb|row_num|
-            +-----------+-------------+----------+-----------+---+-------+
-            |         c1|    no_change|         b|          b|  3|      1|
-            |         c1|    no_change|         a|          a|  1|      2|
-            |         c1| only_in_left|         c|       NULL|  1|      1|
-            |         c1|only_in_right|      NULL|          f|  1|      1|
-            |         c2|      changed|         2|          4|  2|      1|
-            |         c2|      changed|         2|          3|  1|      2|
-            |         c2|    no_change|         1|          1|  1|      1|
-            |         c2| only_in_left|         3|       NULL|  1|      1|
-            |         c2|only_in_right|      NULL|          3|  1|      1|
-            |         c3| only_in_left|         1|       NULL|  2|      1|
-            |         c3| only_in_left|         2|       NULL|  2|      2|
-            |         c3| only_in_left|         3|       NULL|  1|      3|
-            |         c4|only_in_right|      NULL|          1|  2|      1|
-            |         c4|only_in_right|      NULL|          2|  2|      2|
-            |         c4|only_in_right|      NULL|          3|  1|      3|
-            |         id|    no_change|         1|          1|  1|      1|
-            |         id|    no_change|         2|          2|  1|      2|
-            |         id|    no_change|         3|          3|  1|      3|
-            |         id|    no_change|         4|          4|  1|      4|
-            |         id| only_in_left|         5|       NULL|  1|      1|
-            |         id|only_in_right|      NULL|          6|  1|      1|
-            +-----------+-------------+----------+-----------+---+-------+
+            +-----------+-------------+----------+-----------+---+-----------+-------+
+            |column_name|        state|left_value|right_value| nb| sample_ids|row_num|
+            +-----------+-------------+----------+-----------+---+-----------+-------+
+            |         c1|    no_change|         b|          b|  3|[{"id": 2}]|      1|
+            |         c1|    no_change|         a|          a|  1|[{"id": 1}]|      2|
+            |         c1| only_in_left|         c|       NULL|  1|[{"id": 5}]|      1|
+            |         c1|only_in_right|      NULL|          f|  1|[{"id": 6}]|      1|
+            |         c2|      changed|         2|          4|  2|[{"id": 3}]|      1|
+            |         c2|      changed|         2|          3|  1|[{"id": 2}]|      2|
+            |         c2|    no_change|         1|          1|  1|[{"id": 1}]|      1|
+            |         c2| only_in_left|         3|       NULL|  1|[{"id": 5}]|      1|
+            |         c2|only_in_right|      NULL|          3|  1|[{"id": 6}]|      1|
+            |         c3| only_in_left|         1|       NULL|  2|[{"id": 1}]|      1|
+            |         c3| only_in_left|         2|       NULL|  2|[{"id": 3}]|      2|
+            |         c3| only_in_left|         3|       NULL|  1|[{"id": 5}]|      3|
+            |         c4|only_in_right|      NULL|          1|  2|[{"id": 1}]|      1|
+            |         c4|only_in_right|      NULL|          2|  2|[{"id": 3}]|      2|
+            |         c4|only_in_right|      NULL|          3|  1|[{"id": 6}]|      3|
+            |         id|    no_change|         1|          1|  1|[{"id": 1}]|      1|
+            |         id|    no_change|         2|          2|  1|[{"id": 2}]|      2|
+            |         id|    no_change|         3|          3|  1|[{"id": 3}]|      3|
+            |         id|    no_change|         4|          4|  1|[{"id": 4}]|      4|
+            |         id| only_in_left|         5|       NULL|  1|[{"id": 5}]|      1|
+            |         id|only_in_right|      NULL|          6|  1|[{"id": 6}]|      1|
+            +-----------+-------------+----------+-----------+---+-----------+-------+
             <BLANKLINE>
 
             >>> diff_per_col_df = diff_result.get_diff_per_col_df(max_nb_rows_per_col_state=10)
@@ -245,26 +251,33 @@ class DiffResult:
              |-- diff.changed!.left_value: string (nullable = true)
              |-- diff.changed!.right_value: string (nullable = true)
              |-- diff.changed!.nb: long (nullable = false)
+             |-- diff.changed!.sample_ids!: string (nullable = true)
              |-- diff.no_change!.value: string (nullable = true)
              |-- diff.no_change!.nb: long (nullable = false)
+             |-- diff.no_change!.sample_ids!: string (nullable = true)
              |-- diff.only_in_left!.value: string (nullable = true)
              |-- diff.only_in_left!.nb: long (nullable = false)
+             |-- diff.only_in_left!.sample_ids!: string (nullable = true)
              |-- diff.only_in_right!.value: string (nullable = true)
              |-- diff.only_in_right!.nb: long (nullable = false)
+             |-- diff.only_in_right!.sample_ids!: string (nullable = true)
             <BLANKLINE>
             >>> diff_per_col_df.show(truncate=False)
-            +-------------+-----------+---------------+----------------------------------------------------------+
-            |column_number|column_name|counts         |diff                                                      |
-            +-------------+-----------+---------------+----------------------------------------------------------+
-            |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1}, {2, 1}, {3, 1}, {4, 1}], [{5, 1}], [{6, 1}]}|
-            |1            |c1         |{6, 0, 4, 1, 1}|{[], [{b, 3}, {a, 1}], [{c, 1}], [{f, 1}]}                |
-            |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 4, 2}, {2, 3, 1}], [{1, 1}], [{3, 1}], [{3, 1}]}    |
-            |3            |c3         |{5, 0, 0, 5, 0}|{[], [], [{1, 2}, {2, 2}, {3, 1}], []}                    |
-            |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{1, 2}, {2, 2}, {3, 1}]}                    |
-            +-------------+-----------+---------------+----------------------------------------------------------+
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+            |column_number|column_name|counts         |diff                                                                                                                                    |
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+            |0            |id         |{6, 0, 4, 1, 1}|{[], [{1, 1, [{"id": 1}]}, {2, 1, [{"id": 2}]}, {3, 1, [{"id": 3}]}, {4, 1, [{"id": 4}]}], [{5, 1, [{"id": 5}]}], [{6, 1, [{"id": 6}]}]}|
+            |1            |c1         |{6, 0, 4, 1, 1}|{[], [{b, 3, [{"id": 2}]}, {a, 1, [{"id": 1}]}], [{c, 1, [{"id": 5}]}], [{f, 1, [{"id": 6}]}]}                                          |
+            |2            |c2         |{6, 3, 1, 1, 1}|{[{2, 4, 2, [{"id": 3}]}, {2, 3, 1, [{"id": 2}]}], [{1, 1, [{"id": 1}]}], [{3, 1, [{"id": 5}]}], [{3, 1, [{"id": 6}]}]}                 |
+            |3            |c3         |{5, 0, 0, 5, 0}|{[], [], [{1, 2, [{"id": 1}]}, {2, 2, [{"id": 3}]}, {3, 1, [{"id": 5}]}], []}                                                           |
+            |4            |c4         |{5, 0, 0, 0, 5}|{[], [], [], [{1, 2, [{"id": 1}]}, {2, 2, [{"id": 3}]}, {3, 1, [{"id": 6}]}]}                                                           |
+            +-------------+-----------+---------------+----------------------------------------------------------------------------------------------------------------------------------------+
             <BLANKLINE>
         """  # noqa: E501
         return _get_diff_per_col_df_with_cache(self, max_nb_rows_per_col_state)
+
+    def get_sample_df_shards(self, max_nb_rows_per_col_state: int) -> List[DataFrame]:
+        return _get_sample_df_shards_with_cache(self, max_nb_rows_per_col_state)
 
     def _compute_diff_stats_shard(self, diff_df_shard: DataFrame) -> DiffStats:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
@@ -322,6 +335,7 @@ class DiffResult:
             **{k: (v if v is not None else 0) for k, v in res[0].asDict().items()},
         )
 
+    # TODO: rename to _compute_diff_stats_shards
     def _compute_diff_stats(self) -> Dict[str, DiffStats]:
         """Given a diff_df and its list of join_cols, return stats about the number of differing or missing rows
 
@@ -359,48 +373,49 @@ class DiffResult:
             >>> _diff_result = _get_test_diff_result()
             >>> diff_df = _diff_result.diff_df_shards['']
             >>> diff_df.show(truncate=False)
-            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
-            |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|
-            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
-            |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |true        |
-            |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |false       |
-            |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |
-            |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |
-            |{5, NULL, false, true, false}|{c, NULL, false, true, false}|{3, NULL, false, true, false}|{3, NULL, false, true, false}    |{NULL, NULL, false, false, false}|{true, false}|false       |
-            |{NULL, 6, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 3, false, false, true}    |{false, true}|false       |
-            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
+            |id                           |c1                           |c2                           |c3                               |c4                               |__EXISTS__   |__IS_EQUAL__|__SAMPLE_ID__|
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
+            |{1, 1, true, true, true}     |{a, a, true, true, true}     |{1, 1, true, true, true}     |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |true        |[{"id": 1}]  |
+            |{2, 2, true, true, true}     |{b, b, true, true, true}     |{2, 3, false, true, true}    |{1, NULL, false, true, false}    |{NULL, 1, false, false, true}    |{true, true} |false       |[{"id": 2}]  |
+            |{3, 3, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |[{"id": 3}]  |
+            |{4, 4, true, true, true}     |{b, b, true, true, true}     |{2, 4, false, true, true}    |{2, NULL, false, true, false}    |{NULL, 2, false, false, true}    |{true, true} |false       |[{"id": 4}]  |
+            |{5, NULL, false, true, false}|{c, NULL, false, true, false}|{3, NULL, false, true, false}|{3, NULL, false, true, false}    |{NULL, NULL, false, false, false}|{true, false}|false       |[{"id": 5}]  |
+            |{NULL, 6, false, false, true}|{NULL, f, false, false, true}|{NULL, 3, false, false, true}|{NULL, NULL, false, false, false}|{NULL, 3, false, false, true}    |{false, true}|false       |[{"id": 6}]  |
+            +-----------------------------+-----------------------------+-----------------------------+---------------------------------+---------------------------------+-------------+------------+-------------+
             <BLANKLINE>
             >>> (_diff_result._compute_top_per_col_state_df(diff_df)
             ...  .orderBy("column_name", "state", "left_value", "right_value")
             ... ).show(100)
-            +-----------+-------------+----------+-----------+---+-------+
-            |column_name|        state|left_value|right_value| nb|row_num|
-            +-----------+-------------+----------+-----------+---+-------+
-            |         c1|    no_change|         a|          a|  1|      2|
-            |         c1|    no_change|         b|          b|  3|      1|
-            |         c1| only_in_left|         c|       NULL|  1|      1|
-            |         c1|only_in_right|      NULL|          f|  1|      1|
-            |         c2|      changed|         2|          3|  1|      2|
-            |         c2|      changed|         2|          4|  2|      1|
-            |         c2|    no_change|         1|          1|  1|      1|
-            |         c2| only_in_left|         3|       NULL|  1|      1|
-            |         c2|only_in_right|      NULL|          3|  1|      1|
-            |         c3| only_in_left|         1|       NULL|  2|      1|
-            |         c3| only_in_left|         2|       NULL|  2|      2|
-            |         c3| only_in_left|         3|       NULL|  1|      3|
-            |         c4|only_in_right|      NULL|          1|  2|      1|
-            |         c4|only_in_right|      NULL|          2|  2|      2|
-            |         c4|only_in_right|      NULL|          3|  1|      3|
-            |         id|    no_change|         1|          1|  1|      1|
-            |         id|    no_change|         2|          2|  1|      2|
-            |         id|    no_change|         3|          3|  1|      3|
-            |         id|    no_change|         4|          4|  1|      4|
-            |         id| only_in_left|         5|       NULL|  1|      1|
-            |         id|only_in_right|      NULL|          6|  1|      1|
-            +-----------+-------------+----------+-----------+---+-------+
+            +-----------+-------------+----------+-----------+---+-----------+-------+
+            |column_name|        state|left_value|right_value| nb| sample_ids|row_num|
+            +-----------+-------------+----------+-----------+---+-----------+-------+
+            |         c1|    no_change|         a|          a|  1|[{"id": 1}]|      2|
+            |         c1|    no_change|         b|          b|  3|[{"id": 2}]|      1|
+            |         c1| only_in_left|         c|       NULL|  1|[{"id": 5}]|      1|
+            |         c1|only_in_right|      NULL|          f|  1|[{"id": 6}]|      1|
+            |         c2|      changed|         2|          3|  1|[{"id": 2}]|      2|
+            |         c2|      changed|         2|          4|  2|[{"id": 3}]|      1|
+            |         c2|    no_change|         1|          1|  1|[{"id": 1}]|      1|
+            |         c2| only_in_left|         3|       NULL|  1|[{"id": 5}]|      1|
+            |         c2|only_in_right|      NULL|          3|  1|[{"id": 6}]|      1|
+            |         c3| only_in_left|         1|       NULL|  2|[{"id": 1}]|      1|
+            |         c3| only_in_left|         2|       NULL|  2|[{"id": 3}]|      2|
+            |         c3| only_in_left|         3|       NULL|  1|[{"id": 5}]|      3|
+            |         c4|only_in_right|      NULL|          1|  2|[{"id": 1}]|      1|
+            |         c4|only_in_right|      NULL|          2|  2|[{"id": 3}]|      2|
+            |         c4|only_in_right|      NULL|          3|  1|[{"id": 6}]|      3|
+            |         id|    no_change|         1|          1|  1|[{"id": 1}]|      1|
+            |         id|    no_change|         2|          2|  1|[{"id": 2}]|      2|
+            |         id|    no_change|         3|          3|  1|[{"id": 3}]|      3|
+            |         id|    no_change|         4|          4|  1|[{"id": 4}]|      4|
+            |         id| only_in_left|         5|       NULL|  1|[{"id": 5}]|      1|
+            |         id|only_in_right|      NULL|          6|  1|[{"id": 6}]|      1|
+            +-----------+-------------+----------+-----------+---+-----------+-------+
             <BLANKLINE>
         """  # noqa: E501
-        unpivoted_diff_df = _unpivot(diff_df.drop(IS_EQUAL_COL_NAME, EXISTS_COL_NAME))
+        diff_df = diff_df.drop(IS_EQUAL_COL_NAME, EXISTS_COL_NAME)
+        unpivoted_diff_df = _unpivot(diff_df)
 
         only_in_left = f.col("diff")["exists_left"] & ~f.col("diff")["exists_right"]
         only_in_right = ~f.col("diff")["exists_left"] & f.col("diff")["exists_right"]
@@ -415,6 +430,7 @@ class DiffResult:
             .alias("state"),
             "diff.left_value",
             "diff.right_value",
+            "diff.sample_ids",
         ).where(exists_in_left_or_right)
         window = Window.partitionBy("column_name", "state").orderBy(
             f.col("nb").desc(),
@@ -423,7 +439,7 @@ class DiffResult:
         )
         df_2 = (
             df_1.groupBy("column_name", "state", "left_value", "right_value")
-            .agg(f.count(f.lit(1)).alias("nb"))
+            .agg(f.count(f.lit(1)).alias("nb"), f.first("sample_ids").alias("sample_ids"))
             .withColumn("row_num", f.row_number().over(window))
         )
         return df_2
@@ -604,20 +620,28 @@ def _get_test_intersection_diff_df() -> DataFrame:
         """
         SELECT INLINE(ARRAY(
             STRUCT(
+                STRUCT(1 as left_value, 1 as right_value, True as is_equal,
+                       True as exists_left, True as exists_right
+                ) as id,
                 STRUCT("a" as left_value, "d" as right_value, False as is_equal,
                        True as exists_left, True as exists_right
                 ) as c1,
                 STRUCT(1 as left_value, 1 as right_value, True as is_equal,
                        True as exists_left, True as exists_right
-                ) as c2
+                ) as c2,
+                ARRAY('{"id": 1}') as __SAMPLE_ID__
             ),
             STRUCT(
-                STRUCT("b" as left_value, "a" as right_value, False as is_equal,
+                STRUCT(2 as left_value, 2 as right_value, True as is_equal,
+                       True as exists_left, True as exists_right
+                ) as id,
+                STRUCT("a" as left_value, "d" as right_value, False as is_equal,
                        True as exists_left, True as exists_right
                 ) as c1,
                 STRUCT(2 as left_value, 4 as right_value, False as is_equal,
                        True as exists_left, True as exists_right
-                ) as c2
+                ) as c2,
+                ARRAY('{"id": 2}') as __SAMPLE_ID__
             )
         ))
     """,
