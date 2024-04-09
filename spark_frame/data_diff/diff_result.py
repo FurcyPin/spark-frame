@@ -41,7 +41,7 @@ def _unpivot(diff_df: DataFrame) -> DataFrame:
         |{2, 2, true, true, true}|{a, d, false, true, true}|{2, 4, false, true, true}|[{"id": 2}]  |
         +------------------------+-------------------------+-------------------------+-------------+
         <BLANKLINE>
-        >>> _unpivot(diff_df).orderBy('column_name').show(truncate=False)
+        >>> _unpivot(diff_df).orderBy('column_name', 'diff').show(truncate=False)
         +-----------+--------------------------------------+
         |column_name|diff                                  |
         +-----------+--------------------------------------+
