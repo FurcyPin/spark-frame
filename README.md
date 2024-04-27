@@ -105,7 +105,7 @@ one project to the other one.
 # Changelog
 
 
-# v0.5.0 [In Progress]
+# v0.5.0
 
 **New features:**
 
