@@ -32,6 +32,9 @@ jobs:
         with:
           poetry-version: ${{ env.POETRY_VERSION }}
 
+      - name: Upgrade pip
+        run: poetry run python3 -m pip install --upgrade pip>=24.0
+
       - name: Poetry lock
         run: poetry lock
 
