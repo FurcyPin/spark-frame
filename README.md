@@ -65,21 +65,27 @@ This library does not depend on any other library.
 **Pyspark must be installed separately to use it.**
 It is compatible with the following versions:
 
-- Python: requires 3.8.1 or higher (tested against Python 3.9, 3.10 and 3.11)
-- Pyspark: requires 3.3.0 or higher
+- Python: requires 3.8.1 or higher (tested against Python 3.8, 3.9, 3.10, 3.11 and 3.12)
+- Pyspark: requires 3.3.0 or higher (tested against PySpark 3.3, 3.4 and 3.5)
 
 This library is tested against Windows, Mac and Linux.
+
+However, testing for the following combinations has been disabled, because they are failing:
+
+- PySpark 3.3 with Python >= 3.11
+- PySpark 3.4 with Python >= 3.12
+- PySpark 3.5 with Python 3.12 on Windows
 
 
 **Some features require extra libraries to be installed alongside this project.**
 **We chose to not include them as direct dependencies for security and flexibility reasons.**
 **This way, users who are not using these features don't need to worry about these dependencies.**
 
-| feature                                    |  Method                      | spark-frame's <br> version |     dependency required |
-|--------------------------------------------|------------------------------|---------------------------|------------------------:|
-| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | >= 0.5.0                  | data-diff-viewer==0.3.* |
-| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | 0.4.*                     | data-diff-viewer==0.2.* |
-| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | < 0.4                     |                  jinja2 |
+| feature                                    |  Method                      | spark-frame's <br> version |               dependency required |
+|--------------------------------------------|------------------------------|----------------------------|----------------------------------:|
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | >= 0.5.0                   | data-diff-viewer==0.3.* (>=0.3.2) |
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | 0.4.*                      |           data-diff-viewer==0.2.* |
+| Generating HTML <br> reports for data diff |  `DiffResult.export_to_html` | < 0.4                      |                            jinja2 |
 
 _Since version 0.4, the code used to generate HTML diff reports has been moved to 
 [data-diff-viewer](https://github.com/FurcyPin/data-diff-viewer) from the same author. 

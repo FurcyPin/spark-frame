@@ -61,10 +61,12 @@ jobs:
         run: echo ".github/workflows/resources/hadoop/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         if: matrix.os == 'windows-latest'
 
+      # PySpark 3.5 seems broken when using Python 3.12 on Windows
       - name: Run Unit Tests
         env:
           HADOOP_HOME: .github/workflows/resources/hadoop
         run: poetry run pytest --cov --cov-report=xml
+        if: ${{ !(matrix.os == 'windows-latest' && matrix.python-version == '3.12') }}
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
@@ -73,6 +75,12 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
 
-      - name: Run Tests against older spark versions
-        run: poetry run tox
-        if: matrix.os == 'ubuntu-latest'
+      # PySpark 3.3 is not compatible with Python >= 3.11
+      - name: Run Tests against spark 33
+        run: poetry run tox run -e spark33
+        if: matrix.os == 'ubuntu-latest' && (matrix.python-version == '3.8' || matrix.python-version == '3.9' || matrix.python-version == '3.10')
+
+      # PySpark 3.4 is not compatible with Python >= 3.12
+      - name: Run Tests against spark 34
+        run: poetry run tox run -e spark34
+        if: matrix.os == 'ubuntu-latest' && (matrix.python-version == '3.8' || matrix.python-version == '3.9' || matrix.python-version == '3.10' || matrix.python-version == '3.11')
