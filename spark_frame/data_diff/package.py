@@ -7,7 +7,6 @@ from pyspark.sql.types import StructField
 
 from spark_frame.data_type_utils import is_repeated
 
-MAGIC_HASH_COL_NAME = "__MAGIC_HASH__"
 EXISTS_COL_NAME = "__EXISTS__"
 IS_EQUAL_COL_NAME = "__IS_EQUAL__"
 SAMPLE_ID_COL_NAME = "__SAMPLE_ID__"
