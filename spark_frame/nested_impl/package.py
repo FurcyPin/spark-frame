@@ -213,33 +213,53 @@ def _build_nested_struct_tree(
 
     Examples:
         >>> _build_nested_struct_tree({
-        ...   "s!.c": PrintableFunction(lambda s: s["c"], 'trans_c') ,
-        ...   "s!.d": PrintableFunction(lambda s: s["d"].cast("DOUBLE"), 'trans_d'),
-        ... })
-        OrderedDict([('s', OrderedDict([('!', OrderedDict([('.', OrderedDict([('c', trans_c), ('d', trans_d)]))]))]))])
+        ...   "s!.c": "trans_c" ,
+        ...   "s!.d": "trans_d"
+        ... }) == OrderedDict(
+        ... [("s", OrderedDict([("!", OrderedDict([(".", OrderedDict([("c", "trans_c"), ("d", "trans_d")]))]))]))]
+        ... )
+        True
 
         >>> _build_nested_struct_tree({
-        ...   "e!!.c": PrintableFunction(lambda s: s["c"], 'trans_c') ,
-        ...   "e!!.d": PrintableFunction(lambda s: s["d"].cast("DOUBLE"), 'trans_d'),
-        ... })
-        OrderedDict([('e', OrderedDict([('!', OrderedDict([('!', OrderedDict([('.', OrderedDict([('c', trans_c), ('d', trans_d)]))]))]))]))])
+        ...   "e!!.c": "trans_c",
+        ...   "e!!.d": "trans_d",
+        ... }) == OrderedDict([
+        ...     ("e", OrderedDict([
+        ...         ("!", OrderedDict([
+        ...             ("!", OrderedDict([
+        ...                 (".", OrderedDict([
+        ...                     ("c", "trans_c"),
+        ...                     ("d", "trans_d")
+        ...                 ]))
+        ...             ]))
+        ...         ]))
+        ...     ]))
+        ... ])
+        True
 
         >>> _build_nested_struct_tree({
-        ...   "e!": PrintableFunction(lambda e: e.cast("DOUBLE"), 'trans_e')
-        ... })
-        OrderedDict([('e', OrderedDict([('!', trans_e)]))])
+        ...   "e!": "trans_e"
+        ... }) == OrderedDict([("e", OrderedDict([("!", "trans_e")]))])
+        True
 
         >>> _build_nested_struct_tree({
-        ...   "e!!": PrintableFunction(lambda e: e.cast("DOUBLE"), 'trans_e')
-        ... })
-        OrderedDict([('e', OrderedDict([('!', OrderedDict([('!', trans_e)]))]))])
+        ...   "e!!": "trans_e"
+        ... }) == OrderedDict([("e", OrderedDict([("!", OrderedDict([("!", "trans_e")]))]))])
+        True
 
         >>> _build_nested_struct_tree({
-        ...   "m1%key": PrintableFunction(lambda key : f.upper(key), 'trans_key'),
-        ...   "m1%value.a": PrintableFunction(lambda value : value["a"].cast("DOUBLE"), 'trans_value')
-        ... })
-        OrderedDict([('m1', OrderedDict([('%', OrderedDict([('%key', trans_key), ('%value', OrderedDict([('.', OrderedDict([('a', trans_value)]))]))]))]))])
-    """  # noqa: E501
+        ...   "m1%key": "trans_key",
+        ...   "m1%value.a": "trans_value"
+        ... }) == OrderedDict([
+        ...     ("m1", OrderedDict([
+        ...         ("%", OrderedDict([
+        ...             ("%key", "trans_key"),
+        ...             ("%value", OrderedDict([(".", OrderedDict([("a", "trans_value")]))]))
+        ...         ]))
+        ...     ]))
+        ... ])
+        True
+    """
 
     def rec_insert(
         node: OrderedTree,

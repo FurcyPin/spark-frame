@@ -12,14 +12,21 @@ OrderedTree = Union["OrderedTree", Dict[str, "OrderedTree"]]  # type: ignore[mis
 
 
 def _build_nested_struct_tree(columns: List[str], struct_separator: str) -> OrderedTree:
-    """Given a list of flattened column names and a separator
+    """
 
-    >>> _build_nested_struct_tree(["id", "s.a", "s.b.c", "s.b.d"], ".")
-    OrderedDict([('id', None), ('s', OrderedDict([('a', None), ('b', OrderedDict([('c', None), ('d', None)]))]))])
+    Args:
+        columns: Name of the flattened columns
+        struct_separator: Separator used in the column names for structs
 
-    :param columns: Name of the flattened columns
-    :param struct_separator: Separator used in the column names for structs
-    :return:
+    Returns:
+        an ordered tree structure
+
+    Tests:
+        Given a list of flattened column names and a separator, build a tree structure that represents these columns.
+        >>> _build_nested_struct_tree(["id", "s.a", "s.b.c", "s.b.d"], ".") == OrderedDict(
+        ...     [("id", None), ("s", OrderedDict([("a", None), ("b", OrderedDict([("c", None), ("d", None)]))]))]
+        ... )
+        True
     """
 
     def rec_insert(node: OrderedTree, col: str) -> None:
