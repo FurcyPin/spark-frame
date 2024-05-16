@@ -1,16 +1,18 @@
 ## What is data-diff ?
 
 DataFrame (or table) comparison is the most important feature that any SQL-based OLAP engine
-should have. I personally use it all the time whenever I work on a data pipeline, and  
+should have. I personally use it all the time whenever I work on a data pipeline, and
 I think it is so useful and powerful that it should be a built-in feature of any
 data pipeline development tool, just like `git diff` is the most important feature when
 you use git.
 
+![type:video-autoplay](/spark-frame/images/carburant_diff.mp4)
+<figcaption>Here is an example of data diff</figcaption>
 
 ## What does it do ?
 
 Simple: it compares two SQL tables (or DataFrames), and gives you a detailed summary
-of what changed between the two.
+of what changed between the two, letting you perform in-depth analysis when required. 
 
 
 ## Why is it useful ?
@@ -22,6 +24,7 @@ No sane developer would ever consider using versioning and code reviews if code-
 
 ![](/spark-frame/images/git_diff.png)
 <figcaption>Here is an example of code diff, everyone should be quite familiar with them already.</figcaption>
+
 
 
 When manipulating complex data pipelines, in particular with code written in SQL or DataFrames, it quickly
@@ -101,11 +104,49 @@ The path where the HTML report should be written.
             show_root_heading: false
             show_root_toc_entry: false
 
+## How to read it ?
 
+Once the report is generated, you can simply open it with any browser and 
+you will see a web page with three sections:
+
+- A title headline
+
+- A schema diff that should look like this:
+
+![](/spark-frame/images/carburant_diff_schema.png)
+
+- And a data-diff that should look like this:
+
+![](/spark-frame/images/carburant_diff_data.png)
+
+The data diff reads like this:
+
+- There is one line per column in the DataFrame. 
+- If a column does not exist in the first DataFrame, it will be prefixed with a `+` and the bar will be 
+  <span style="color:purple">purple</span>.
+- If a column does not exist in the second DataFrame, it will be prefixed with a `-` and the bar will be 
+  <span style="color:blue">blue</span>.
+- Otherwise, the bar chart represent the percentage of rows that are identical 
+  (in <span style="color:green">green</span>) _vs._ the percentage that differ (in <span style="color:red">red</span>).
+
+You can interact with the data diff by mousing over and clicking
+on the bar charts:
+
+- If you mouse over a bar chart, a detailed percentage and count of each type of value will appear:
+![type:video](/spark-frame/images/data_diff_mousover.mp4)
+
+- If you click on a bar chart, a detail of the most frequent changes and non-changes will appear :
+![type:video](/spark-frame/images/data_diff_click.mp4)
+
+- You can then click on the details to display a full example of row comparison where this change/non-change happens:
+![type:video](/spark-frame/images/details_click.mp4)
+- Clicking on the line that is already selected will make the full example disappear
+
+- On top of the data diff, there are also two buttons: "Hide columns with no change" and "Expand all details", which
+  are useful when you need to focus on reviewing all the changes in a data-diff:
+![type:video](/spark-frame/images/data_diff_buttons.mp4)
 
 ## Examples
-
-### **More examples coming soon!**
 
 ### Simple examples
 
@@ -114,102 +155,18 @@ Some simple examples are available in the reference of the method
 
 ### French gas price
 
-Here is an example of diff made with Open Data:
-The French government maintains in real-time [a dataset giving the price of gas at the pump in every French gas station
-](https://www.data.gouv.fr/fr/datasets/prix-des-carburants-en-france-flux-instantane/)
+We made a notebook using a real complex use-case using Open Data.
+You can open it directly in Google Colab using this link: <a href="https://colab.research.google.com/github/FurcyPin/french-gas-price/blob/main/notebooks/Data_diff_spark-french_gas_prices.ipynb" target="_blank">
+![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)
+</a>
 
-It's a zip file containing an XML file that can be downloaded at this URL and is refreshed every 10 minutes:
-[https://donnees.roulez-eco.fr/opendata/instantane](https://donnees.roulez-eco.fr/opendata/instantane)
+Or if you don't want to use Google Colab, you can open it 
+[directly in github](https://github.com/FurcyPin/french-gas-price/blob/main/notebooks/Data_diff_spark-french_gas_prices.ipynb).
 
-We used data-diff to display the changes between the 2023-12-28 and the 2023-12-30.
-It was an interesting use case because the dataset is heavily nested as can be seen by displaying its schema:
+If you're in a hurry, here are two examples of diffs generated with this notebook:
 
-``` title="df_2023_12_28.printSchema()"
-root
- |-- cp: long (nullable = true)
- |-- id: long (nullable = true)
- |-- latitude: double (nullable = true)
- |-- longitude: double (nullable = true)
- |-- pop: string (nullable = true)
- |-- adresse: string (nullable = true)
- |-- horaires: struct (nullable = false)
- |    |-- automate-24-24: long (nullable = true)
- |    |-- jour: array (nullable = true)
- |    |    |-- element: struct (containsNull = false)
- |    |    |    |-- value: string (nullable = true)
- |    |    |    |-- ferme: long (nullable = true)
- |    |    |    |-- id: long (nullable = true)
- |    |    |    |-- nom: string (nullable = true)
- |    |    |    |-- horaire: array (nullable = true)
- |    |    |    |    |-- element: struct (containsNull = false)
- |    |    |    |    |    |-- value: string (nullable = true)
- |    |    |    |    |    |-- fermeture: double (nullable = true)
- |    |    |    |    |    |-- ouverture: double (nullable = true)
- |-- prix: array (nullable = true)
- |    |-- element: struct (containsNull = false)
- |    |    |-- value: string (nullable = true)
- |    |    |-- id: long (nullable = true)
- |    |    |-- maj: timestamp (nullable = true)
- |    |    |-- nom: string (nullable = true)
- |    |    |-- valeur: double (nullable = true)
- |-- services: struct (nullable = false)
- |    |-- service: array (nullable = true)
- |    |    |-- element: string (containsNull = true)
- |-- ville: string (nullable = true)
-```
-
-Or, more simply, if we use [`nested.print_schema`][spark_frame.nested.print_schema] instead:
-
-``` title="nested.print_schema(df_2023_12_28)"
-root
- |-- cp: long (nullable = true)
- |-- id: long (nullable = true)
- |-- latitude: double (nullable = true)
- |-- longitude: double (nullable = true)
- |-- pop: string (nullable = true)
- |-- adresse: string (nullable = true)
- |-- horaires.automate-24-24: long (nullable = true)
- |-- horaires.jour!.value: string (nullable = true)
- |-- horaires.jour!.ferme: long (nullable = true)
- |-- horaires.jour!.id: long (nullable = true)
- |-- horaires.jour!.nom: string (nullable = true)
- |-- horaires.jour!.horaire!.value: string (nullable = true)
- |-- horaires.jour!.horaire!.fermeture: double (nullable = true)
- |-- horaires.jour!.horaire!.ouverture: double (nullable = true)
- |-- prix!.value: string (nullable = true)
- |-- prix!.id: long (nullable = true)
- |-- prix!.maj: timestamp (nullable = true)
- |-- prix!.nom: string (nullable = true)
- |-- prix!.valeur: double (nullable = true)
- |-- services.service!: string (nullable = true)
- |-- ville: string (nullable = true)
-```
-
-We used the following code to generate the diff_result and export it as HTML:
-
-``` py linenums="1"
-from spark_frame.data_diff import compare_dataframes, DiffFormatOptions
-
-diff_result = compare_dataframes(df_2023_12_28, df_2023_12_30, join_cols=["id", "horaires.jour!.id", "prix!.id"])
-diff_format_options = DiffFormatOptions(
-    nb_top_values_kept_per_column=20,
-    left_df_alias="2023-12-28",
-    right_df_alias="2023-12-30",
-)
-diff_result.export_to_html(
-    title="Comparaison des prix du carburant en France entre le 2023-12-28 et le 2023-12-30",
-    diff_format_options=diff_format_options
-)
-```
-
-The interesting part is `join_cols=["id", "horaires.jour!.id", "prix!.id"]` at line 3.
-This allows us to automatically explode the arrays `horaires.jour` and `prix` to make the diff 
-much more readable.
-
-The HTML report is available here:
-
-[*Comparaison des prix du carburant en France entre le 2023-12-28 et le 2023-12-30*](../diff_reports/carburants.html)
-
+- [Diff obtained in the middle of the cleaning process](/spark-frame/diff_reports/carburants_diff_3.html)
+- [Diff obtained at the end, before analysis of the remaining differences](/spark-frame/diff_reports/carburants_diff_7.html)
 
 
 ## What are some common use cases ?
