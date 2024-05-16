@@ -21,6 +21,16 @@ theme:
     - content.code.select
 
 plugins:
+  - mkdocs-video:
+      mark: "type:video-autoplay"
+      is_video: True
+      video_muted: True
+      video_controls: True
+      video_autoplay: True
+  - mkdocs-video:
+      is_video: True
+      video_muted: True
+      video_controls: True
   - search:
       lang: en
   - include-markdown:
