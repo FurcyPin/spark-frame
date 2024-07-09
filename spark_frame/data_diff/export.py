@@ -13,21 +13,24 @@ def export_html_diff_report(
     title: Optional[str],
     output_file_path: str,
     encoding: str,
+    base_temp_dir_path: Optional[Path] = None,
 ) -> None:
     load_external_module("data_diff_viewer", version_constraint="0.3.*")
     from data_diff_viewer import DiffSummary, generate_report_string
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir_path = Path(temp_dir)
+    if base_temp_dir_path is None:
+        base_temp_dir_path = Path.cwd()
+    with tempfile.TemporaryDirectory(dir=base_temp_dir_path) as temp_dir:
+        temp_dir_path = Path(temp_dir).absolute()
         diff_per_col_parquet_path = temp_dir_path / "diff_per_col"
         diff_per_col_parquet_glob_path = diff_per_col_parquet_path / "*.parquet"
-        diff_result_summary.diff_per_col_df.write.parquet(str(diff_per_col_parquet_path))
+        diff_result_summary.diff_per_col_df.write.parquet("file:///" + diff_per_col_parquet_path.as_posix())
 
         sample_parquet_glob_paths = []
         for index, sample_df in enumerate(diff_result_summary.sample_df_shards):
             sample_parquet_path = temp_dir_path / f"sample_{index}"
             sample_parquet_glob_paths.append(sample_parquet_path / "*.parquet")
-            sample_df.write.parquet(str(sample_parquet_path))
+            sample_df.write.parquet("file:///" + sample_parquet_path.as_posix())
 
         if title is None:
             report_title = f"{diff_result_summary.left_df_alias} vs {diff_result_summary.right_df_alias}"

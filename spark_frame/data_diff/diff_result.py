@@ -1,4 +1,5 @@
 from functools import cached_property
+from pathlib import Path
 from typing import Dict, Generator, List, Optional, cast
 
 from pyspark.sql import DataFrame, Window
@@ -528,6 +529,7 @@ class DiffResult:
         output_file_path: str = "diff_report.html",
         encoding: str = "utf8",
         diff_format_options: Optional[DiffFormatOptions] = None,
+        temp_dir_path: Optional[Path] = None,
     ) -> None:
         """Generate an HTML report of this diff result.
 
@@ -553,6 +555,8 @@ class DiffResult:
             encoding: Encoding used when writing the html report
             output_file_path: URI of the file to write to.
             diff_format_options: Formatting options
+            temp_dir_path: Local directory in which temporary files will be written.
+                By default, this is the Spark application's local working directory.
 
         Examples:
             >>> from spark_frame.data_diff.diff_result import _get_test_diff_result
@@ -573,6 +577,7 @@ class DiffResult:
             title=title,
             output_file_path=output_file_path,
             encoding=encoding,
+            base_temp_dir_path=temp_dir_path,
         )
 
 
