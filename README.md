@@ -110,6 +110,12 @@ one project to the other one.
 
 # Changelog
 
+# v0.5.1
+
+**Bugfixes**
+
+- data-diff:
+  - Fix export of HTML report not working in cluster mode.
 
 # v0.5.0
 
