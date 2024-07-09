@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import spark_frame
+from spark_frame import filesystem
 from spark_frame.data_diff.diff_result_summary import DiffResultSummary
 from spark_frame.filesystem import write_file
 from spark_frame.utils import load_external_module
@@ -22,15 +23,27 @@ def export_html_diff_report(
         base_temp_dir_path = Path.cwd()
     with tempfile.TemporaryDirectory(dir=base_temp_dir_path) as temp_dir:
         temp_dir_path = Path(temp_dir).absolute()
-        diff_per_col_parquet_path = temp_dir_path / "diff_per_col"
-        diff_per_col_parquet_glob_path = diff_per_col_parquet_path / "*.parquet"
-        diff_result_summary.diff_per_col_df.write.parquet("file:///" + diff_per_col_parquet_path.as_posix())
+        remote_diff_per_col_parquet_path = f"{output_file_path}_TEMP_diff_per_col"
+        local_diff_per_col_parquet_path = temp_dir_path / "diff_per_col"
+        local_diff_per_col_parquet_glob_path = local_diff_per_col_parquet_path / "*.parquet"
+        diff_result_summary.diff_per_col_df.write.mode("OVERWRITE").parquet(remote_diff_per_col_parquet_path)
+        filesystem.copy_to_local_file(
+            remote_diff_per_col_parquet_path,
+            str(local_diff_per_col_parquet_path),
+            delete_source=True,
+        )
 
-        sample_parquet_glob_paths = []
+        local_sample_parquet_glob_paths = []
         for index, sample_df in enumerate(diff_result_summary.sample_df_shards):
-            sample_parquet_path = temp_dir_path / f"sample_{index}"
-            sample_parquet_glob_paths.append(sample_parquet_path / "*.parquet")
-            sample_df.write.parquet("file:///" + sample_parquet_path.as_posix())
+            local_sample_parquet_path = temp_dir_path / f"sample_{index}"
+            local_sample_parquet_glob_paths.append(local_sample_parquet_path / "*.parquet")
+            remote_sample_parquet_path = f"{output_file_path}_TEMP_sample_{index}"
+            sample_df.write.mode("OVERWRITE").parquet(remote_sample_parquet_path)
+            filesystem.copy_to_local_file(
+                remote_sample_parquet_path,
+                str(local_sample_parquet_path),
+                delete_source=True,
+            )
 
         if title is None:
             report_title = f"{diff_result_summary.left_df_alias} vs {diff_result_summary.right_df_alias}"
@@ -52,8 +65,8 @@ def export_html_diff_report(
             report_title,
             diff_summary,
             temp_dir_path,
-            diff_per_col_parquet_glob_path,
-            sample_parquet_glob_paths,
+            local_diff_per_col_parquet_glob_path,
+            local_sample_parquet_glob_paths,
         )
         write_file(report, output_file_path, mode="overwrite", encoding=encoding)
         print(f"Report exported as {output_file_path}")
