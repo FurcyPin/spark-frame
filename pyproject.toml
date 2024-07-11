@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spark-frame"
-version = "0.5.1"
+version = "0.5.2"
 description = "A library containing various utility functions for playing with PySpark DataFrames"
 authors = ["FurcyPin"]
 license = "Apache-2.0"
@@ -94,7 +94,7 @@ testpaths = [
 ]
 
 [tool.bumpversion]
-current_version = "0.5.1"
+current_version = "0.5.2"
 commit = true
 message = "Bump version: {current_version} → {new_version}"
 tag = true
