@@ -49,6 +49,7 @@ def _build_struct_from_tree(
     separator: str,
     prefix: str = "",
 ) -> List[Column]:
+    # TODO: Once support for Spark 3.5 is dropped, update this doctest
     """Given an intermediate tree representing a nested struct, build a Spark Column
     that represents this nested structure.
 
@@ -58,8 +59,13 @@ def _build_struct_from_tree(
     ...      ('c', None),
     ...      ('d', None)
     ...    ]))])
-    >>> _build_struct_from_tree(tree, ".")
-    [Column<'CASE WHEN ((true AND (`b!.c` AS c IS NULL)) AND (`b!.d` AS d IS NULL)) THEN NULL ELSE struct(`b!.c` AS c, `b!.d` AS d) END AS `b!`'>]
+    >>> actual = str(_build_struct_from_tree(tree, "."))
+    >>> if spark.version < "4.0.0":
+    ...     expected = "[Column<'CASE WHEN ((true AND (`b!.c` AS c IS NULL)) AND (`b!.d` AS d IS NULL)) THEN NULL ELSE struct(`b!.c` AS c, `b!.d` AS d) END AS `b!`'>]"
+    ... else:
+    ...     expected = "[Column<'CASE WHEN and(and(true, isNull(`b!.c` AS c)), isNull(`b!.d` AS d)) THEN NULL ELSE struct(`b!.c` AS c, `b!.d` AS d) END AS b!'>]"
+    >>> actual == expected
+    True
 
     :param node:
     :param separator:

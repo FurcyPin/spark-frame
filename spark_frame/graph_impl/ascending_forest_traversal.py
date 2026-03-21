@@ -460,11 +460,11 @@ def ascending_forest_traversal(
             res_df["*"],
             f.struct(*[input_df[quote(col)] for col in input_df.columns]).alias("node"),
         )
-        res_df = res_df.join(input_df, res_df[quote(parent_id)] == input_df[quote(node_id)]).select(
+        res_df = res_df.join(input_df.alias("input_df"), res_df[quote(parent_id)] == input_df[quote(node_id)]).select(
             res_df[quote(node_id)],
             res_df[quote(parent_id)],
             res_df["node"],
-            f.struct(*[input_df[quote(col)] for col in input_df.columns]).alias("furthest_ancestor"),
+            f.struct(*["input_df." + quote(col) for col in input_df.columns]).alias("furthest_ancestor"),
         )
 
     return res_df
