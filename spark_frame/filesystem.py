@@ -316,32 +316,13 @@ def copy_to_local_folder(source_folder: str, dest_folder: str, delete_source: bo
     java_source_folder = spark._jvm.org.apache.hadoop.fs.Path(source_folder)  # noqa: SLF001
     source_folder = java_fs.getFileStatus(java_source_folder).getPath().toUri().toString()
     for source_file in recursively_list_all_files_in_folder(source_folder):
-        relative_source_file = _remove_prefix(source_file, source_folder)
+        relative_source_file = source_file.removeprefix(source_folder)
         dest_file = dest_folder + relative_source_file
         copy_to_local_file(source_file, dest_file, delete_source=delete_source)
     if delete_source:
         java_source_folder = spark._jvm.org.apache.hadoop.fs.Path(source_folder)  # noqa: SLF001
         java_fs = _get_java_file_system(source_folder, spark)
         java_fs.delete(java_source_folder, True)  # noqa: FBT003
-
-
-# TODO: once Python 3.8 is deprecated, we can replace this with String.remove_prefix()
-def _remove_prefix(string: str, prefix: str) -> str:
-    """Remove a prefix from a string.
-
-    >>> _remove_prefix("abc", "a")
-    'bc'
-    >>> _remove_prefix("abc", "b")
-    Traceback (most recent call last):
-        ...
-    spark_frame.exceptions.IllegalArgumentException: b is not a prefix of abc
-
-    """
-    if string.startswith(prefix):
-        return string[len(prefix) :]
-    else:
-        message = f"{prefix} is not a prefix of {string}"
-        raise IllegalArgumentException(message)
 
 
 def recursively_list_all_files_in_folder(folder_path: str) -> Generator[str, None, None]:
