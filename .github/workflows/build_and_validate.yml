@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -79,11 +79,11 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
 
       # PySpark 3.3 is not compatible with Python >= 3.11
-      - name: Run Tests against spark 33
-        run: poetry run tox run -e spark33
-        if: matrix.os == 'ubuntu-latest' && (matrix.python-version == '3.8' || matrix.python-version == '3.9' || matrix.python-version == '3.10')
+      - name: Run Tests against spark 3.5
+        run: poetry run tox run -e spark35
+       # if: matrix.os == 'ubuntu-latest' && (matrix.python-version == '3.8' || matrix.python-version == '3.9' || matrix.python-version == '3.10')
 
       # PySpark 3.4 is not compatible with Python >= 3.12
-      - name: Run Tests against spark 34
-        run: poetry run tox run -e spark34
-        if: matrix.os == 'ubuntu-latest' && (matrix.python-version == '3.8' || matrix.python-version == '3.9' || matrix.python-version == '3.10' || matrix.python-version == '3.11')
+      - name: Run Tests against spark 4.0
+        run: poetry run tox run -e spark40
+       # if: matrix.os == 'ubuntu-latest' && (matrix.python-version == '3.8' || matrix.python-version == '3.9' || matrix.python-version == '3.10' || matrix.python-version == '3.11')
