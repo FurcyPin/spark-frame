@@ -16,7 +16,7 @@ def export_html_diff_report(
     encoding: str,
     base_temp_dir_path: Optional[Path] = None,
 ) -> None:
-    load_external_module("data_diff_viewer", version_constraint="0.3.*")
+    load_external_module("data_diff_viewer", version_constraint="0.4.*")
     from data_diff_viewer import DiffSummary, generate_report_string
 
     if base_temp_dir_path is None:
