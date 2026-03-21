@@ -201,6 +201,7 @@ def split_col_name(col_name: str) -> List[str]:
 
 
 def str_to_col(col: StringOrColumn) -> Column:
+    # TODO: Once support for Spark 3.5 is dropped, update this doctest
     """Converts string or Column argument to Column types
 
     Requires the SparkSession to be instantiated.
@@ -218,8 +219,13 @@ def str_to_col(col: StringOrColumn) -> Column:
         Column<'id'>
         >>> str_to_col(f.expr("COUNT(1)"))
         Column<'COUNT(1)'>
-        >>> str_to_col("*")
-        Column<'unresolvedstar()'>
+        >>> actual = str(str_to_col("*"))
+        >>> if spark.version < "4.0.0":
+        ...     expected = "Column<'unresolvedstar()'>"
+        ... else:
+        ...     expected = "Column<'*'>"
+        >>> actual == expected
+        True
     """
     if isinstance(col, str):
         return f.col(col)

@@ -176,7 +176,7 @@ def _get_test_diff_df() -> DataFrame:
                 STRUCT(5 as left_value, CAST(NULL as INT) as right_value, False as is_equal,
                        True as exists_left, False as exists_right
                 ) as id,
-                STRUCT("c" as left_value, CAST(NULL as INT) as right_value, False as is_equal,
+                STRUCT("c" as left_value, CAST(NULL as STRING) as right_value, False as is_equal,
                        True as exists_left, False as exists_right
                 ) as c1,
                 STRUCT(3 as left_value, CAST(NULL as INT) as right_value, False as is_equal,
@@ -196,7 +196,7 @@ def _get_test_diff_df() -> DataFrame:
                 STRUCT(CAST(NULL as INT) as left_value, 6 as right_value, False as is_equal,
                        False as exists_left, True as exists_right
                 ) as id,
-                STRUCT(CAST(NULL as INT) as left_value, "f" as right_value, False as is_equal,
+                STRUCT(CAST(NULL as STRING) as left_value, "f" as right_value, False as is_equal,
                        False as exists_left, True as exists_right
                 ) as c1,
                 STRUCT(CAST(NULL as INT) as left_value, 3 as right_value, False as is_equal,
