@@ -436,7 +436,7 @@ class DiffResult:
             f.col("nb").desc(),
             f.col("left_value"),
             f.col("right_value"),
-        )
+        ).rowsBetween(Window.unboundedPreceding, Window.currentRow)
         df_2 = (
             df_1.groupBy("column_name", "state", "left_value", "right_value")
             .agg(f.count(f.lit(1)).alias("nb"), f.first("sample_ids").alias("sample_ids"))
