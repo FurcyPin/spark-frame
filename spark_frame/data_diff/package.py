@@ -88,7 +88,7 @@ def _get_test_diff_df() -> DataFrame:
     """  # noqa: E501
     from pyspark.sql import SparkSession
 
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     diff_df = spark.sql(
         """
         SELECT INLINE(ARRAY(

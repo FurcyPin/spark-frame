@@ -69,7 +69,7 @@ def schema_from_simple_string(schema_string: str) -> DataType:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> schema_from_simple_string("int ")
         IntegerType()
         >>> schema_from_simple_string("INT ")

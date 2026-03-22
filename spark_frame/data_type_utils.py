@@ -63,7 +63,7 @@ def get_common_columns(left_schema: StructType, right_schema: StructType) -> Dic
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df1 = spark.sql('''SELECT 'A' as id, CAST(1 as BIGINT) as a, 'a' as b, NULL as c''')
         >>> df2 = spark.sql('''SELECT 'A' as id, CAST(1 as DOUBLE) as a, ARRAY('a') as b, NULL as d''')
         >>> common_cols = get_common_columns(df1.schema, df2.schema)
@@ -105,7 +105,7 @@ def find_wider_type_for_two(t1: DataType, t2: DataType) -> Optional[str]:
     Examples:
         >>> from pyspark.sql.types import DecimalType, LongType, DoubleType, IntegerType
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> find_wider_type_for_two(DecimalType(15, 5), DecimalType(15, 6))
         'decimal(16,6)'
         >>> find_wider_type_for_two(DecimalType(15, 5), DoubleType())
@@ -168,7 +168,7 @@ def flatten_schema(
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d, ARRAY(5) as e)) as b) as s')
         >>> df.schema.simpleString()
         'struct<id:int,s:struct<a:int,b:array<struct<c:int,d:int,e:array<int>>>>>'

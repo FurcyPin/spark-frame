@@ -20,7 +20,7 @@ def _get_nested_col_type_from_schema(col_name: str, schema: StructType) -> DataT
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame([
         ...      (1, {"a.b" : {"c.d": 1, "e": "1", "f`g": True}}),
         ...      (2, {"a.b" : {"c.d": 2, "e": "2", "f`g": True}}),
@@ -105,7 +105,7 @@ def with_generic_typed_struct(df: DataFrame, col_names: List[str]) -> DataFrame:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame(
         ...     [(1, {"first.name": "Jacques", "age": 25, "is.an.adult": True}),
         ...      (2, {"first.name": "Michel", "age": 12, "is.an.adult": False}),

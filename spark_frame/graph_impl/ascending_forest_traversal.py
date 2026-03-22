@@ -89,7 +89,7 @@ def _ascending_forest_traversal(
     Test: Simple case
 
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
 
         >>> input_df = spark.sql('''
         ...     SELECT
@@ -119,7 +119,7 @@ def _ascending_forest_traversal(
     Test: Cycle case
 
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
 
         >>> input_df = spark.sql('''
         ...     SELECT
@@ -149,7 +149,7 @@ def _ascending_forest_traversal(
     Test: Case with parent that does not exist
 
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
 
         >>> input_df = spark.sql('''
         ...     SELECT
@@ -349,7 +349,7 @@ def ascending_forest_traversal(
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
 
         Given a DataFrame with pokemon attributes and evolution links
 

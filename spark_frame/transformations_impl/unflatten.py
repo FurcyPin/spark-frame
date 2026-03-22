@@ -54,7 +54,7 @@ def _build_struct_from_tree(
     that represents this nested structure.
 
     >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+    >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     >>> tree = OrderedDict([('b!', OrderedDict([
     ...      ('c', None),
     ...      ('d', None)
@@ -102,7 +102,7 @@ def unflatten(df: DataFrame, separator: str = ".") -> DataFrame:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame([(1, 1, 1, 1)], "id INT, `s.a` INT, `s.b.c` INT, `s.b.d` INT")
         >>> df.printSchema()
         root

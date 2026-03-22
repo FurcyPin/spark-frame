@@ -21,7 +21,7 @@ def flatten(df: DataFrame, struct_separator: str = ".") -> DataFrame:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame(
         ...         [(1, {"a": 1, "b": {"c": 1, "d": 1}})],
         ...         "id INT, s STRUCT<a:INT, b:STRUCT<c:INT, d:INT>>"

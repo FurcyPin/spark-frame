@@ -27,7 +27,7 @@ def transform_all_fields(
     Examples:
         >>> from pyspark.sql import SparkSession
         >>> from spark_frame import nested
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT
         ...     "John" as name,
         ...     ARRAY(STRUCT(1 as a), STRUCT(2 as a)) as s1,

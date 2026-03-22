@@ -214,7 +214,7 @@ def str_to_col(col: StringOrColumn) -> Column:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> str_to_col("id")
         Column<'id'>
         >>> str_to_col(f.expr("COUNT(1)"))
@@ -296,7 +296,7 @@ def show_string(df: DataFrame, n: int = 20, truncate: Union[bool, int] = True, v
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''
         ...  SELECT INLINE(ARRAY(
         ...    STRUCT(2 as age, "Alice" as name),
@@ -356,7 +356,7 @@ def schema_string(df: DataFrame) -> str:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''
         ...  SELECT INLINE(ARRAY(
         ...    STRUCT(2 as age, "Alice" as name),

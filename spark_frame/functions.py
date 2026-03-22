@@ -19,7 +19,7 @@ def array_union(*cols: StringOrColumn) -> Column:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('SELECT ARRAY(1, 2) as c1, ARRAY(3, 4) as c2, ARRAY(5, 6) as c3')
         >>> df.show()
         +------+------+------+
@@ -56,7 +56,7 @@ def empty_array(element_type: Union[DataType, str]) -> Column:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> from pyspark.sql import functions as f
         >>> df = spark.sql('''SELECT 1 as a''')
         >>> res = df.withColumn('empty_array', empty_array("STRUCT<b: int, c: array<string>>"))
@@ -94,7 +94,7 @@ def generic_struct(*columns: str, col_name_alias: str = "name", col_value_alias:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''
         ...     SELECT
         ...       col1 as `pokemon.id`,
@@ -146,7 +146,7 @@ def nullable(col: Column) -> Column:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> from pyspark.sql import functions as f
         >>> df = spark.sql('''SELECT 1 as a''').withColumn("b", f.lit("2"))
         >>> df.printSchema()

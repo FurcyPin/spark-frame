@@ -42,7 +42,7 @@ def harmonize_dataframes(
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df1 = spark.sql('SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3 as b, 4 as c)) as s2) as s1')
         >>> df2 = spark.sql('SELECT 1 as id, STRUCT(2 as a, ARRAY(STRUCT(3.0 as b, "4" as c, 5 as d)) as s2) as s1')
         >>> df1.union(df2).show(truncate=False) # doctest: +IGNORE_EXCEPTION_DETAIL

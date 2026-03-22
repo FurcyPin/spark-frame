@@ -309,7 +309,7 @@ def _get_sample_employee_data() -> DataFrame:
 
     from spark_frame.schema_utils import schema_from_json
 
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     json_str = """
     {
       "employees": [

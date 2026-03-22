@@ -50,7 +50,7 @@ def select(df: DataFrame, fields: Mapping[str, ColumnTransformation]) -> DataFra
         >>> from pyspark.sql import SparkSession
         >>> from pyspark.sql import functions as f
         >>> from spark_frame import nested
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT 1 as id, STRUCT(2 as a, 3 as b) as s''')
         >>> df.printSchema()
         root
