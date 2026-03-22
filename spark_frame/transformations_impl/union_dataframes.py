@@ -14,7 +14,7 @@ def union_dataframes(*dfs: DataFrame) -> DataFrame:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df1 = spark.sql('SELECT 1 as a')
         >>> df2 = spark.sql('SELECT 2 as a')
         >>> df3 = spark.sql('SELECT 3 as a')

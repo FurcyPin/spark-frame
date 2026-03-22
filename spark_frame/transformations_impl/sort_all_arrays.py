@@ -25,7 +25,7 @@ def sort_all_arrays(df: DataFrame) -> DataFrame:
 
     Examples: Example 1: with a simple `ARRAY<INT>`
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('SELECT 1 as id, ARRAY(3, 2, 1) as a')
         >>> df.show()
         +---+---------+

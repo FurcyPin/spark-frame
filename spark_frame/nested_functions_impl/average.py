@@ -80,7 +80,7 @@ def average(
 
     Examples: Example 2 : with all kind of nested structures
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT
         ...     1 as id,
         ...     ARRAY(STRUCT(1 as a), STRUCT(2 as a)) as s1,

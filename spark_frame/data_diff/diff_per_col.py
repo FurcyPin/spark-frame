@@ -19,7 +19,7 @@ def _get_col_df(columns: List[str], spark: SparkSession) -> DataFrame:
     Examples:
 
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = _get_col_df(["id", "c1", "c2__ARRAY__a"], spark)
         >>> df.printSchema()
         root

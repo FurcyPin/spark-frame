@@ -89,7 +89,7 @@ def fields() -> None:
 def _get_sample_data() -> DataFrame:
     from pyspark.sql import SparkSession
 
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     df = spark.sql(
         """
         SELECT

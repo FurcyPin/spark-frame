@@ -54,7 +54,7 @@ def _schema_to_string(schema: StructType, include_nullable: bool = False, includ
     Examples:
         >>> from pyspark.sql import SparkSession
         >>> from pyspark.sql.types import IntegerType, StringType, StructField, StructType
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT 1 as id, "a" as c1, 1 as c2''')
         >>> print('\\n'.join(_schema_to_string(df.schema)))
         id INT
@@ -125,7 +125,7 @@ def diff_dataframe_schemas(left_df: DataFrame, right_df: DataFrame, join_cols: L
     Examples:
 
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> left_df = spark.sql('''SELECT 1 as id, "" as c1, "" as c2, ARRAY(STRUCT(2 as a, "" as b)) as c4''')
         >>> right_df = spark.sql('''SELECT 1 as id, 2 as c1, "" as c3, ARRAY(STRUCT(3 as a, "" as d)) as c4''')
         >>> schema_diff_result = diff_dataframe_schemas(left_df, right_df, ["id"])

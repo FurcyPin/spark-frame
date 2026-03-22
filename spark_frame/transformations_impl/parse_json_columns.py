@@ -39,7 +39,7 @@ def parse_json_columns(df: DataFrame, columns: Union[str, List[str], Dict[str, s
 
     Examples: Example 1
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.createDataFrame([
         ...         (1, '[{"a": 1}, {"a": 2}]'),
         ...         (1, '[{"a": 2}, {"a": 4}]'),
@@ -159,7 +159,7 @@ def __wrap_json_columns(df: DataFrame, columns: Dict[str, str]) -> DataFrame:
     """Wrap a json column inside a struct.
 
     >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+    >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     >>> df = spark.createDataFrame([
     ...         (1, '[{"a": 1}, {"a": 2}]'),
     ...         (1, '[{"a": 2}, {"a": 4}]'),
@@ -196,7 +196,7 @@ def __infer_schema_per_column(df: DataFrame, columns: List[str]) -> Dict[str, St
     """Infer the schema of all the specified columns
 
     >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+    >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     >>> df = spark.createDataFrame([
     ...         (1, '[{"a": 1}, {"a": 2}]', '{"parsed_json1": [{"a": 1}, {"a": 2}]}'),
     ...         (1, '[{"a": 2}, {"a": 4}]', '{"parsed_json1": [{"a": 2}, {"a": 4}]}'),
@@ -228,7 +228,7 @@ def __parse_json_columns(df: DataFrame, schema_per_col: Dict[str, StructType]) -
     """Infer the schema of all the specified columns
 
     >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+    >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     >>> df = spark.createDataFrame([
     ...         (1, '[{"a": 1}, {"a": 2}]', '{"parsed_json1": [{"a": 1}, {"a": 2}]}'),
     ...         (1, '[{"a": 2}, {"a": 4}]', '{"parsed_json1": [{"a": 2}, {"a": 4}]}'),

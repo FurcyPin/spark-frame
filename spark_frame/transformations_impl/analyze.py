@@ -247,7 +247,7 @@ def analyze(
 def __get_test_df() -> DataFrame:
     from pyspark.sql import SparkSession
 
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     query = """
         SELECT INLINE(ARRAY(
             STRUCT(

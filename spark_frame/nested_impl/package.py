@@ -809,7 +809,7 @@ def resolve_nested_fields(
     Examples:
         >>> from pyspark.sql import SparkSession
         >>> from pyspark.sql import functions as f
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
 
         >>> df = spark.sql('''
         ...     SELECT INLINE(ARRAY(
@@ -1025,7 +1025,7 @@ def unnest_fields(
         >>> from pyspark.sql import SparkSession
         >>> from pyspark.sql import functions as f
         >>> from spark_frame import nested
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT
         ...     1 as id,
         ...     ARRAY(STRUCT(2 as a, ARRAY(STRUCT(3 as c, 4 as d)) as b, ARRAY(5, 6) as e)) as s1,

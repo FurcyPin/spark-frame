@@ -23,7 +23,7 @@ def flatten_all_arrays(df: DataFrame) -> DataFrame:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('SELECT 1 as id, ARRAY(ARRAY(ARRAY(1, 2), ARRAY(3)), ARRAY(ARRAY(4), ARRAY(5))) as a')
         >>> df.printSchema()
         root

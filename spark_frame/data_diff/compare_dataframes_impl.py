@@ -89,7 +89,7 @@ def _get_self_join_growth_estimate(df: DataFrame, cols: Union[str, List[str]]) -
         If a column unique on each row, it's number of duplicates will be 0.
 
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT INLINE(ARRAY(
         ...     STRUCT(1 as id, "a" as name),
         ...     STRUCT(2 as id, "b" as name),
@@ -153,7 +153,7 @@ def _get_eligible_columns_for_join(df: DataFrame) -> Dict[str, float]:
 
     Examples:
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> df = spark.sql('''SELECT INLINE(ARRAY(
         ...     STRUCT(1 as id, "a" as name),
         ...     STRUCT(2 as id, "b" as name),
@@ -219,7 +219,7 @@ def _automatically_infer_join_col(
     of the number of rows in the DataFrame. Returns None if no suche column is found.
 
     >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+    >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     >>> left_df = spark.sql('''SELECT INLINE(ARRAY(
     ...     STRUCT(1 as id, "a" as name),
     ...     STRUCT(2 as id, "b" as name),
@@ -394,7 +394,7 @@ def _build_diff_dataframe(
     Examples:
 
         >>> from pyspark.sql import SparkSession
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> left_df = spark.sql('''SELECT INLINE(ARRAY(
         ...     STRUCT(1 as id, "a" as c1, 1 as c2, 2 as c3),
         ...     STRUCT(2 as id, "b" as c1, 2 as c2, 3 as c3),
@@ -551,7 +551,7 @@ def _add_join_cols_column(diff_df: DataFrame, join_cols: List[str], common_keys:
     """Add the __SAMPLE_ID__ column to the diff_df
 
     >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+    >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
 
     >>> diff_df = spark.sql(
     ...     '''
@@ -984,7 +984,7 @@ def compare_dataframes(
 def __get_test_dfs() -> Tuple[DataFrame, DataFrame]:
     from pyspark.sql import SparkSession
 
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
 
     df1 = spark.sql(
         """

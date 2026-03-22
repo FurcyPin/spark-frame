@@ -41,7 +41,7 @@ def read_file(path: str, encoding: str = "utf8") -> str:
         the content of the file.
 
     Examples:
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> write_file(text="Hello\n", path="test_working_dir/read_file.txt", mode="overwrite")
         >>> text = read_file("test_working_dir/read_file.txt")
         >>> print(text)
@@ -100,7 +100,7 @@ def write_file(
         spark_frame.exceptions.FileAlreadyExistsError: if the file already exists and mode = "error_if_exists".
 
     Examples:
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> write_file(text="Hello\n", path="test_working_dir/write_file.txt", mode="overwrite")
         >>> text = read_file("test_working_dir/write_file.txt")
         >>> print(text)
@@ -183,7 +183,7 @@ def copy_to_local_file(source_path: str, dest_path: str, delete_source: bool) ->
         spark_frame.exceptions.SparkSessionNotStarted: if the SparkSession is not started when this method is called.
 
     Examples: Example 1: copying a file without deleting the source
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> write_file(text="Hello\n", path="test_working_dir/write_file_1.txt", mode="overwrite")
         >>> copy_to_local_file(
         ...     "test_working_dir/write_file_1.txt",
@@ -200,7 +200,7 @@ def copy_to_local_file(source_path: str, dest_path: str, delete_source: bool) ->
         <BLANKLINE>
 
     Examples: Example 2: copying a file to a folder that does not exists
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> write_file(text="Hello\n", path="test_working_dir/write_file_1.txt", mode="overwrite")
         >>> copy_to_local_file(
         ...     "test_working_dir/write_file_1.txt",
@@ -213,7 +213,7 @@ def copy_to_local_file(source_path: str, dest_path: str, delete_source: bool) ->
         <BLANKLINE>
 
     Examples: Example 2: copying a file and deleting the source file
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> write_file(text="Hello\n", path="test_working_dir/write_file_1.txt", mode="overwrite")
         >>> copy_to_local_file(
         ...     "test_working_dir/write_file_1.txt",
@@ -258,7 +258,7 @@ def copy_to_local_folder(source_folder: str, dest_folder: str, delete_source: bo
         spark_frame.exceptions.SparkSessionNotStarted: if the SparkSession is not started when this method is called.
 
     Examples: Example 1: copying a folder without deleting the source
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> write_file(text="Hello\n", path="test_working_dir/source_folder/sub_folder/write_file_1.txt", mode="overwrite")
         >>> write_file(text="Hello\n", path="test_working_dir/source_folder/sub_folder/write_file_2.txt", mode="overwrite")
         >>> copy_to_local_folder(
@@ -284,7 +284,7 @@ def copy_to_local_folder(source_folder: str, dest_folder: str, delete_source: bo
         <BLANKLINE>
 
     Examples: Example 1: copying a folder and deleting the source
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> write_file(text="Hello\n", path="test_working_dir/source_folder/sub_folder/write_file_1.txt", mode="overwrite")
         >>> write_file(text="Hello\n", path="test_working_dir/source_folder/sub_folder/write_file_2.txt", mode="overwrite")
         >>> copy_to_local_folder(
@@ -342,7 +342,7 @@ def recursively_list_all_files_in_folder(folder_path: str) -> Generator[str, Non
         spark_frame.exceptions.SparkSessionNotStarted: if the SparkSession is not started when this method is called.
 
     Examples: Example 1: Listing all files in a folder
-        >>> spark = SparkSession.builder.appName("doctest").getOrCreate()
+        >>> spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
         >>> write_file(text="Hello\n", path="test_working_dir/source_folder/sub_folder/write_file_1.txt", mode="overwrite")
         >>> write_file(text="Hello\n", path="test_working_dir/source_folder/sub_folder/write_file_2.txt", mode="overwrite")
         >>> for file in sorted(recursively_list_all_files_in_folder("test_working_dir/source_folder")):

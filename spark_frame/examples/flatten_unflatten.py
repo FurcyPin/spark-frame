@@ -147,7 +147,7 @@ def _get_sample_pokemon_data() -> DataFrame:
 
     from spark_frame.transformations import parse_json_columns
 
-    spark = SparkSession.builder.appName("doctest").getOrCreate()
+    spark = SparkSession.builder.master("local[2]").appName("doctest").getOrCreate()
     json_str = """
         {
             "id": 1,
