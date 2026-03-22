@@ -432,11 +432,15 @@ class DiffResult:
             "diff.right_value",
             "diff.sample_ids",
         ).where(exists_in_left_or_right)
-        window = Window.partitionBy("column_name", "state").orderBy(
-            f.col("nb").desc(),
-            f.col("left_value"),
-            f.col("right_value"),
-        ).rowsBetween(Window.unboundedPreceding, Window.currentRow)
+        window = (
+            Window.partitionBy("column_name", "state")
+            .orderBy(
+                f.col("nb").desc(),
+                f.col("left_value"),
+                f.col("right_value"),
+            )
+            .rowsBetween(Window.unboundedPreceding, Window.currentRow)
+        )
         df_2 = (
             df_1.groupBy("column_name", "state", "left_value", "right_value")
             .agg(f.count(f.lit(1)).alias("nb"), f.first("sample_ids").alias("sample_ids"))
